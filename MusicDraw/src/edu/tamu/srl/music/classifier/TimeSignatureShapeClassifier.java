@@ -1,11 +1,10 @@
 package edu.tamu.srl.music.classifier;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import edu.tamu.srl.music.classifier.IShape.ShapeType;
+import edu.tamu.srl.music.classifier.IShape.ShapeName;
 
 public class TimeSignatureShapeClassifier extends AbstractShapeClassifier implements IShapeClassifier {
 
@@ -44,7 +43,7 @@ public class TimeSignatureShapeClassifier extends AbstractShapeClassifier implem
 		StaffShape staffShape = null;
 		for (IShape shape : shapes) {
 
-			if (shape.getShapeType() == ShapeType.STAFF)
+			if (shape.getShapeName() == ShapeName.WHOLE_STAFF)
 			{
 				staffShape = (StaffShape) shape;
 				break;
@@ -72,23 +71,23 @@ public class TimeSignatureShapeClassifier extends AbstractShapeClassifier implem
 
 	private boolean isNumber(IShape shape) {
 		
-		if (shape.getShapeType() == ShapeType.ONE)
+		if (shape.getShapeName() == ShapeName.ONE)
 			return true;
-		if (shape.getShapeType() == ShapeType.TWO)
+		if (shape.getShapeName() == ShapeName.TWO)
 			return true;
-		if (shape.getShapeType() == ShapeType.THREE)
+		if (shape.getShapeName() == ShapeName.THREE)
 			return true;
-		if (shape.getShapeType() == ShapeType.FOUR)
+		if (shape.getShapeName() == ShapeName.FOUR)
 			return true;
-		if (shape.getShapeType() == ShapeType.FIVE)
+		if (shape.getShapeName() == ShapeName.FIVE)
 			return true;
-		if (shape.getShapeType() == ShapeType.SIX)
+		if (shape.getShapeName() == ShapeName.SIX)
 			return true;
-		if (shape.getShapeType() == ShapeType.SEVEN)
+		if (shape.getShapeName() == ShapeName.SEVEN)
 			return true;
-		if (shape.getShapeType() == ShapeType.EIGHT)
+		if (shape.getShapeName() == ShapeName.EIGHT)
 			return true;
-		if (shape.getShapeType() == ShapeType.NINE)
+		if (shape.getShapeName() == ShapeName.NINE)
 			return true;
 		
 		return false;

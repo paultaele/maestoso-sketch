@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import edu.tamu.srl.music.classifier.IShape.ShapeType;
+import edu.tamu.srl.music.classifier.IShape.ShapeName;
 
 public class NumberShapeClassifier extends AbstractShapeClassifier implements IShapeClassifier {
 
@@ -23,7 +23,7 @@ public class NumberShapeClassifier extends AbstractShapeClassifier implements IS
 		while (iterator.hasNext()) {
 			
 			IShape shape = iterator.next();
-			if (shape.getShapeType() == ShapeType.RAW) {
+			if (shape.getShapeName() == ShapeName.RAW) {
 				
 				rawShapes.add(shape);
 				iterator.remove();
@@ -40,7 +40,7 @@ public class NumberShapeClassifier extends AbstractShapeClassifier implements IS
 		if (result.score() > MIN_SCORE_THRESHOLD) {
 			
 			//
-			ShapeType newShapeType = getShapeType(result.shape());
+			ShapeName newShapeType = getShapeType(result.shape());
 			List<IStroke> newStrokes = new ArrayList<IStroke>();
 			for (IShape rawShape : rawShapes) {
 
@@ -64,28 +64,28 @@ public class NumberShapeClassifier extends AbstractShapeClassifier implements IS
 		return myShapes;
 	}
 	
-	private ShapeType getShapeType(String shapeName) {
+	private ShapeName getShapeType(String shapeName) {
 		
 		if (shapeName.equals("1"))
-			return ShapeType.ONE;
+			return ShapeName.ONE;
 		if (shapeName.equals("2"))
-			return ShapeType.TWO;
+			return ShapeName.TWO;
 		if (shapeName.equals("3"))
-			return ShapeType.THREE;
+			return ShapeName.THREE;
 		if (shapeName.equals("4"))
-			return ShapeType.FOUR;
+			return ShapeName.FOUR;
 		if (shapeName.equals("5"))
-			return ShapeType.FIVE;
+			return ShapeName.FIVE;
 		if (shapeName.equals("6"))
-			return ShapeType.SIX;
+			return ShapeName.SIX;
 		if (shapeName.equals("7"))
-			return ShapeType.SEVEN;
+			return ShapeName.SEVEN;
 		if (shapeName.equals("8"))
-			return ShapeType.EIGHT;
+			return ShapeName.EIGHT;
 		if (shapeName.equals("9"))
-			return ShapeType.NINE;
+			return ShapeName.NINE;
 		
-		return ShapeType.RAW;
+		return ShapeName.RAW;
 	}
 	
 	

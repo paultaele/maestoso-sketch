@@ -17,14 +17,11 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Stack;
 
 import javax.imageio.ImageIO;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import edu.tamu.srl.music.classifier.IShape;
-import edu.tamu.srl.music.classifier.IShape.ShapeType;
 import edu.tamu.srl.music.classifier.IStroke;
 import edu.tamu.srl.music.classifier.ShapeClassifier;
 
@@ -99,13 +96,20 @@ public class SketchPanel extends JPanel {
 			public void mouseReleased(MouseEvent e) {
 				
 				//
-				IShape shape = new IShape(IShape.ShapeType.RAW, myCurrStroke);
+				IShape shape = new IShape(IShape.ShapeName.RAW, myCurrStroke);
 				myShapes.add(shape);
 				
 				//
 				ShapeClassifier shapeClassifier = new ShapeClassifier();
 				List<IShape> shapes = shapeClassifier.classify(myShapes);
 				myShapes = shapes;
+				
+				// TEMP
+				if (shapes != null && !	shapes.isEmpty())
+					for (IShape s : shapes)
+						System.out.print("    (" + s.getShapeName() + " | " + s.getShapeType() + ")");
+				System.out.println();
+				// TEMP
 				
 				// update the sketch panel
 				myShapes.add(null);

@@ -4,7 +4,7 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 
-import edu.tamu.srl.music.classifier.IShape.ShapeType;
+import edu.tamu.srl.music.classifier.IShape.ShapeName;
 import edu.tamu.srl.music.gui.MainGui;
 
 public class StaffLineShapeClassifier extends AbstractShapeClassifier implements IShapeClassifier {
@@ -21,7 +21,7 @@ public class StaffLineShapeClassifier extends AbstractShapeClassifier implements
 		for (int i = 0; i < shapes.length; ++i) {
 			
 			// case: current shape is a raw shape
-			if (shapes[i].getShapeType() == ShapeType.RAW) {
+			if (shapes[i].getShapeName() == ShapeName.RAW) {
 				
 				// get the raw shape
 				IShape shapeLineCandidate = shapes[i];
@@ -81,7 +81,7 @@ public class StaffLineShapeClassifier extends AbstractShapeClassifier implements
 		//
 		List<Point2D.Double> line = beautifyStaffLine(points);
 		IStroke lineStroke = new IStroke(line, stroke.getColor());
-		myShape = new IShape(IShape.ShapeType.STAFF_LINE, lineStroke);
+		myShape = new IShape(IShape.ShapeName.STAFF_LINE, lineStroke);
 
 		return true;
 	}

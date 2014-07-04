@@ -5,7 +5,7 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 
-import edu.tamu.srl.music.classifier.IShape.ShapeType;
+import edu.tamu.srl.music.classifier.IShape.ShapeName;
 import edu.tamu.srl.music.gui.MainGui;
 
 public class StaffShapeClassifier implements IShapeClassifier {
@@ -26,7 +26,7 @@ public class StaffShapeClassifier implements IShapeClassifier {
 			IShape shape = shapes.get(i);
 			
 			// case: the current shape is a staff line
-			if (shape.getShapeType() == ShapeType.STAFF_LINE) {
+			if (shape.getShapeName() == ShapeName.STAFF_LINE) {
 				
 				// add the index to the list of staff line indices
 				staffLineIndices[staffLineCount] = i;
@@ -57,7 +57,7 @@ public class StaffShapeClassifier implements IShapeClassifier {
 			IShape priorStaff = null;
 			boolean hasStaff = false;
 			for (IShape shape : shapes) {
-				if (shape.getShapeType().equals(ShapeType.STAFF)) {
+				if (shape.getShapeName().equals(ShapeName.WHOLE_STAFF)) {
 					hasStaff = true;
 					priorStaff = shape;
 				}
@@ -108,7 +108,7 @@ public class StaffShapeClassifier implements IShapeClassifier {
 			}
 			
 			// add staff to list of shapes
-			IShape staff = new StaffShape(beautifiedStaffLineStrokes, IShape.ShapeType.STAFF, topY, lineInterval);
+			IShape staff = new StaffShape(beautifiedStaffLineStrokes, IShape.ShapeName.WHOLE_STAFF, topY, lineInterval);
 			shapes.add(staff);
 			
 			//

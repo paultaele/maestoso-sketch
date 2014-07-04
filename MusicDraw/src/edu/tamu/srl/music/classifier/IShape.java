@@ -7,19 +7,20 @@ import java.util.List;
 
 public class IShape {
 	
-	public IShape(ShapeType shapeType, IStroke stroke) {
+	public IShape(ShapeName shapeName, IStroke stroke) {
 		
-		this(shapeType, stroke, null);
+		this(shapeName, stroke, null);
 	}
 	
-	public IShape(ShapeType shapeType, List<IStroke> strokes) {
+	public IShape(ShapeName shapeName, List<IStroke> strokes) {
 		
-		this(shapeType, strokes, null);
+		this(shapeName, strokes, null);
 	}
 	
-	public IShape(ShapeType shapeType, IStroke stroke, File imageFile) {
+	public IShape(ShapeName shapeName, IStroke stroke, File imageFile) {
 		
-		myShapeType = shapeType;
+		myShapeName = shapeName;
+		myShapeType = getShapeType(shapeName);
 		myStrokes = new ArrayList<IStroke>();
 		myStrokes.add(stroke);
 		myImageFile = imageFile;
@@ -34,9 +35,10 @@ public class IShape {
 		myBoundingBox = new BoundingBox(stroke.getPoints());
 	}
 	
-	public IShape(ShapeType shapeType, List<IStroke> strokes, File imageFile) {
+	public IShape(ShapeName shapeName, List<IStroke> strokes, File imageFile) {
 		
-		myShapeType = shapeType;
+		myShapeName = shapeName;
+		myShapeType = getShapeType(shapeName);
 		myStrokes = strokes;
 		myImageFile = imageFile;
 		myImageX = 0;
@@ -52,6 +54,40 @@ public class IShape {
 			for (Point2D.Double point : stroke.getPoints())
 				points.add(point);
 		myBoundingBox = new BoundingBox(points);
+	}
+	
+	private ShapeType getShapeType(ShapeName shapeName) {
+		
+		if (shapeName == ShapeName.STAFF_LINE
+				|| shapeName == ShapeName.WHOLE_STAFF)
+			return ShapeType.STAFF;
+		
+		else if (shapeName == ShapeName.TREBLE_CLEF
+				|| shapeName == ShapeName.BASS_CLEF)
+			return ShapeType.CLEF;
+		
+		else if (shapeName == ShapeName.ONE
+				|| shapeName == ShapeName.TWO
+				|| shapeName == ShapeName.THREE
+				|| shapeName == ShapeName.FOUR
+				|| shapeName == ShapeName.FIVE
+				|| shapeName == ShapeName.SIX
+				|| shapeName == ShapeName.SEVEN
+				|| shapeName == ShapeName.EIGHT
+				|| shapeName == ShapeName.NINE)
+			return ShapeType.NUMBER;
+		
+		else if (shapeName == ShapeName.SHARP
+				|| shapeName == ShapeName.FLAT)
+			return ShapeType.ACCIDENTAL;
+		
+		else
+			return ShapeType.NONE;
+	}
+	
+	public ShapeName getShapeName() {
+		
+		return myShapeName;
 	}
 	
 	public ShapeType getShapeType() {
@@ -124,17 +160,27 @@ public class IShape {
 		return myBoundingBox;
 	}
 	
-	public enum ShapeType {
+	public enum ShapeName {
 		
 		RAW,
-		STAFF_LINE, STAFF,
+		STAFF_LINE, WHOLE_STAFF,
 		TREBLE_CLEF, BASS_CLEF,
 		ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE,
 		SHARP, FLAT
 	}
+	
+	public enum ShapeType {
+		
+		NONE,
+		STAFF,
+		CLEF,
+		NUMBER,
+		ACCIDENTAL
+	}
 
 	
 	
+	private ShapeName myShapeName;
 	private ShapeType myShapeType;
 	private List<IStroke> myStrokes;
 	private File myImageFile;

@@ -4,7 +4,7 @@ import java.util.List;
 
 public class StaffShape extends IShape {
 
-	public StaffShape(List<IStroke> strokes, ShapeType shapeType, double topY, double lineInterval) {
+	public StaffShape(List<IStroke> strokes, ShapeName shapeType, double topY, double lineInterval) {
 		
 		super(shapeType, strokes);
 
