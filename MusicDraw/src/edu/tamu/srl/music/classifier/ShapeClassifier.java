@@ -12,10 +12,10 @@ public class ShapeClassifier {
 		// 
 		boolean containsWholeStaff = contains(shapes, ShapeName.WHOLE_STAFF);
 		boolean containsClef = contains(shapes, ShapeType.CLEF);
-		boolean containsNumber = contains(shapes, ShapeType.NUMBER);
-		boolean containsTimeSignature = contains(shapes, ShapeType.NUMBER, 2);
+		boolean containsBeat = contains(shapes, ShapeType.BEAT);
+		boolean containsTimeSignature = contains(shapes, ShapeType.BEAT, 2);
 				
-				//
+		//
 		boolean isClassified = false;
 		IShapeClassifier classifier = null;
 		
@@ -48,34 +48,35 @@ public class ShapeClassifier {
 				return classifier.getResult();
 		}
 		
-		//
-//		System.out.println("containsWholeStaff: " + containsWholeStaff + " | containsClef: " + containsClef + " | !containsTimeSignature: " + !containsTimeSignature);
-		
 		if (containsWholeStaff && containsClef && !containsTimeSignature) {
 			
 			// test for accidentals
-			if (!containsNumber) {
-//				
-//				
+			if (!containsBeat) {
+				
+//				classifier = new KeyShapeClassifier();
+//				isClassified = classifier.classify(shapes);
+//				if (isClassified)
+//					return classifier.getResult();
 			}
 			
-			// test for numbers
-			classifier = new NumberShapeClassifier();
+			// test for beats
+			classifier = new BeatShapeClassifier();
 			isClassified = classifier.classify(shapes);
-			if (isClassified) {
-				
-				// temp
-//				return classifier.getResult();
-				
-				// test for time signature
-				List<IShape> newShapes = classifier.getResult();
-				classifier = new TimeSignatureShapeClassifier();
-				isClassified = classifier.classify(newShapes);
-				if (isClassified)
-					return classifier.getResult();
-				else
-					return newShapes;
-			}
+			if (isClassified)
+				return classifier.getResult();
+			
+//			if (isClassified) {
+//				
+//				
+//				// test for time signature
+//				List<IShape> newShapes = classifier.getResult();
+//				classifier = new TimeSignatureShapeClassifier();
+//				isClassified = classifier.classify(newShapes);
+//				if (isClassified)
+//					return classifier.getResult();
+//				else
+//					return newShapes;
+//			}
 		}
 		
 		

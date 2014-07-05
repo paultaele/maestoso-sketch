@@ -69,8 +69,9 @@ public class ClefShapeClassifier extends AbstractShapeClassifier implements ISha
 				newStrokes.add(rawStroke);
 			}
 			
-			// create clef
-			IShape newShape = new IShape(newShapeType, newStrokes, newImage);
+			// create clef and set its image
+			IShape newShape = new IShape(newShapeType, newStrokes);
+			newShape.setImageFile(newImage);
 			
 			// get the staff from the list of shapes
 			IShape staffShape = null;

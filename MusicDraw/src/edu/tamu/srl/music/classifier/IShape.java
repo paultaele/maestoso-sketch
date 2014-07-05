@@ -9,45 +9,27 @@ public class IShape {
 	
 	public IShape(ShapeName shapeName, IStroke stroke) {
 		
-		this(shapeName, stroke, null);
-	}
-	
-	public IShape(ShapeName shapeName, List<IStroke> strokes) {
-		
-		this(shapeName, strokes, null);
-	}
-	
-	public IShape(ShapeName shapeName, IStroke stroke, File imageFile) {
-		
 		myShapeName = shapeName;
 		myShapeType = getShapeType(shapeName);
 		myStrokes = new ArrayList<IStroke>();
 		myStrokes.add(stroke);
-		myImageFile = imageFile;
+		myImageFile = null;
 		myImageX = 0;
 		myImageY = 0;
-		
-		if (imageFile != null)
-			myHasImage = true;
-		else
-			myHasImage = false;
+		myHasImage = false;
 		
 		myBoundingBox = new BoundingBox(stroke.getPoints());
 	}
 	
-	public IShape(ShapeName shapeName, List<IStroke> strokes, File imageFile) {
+	public IShape(ShapeName shapeName, List<IStroke> strokes) {
 		
 		myShapeName = shapeName;
 		myShapeType = getShapeType(shapeName);
 		myStrokes = strokes;
-		myImageFile = imageFile;
+		myImageFile = null;
 		myImageX = 0;
 		myImageY = 0;
-		
-		if (imageFile != null)
-			myHasImage = true;
-		else
-			myHasImage = false;
+		myHasImage = false;
 		
 		List<Point2D.Double> points = new ArrayList<Point2D.Double>();
 		for (IStroke stroke : strokes)
@@ -75,7 +57,7 @@ public class IShape {
 				|| shapeName == ShapeName.SEVEN
 				|| shapeName == ShapeName.EIGHT
 				|| shapeName == ShapeName.NINE)
-			return ShapeType.NUMBER;
+			return ShapeType.BEAT;
 		
 		else if (shapeName == ShapeName.SHARP
 				|| shapeName == ShapeName.FLAT)
@@ -103,6 +85,12 @@ public class IShape {
 	public File getImageFile() {
 		
 		return myImageFile;
+	}
+	
+	public void setImageFile(File imageFile) {
+		
+		myHasImage = true;
+		myImageFile = imageFile;
 	}
 	
 	public boolean hasImage() {
@@ -174,7 +162,7 @@ public class IShape {
 		NONE,
 		STAFF,
 		CLEF,
-		NUMBER,
+		BEAT,
 		ACCIDENTAL
 	}
 
