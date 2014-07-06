@@ -1,0 +1,149 @@
+package edu.tamu.srl.music.classifier;
+
+import java.awt.geom.Point2D;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import edu.tamu.srl.music.xml.XmlPoint;
+import edu.tamu.srl.music.xml.XmlSketch;
+import edu.tamu.srl.music.xml.XmlSketchParser;
+import edu.tamu.srl.music.xml.XmlStroke;
+
+public class Template {
+	
+	public Template(String shape, List<List<Point2D.Double>> strokes) {
+		
+		myShape = shape;
+		myStrokes = strokes;
+	}
+	
+	public List<List<Point2D.Double>> getStrokes() {
+		
+		return myStrokes;
+	}
+	
+	public void setPoints(List<List<Point2D.Double>> strokes) {
+		
+		myStrokes = strokes;
+	}
+	
+	public String getShape() {
+		
+		return myShape;
+	}
+	
+	// #####
+	
+	public static void loadTemplates() {
+		
+		// initialize the map
+		HashMap<String, List<Template>> map = new HashMap<String, List<Template>>();
+		
+		// get the list of XML data subdirectories
+		File directory = new File(DATA_DIR_PATHNAME);
+		List<File> subdirectories = new ArrayList<File>();
+		for (File subdirectory : directory.listFiles()) {
+			if (subdirectory.isDirectory())
+				subdirectories.add(subdirectory);
+		}
+		
+		// get the XML files from the first subdirectory
+		for (File subdirectory : subdirectories) {
+			
+			List<File> xmlFiles = new ArrayList<File>();
+			for (File xmlFile : subdirectory.listFiles()) {
+				
+				if (xmlFile.isFile() && xmlFile.getName().endsWith(".xml")) {
+				
+					xmlFiles.add(xmlFile);
+				}
+			}
+			
+			// convert XML files to XML sketches
+			List<XmlSketch> xmlSketches = new ArrayList<XmlSketch>();
+			XmlSketchParser parser = null;
+			for (File xmlFile : xmlFiles) {
+				
+				parser = new XmlSketchParser(xmlFile);
+				XmlSketch xmlSketch = parser.getSketch();
+				xmlSketches.add(xmlSketch);
+			}
+			
+			// convert and transform each XML sketch to template
+			List<Template> templates = new ArrayList<Template>();
+			for (XmlSketch xmlSketch : xmlSketches) {
+				
+				// convert 
+				Template originalTemplate = convertToTemplate(xmlSketch);
+				Template transformedTemplate = transform(originalTemplate);
+				templates.add(template);
+			}
+			
+			String groupName = subdirectory.getName();
+			map.put(groupName, templates);
+		}
+		
+		// set the initial variable
+		myTemplatesMap = map;
+	}
+	
+	private static Template convertToTemplate(XmlSketch sketch) {
+		
+		// get the XML strokes and shape ID from the XML sketch
+		List<XmlStroke> xmlStrokes = sketch.getStrokes();
+		String shape = sketch.getShape();
+		
+		// initialize the list of points and strokes
+		List<Point2D.Double> points = new ArrayList<Point2D.Double>();
+		List<List<Point2D.Double>> strokes = new ArrayList<List<Point2D.Double>>();
+		
+		// iterate through each stroke
+		for (XmlStroke xmlStroke : xmlStrokes) {
+			
+			// iterate through each point
+			for (XmlPoint xmlPoint : xmlStroke.toPoints()) {
+				
+				// get the current point
+				double x = xmlPoint.X();
+				double y = xmlPoint.Y();
+				Point2D.Double point = new Point2D.Double(x, y);
+				
+				points.add(point);
+			}
+			
+			// add the points to the list of strokes and then reset the points
+			strokes.add(points);
+			points = new ArrayList<Point2D.Double>();
+		}
+		
+		return new Template(shape, strokes);
+	}
+	
+	private Template transform(Template originalTemplate) {
+		
+		List<List<Point2D.Double>> strokes = new ArrayList<List<Point2D.Double>>();
+		strokes = Hausdorff.resample(strokes, Hausdorff.N);
+		strokes = Hausdorff.scaleTo(strokes, Hausdorff.SIZE);
+		strokes = Hausdorff.translateTo(strokes, Hausdorff.K);
+
+		return null;
+	}
+	
+	public static List<Template> getTemplates(String shapeGroup) {
+		
+		List<Template> templates = myTemplatesMap.get(shapeGroup);
+		
+		return templates;
+	}
+	
+	
+	
+	
+	private List<List<Point2D.Double>> myStrokes;
+	private String myShape;
+	
+	private static HashMap<String, List<Template>> myTemplatesMap;
+	public static final String DATA_DIR_PATHNAME = "src/edu/tamu/srl/music/data/";
+}

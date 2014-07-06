@@ -1,0 +1,6 @@
+package edu.tamu.srl.music.classifier;
+
+public class AccidentalShapeClassifier
+	extends AbstractShapeClassifier implements IShapeClassifier {
+
+}

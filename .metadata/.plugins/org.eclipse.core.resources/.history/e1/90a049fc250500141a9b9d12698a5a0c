@@ -1,0 +1,67 @@
+package edu.tamu.srl.music.classifier;
+
+import java.awt.geom.Point2D;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+public class Template {
+	
+	public Template(String shape, List<List<Point2D.Double>> strokes) {
+		
+		myShape = shape;
+		myStrokes = strokes;
+	}
+	
+	public List<List<Point2D.Double>> getStrokes() {
+		
+		return myStrokes;
+	}
+	
+	public void setPoints(List<List<Point2D.Double>> strokes) {
+		
+		myStrokes = strokes;
+	}
+	
+	public String getShape() {
+		
+		return myShape;
+	}
+	
+	// #####
+	
+	public static void loadTemplates() {
+		
+		// initialize the map
+		HashMap<String, List<Template>> map = new HashMap<String, List<Template>>();
+		
+		// get the list of XML data subdirectories
+		File dir = new File(DATA_DIR_PATHNAME);
+		List<File> subdirs = new ArrayList<File>();
+		for (File subdir : dir.listFiles()) {
+			if (subdir.isDirectory())
+				subdirs.add(subdir);
+		}
+		
+		// get the XML files from the first list
+		
+		
+		// set the initial variable
+		myTemplatesMap = map;
+	}
+	
+	public List<Template> getTemplates(String shapeGroup) {
+		
+		return myTemplatesMap.get(shapeGroup);
+	}
+	
+	
+	
+	
+	private List<List<Point2D.Double>> myStrokes;
+	private String myShape;
+	
+	private static HashMap<String, List<Template>> myTemplatesMap;
+	public static final String DATA_DIR_PATHNAME = "src/edu/tamu/srl/music/data/";
+}

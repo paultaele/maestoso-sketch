@@ -1,0 +1,18 @@
+1404609470876	Delete elements
+1404611323846	Delete elements
+1404661408504	Rename field 'myTemplates'
+1404661754323	Rename type 'ShapeType'
+1404661766157	Rename field 'myShapeType'
+1404661770464	Rename method 'getShapeType'
+1404661784225	Rename method 'getShapeType'
+1404661899735	Rename field 'XML_DATA_FILEPATH'
+1404662025560	Rename local variable 'subdirList'
+1404662199823	Rename local variable 'dir'
+1404662203342	Rename local variable 'subdirs'
+1404662207506	Rename local variable 'subdir'
+1404664613923	Rename local variable 'currentSubdirectory'
+1404667308346	Rename local variable 'maxS'
+1404667313964	Rename local variable 'maxD'
+1404667316948	Rename local variable 'minS'
+1404667320026	Rename local variable 'minD'
+1404668354790	Rename method 'output'

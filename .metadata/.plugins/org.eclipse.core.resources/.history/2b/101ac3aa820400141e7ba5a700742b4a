@@ -1,0 +1,93 @@
+package edu.tamu.srl.music.classifier;
+
+import java.awt.Color;
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import edu.tamu.srl.music.classifier.IShape.ShapeName;
+
+public class AccidentalShapeClassifier
+	extends AbstractShapeClassifier implements IShapeClassifier {
+
+	@Override
+	public boolean classify(List<IShape> originals) {
+		
+		// clone the list of original shapes
+		List<IShape> shapes = new ArrayList<IShape>();
+		for (IShape original : originals)
+			shapes.add(original);
+		
+		// extract all raw shapes
+		List<IShape> rawShapes = new ArrayList<IShape>();
+		Iterator<IShape> iterator = shapes.iterator();
+		while (iterator.hasNext()) {
+			
+			IShape shape = iterator.next();
+			if (shape.getShapeName() == ShapeName.RAW) {
+				
+				rawShapes.add(shape);
+				iterator.remove();
+			}
+		}
+		
+		// line test
+		if (isLine(rawShapes))
+			return false;
+		
+		//
+		Hausdorff classifier = new Hausdorff();
+		List<List<Point2D.Double>> strokes = getStrokes(rawShapes);
+		List<Template> templates = getTemplates(DATA_DIR_PATHNAME);
+		Pair result = classifier.classify(strokes, templates);
+
+		//
+		System.out.println("SCORE: " + result.score());
+		if (result.score() > MIN_SCORE_THRESHOLD) {
+			
+			// case: shape name is sharp
+			if (result.shape().equals("Sharp"))
+				;
+			
+			//
+			ShapeName newShapeType = getShapeType(result.shape());
+			List<IStroke> newStrokes = new ArrayList<IStroke>();
+			for (IShape rawShape : rawShapes) {
+
+				IStroke newStroke = rawShape.getStrokes().get(0);
+				newStroke.setColor(Color.blue); // TEMP
+				newStrokes.add(newStroke);
+			}
+			IShape shape = new IShape(newShapeType, newStrokes);
+			
+			//
+			shapes.add(shape);
+			myShapes = shapes;
+			return true;
+		}
+		
+		return false;
+	}
+
+	@Override
+	public List<IShape> getResult() {
+
+		return myShapes;
+	}
+	
+	private ShapeName getShapeType(String shapeName) {
+		
+		if (shapeName.equals("Flat"))
+			return ShapeName.FLAT;
+		if (shapeName.equals("Sharp"))
+			return ShapeName.SHARP;
+		
+		return ShapeName.RAW;
+	}
+
+	
+	
+	public static final String DATA_DIR_PATHNAME = "src/edu/tamu/srl/music/data/accidental/";
+	public static final double MIN_SCORE_THRESHOLD = 0.75;
+}

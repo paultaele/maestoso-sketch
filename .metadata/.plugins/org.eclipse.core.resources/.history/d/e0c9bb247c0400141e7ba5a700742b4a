@@ -1,0 +1,32 @@
+package edu.tamu.srl.music.classifier;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class AccidentalShapeClassifier
+	extends AbstractShapeClassifier implements IShapeClassifier {
+
+	@Override
+	public boolean classify(List<IShape> originals) {
+		
+		// clone the list of original shapes
+		List<IShape> shapes = new ArrayList<IShape>();
+		for (IShape original : originals)
+			shapes.add(original);
+		
+		return false;
+	}
+
+	@Override
+	public List<IShape> getResult() {
+
+		return myShapes;
+	}
+
+	
+	
+	private List<IShape> myShapes;
+	
+	public static final String DATA_DIR_PATHNAME = "src/edu/tamu/srl/music/data/beat/";
+	public static final double MIN_SCORE_THRESHOLD = 0.75;
+}
