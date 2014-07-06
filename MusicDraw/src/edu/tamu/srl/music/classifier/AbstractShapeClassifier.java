@@ -51,17 +51,33 @@ public abstract class AbstractShapeClassifier implements IShapeClassifier {
 
 	private Template convertToTemplate(XmlSketch sketch) {
 		
+		// get the XML strokes and shape ID from the XML sketch
 		List<XmlStroke> xmlStrokes = sketch.getStrokes();
-		
 		String shape = sketch.getShape();
+		
+		// initialize the list of points and strokes
 		List<Point2D.Double> points = new ArrayList<Point2D.Double>();
 		List<List<Point2D.Double>> strokes = new ArrayList<List<Point2D.Double>>();
 		
-		for (XmlStroke xmlStroke : xmlStrokes)
-			for (XmlPoint xmlPoint : xmlStroke.toPoints())
-				points.add(new Point2D.Double(xmlPoint.X(), xmlPoint.Y()));
-			strokes.add(points);
+		// iterate through each stroke
+		for (XmlStroke xmlStroke : xmlStrokes) {
 			
+			// iterate through each point
+			for (XmlPoint xmlPoint : xmlStroke.toPoints()) {
+				
+				// get the current point
+				double x = xmlPoint.X();
+				double y = xmlPoint.Y();
+				Point2D.Double point = new Point2D.Double(x, y);
+				
+				points.add(point);
+			}
+			
+			// add the points to the list of strokes and then reset the points
+			strokes.add(points);
+			points = new ArrayList<Point2D.Double>();
+		}
+		
 		return new Template(shape, strokes);
 	}
 	
@@ -76,4 +92,48 @@ public abstract class AbstractShapeClassifier implements IShapeClassifier {
 		
 		return strokes;
 	}
+	
+	protected boolean isLine(List<IShape> shapes) {
+		
+		// case: the list of raw strokes is either 0 or 2+
+		// a line is only a single stroke
+		if (shapes.size() != 1)
+			return false;
+		
+		// get the singleton shape's single stroke's list of points
+		List<Point2D.Double> points = shapes.get(0).getStrokes().get(0).getPoints();
+		
+		// check if staff line is a line
+		Point2D.Double pointStart = points.get(0);
+		Point2D.Double pointEnd = points.get(points.size()-1);
+		double distance = distance(pointStart, pointEnd);
+		double pathDistance = pathDistance(points);
+		double lineRatio = distance / pathDistance;
+		System.out.println("LINE RATIO: " + lineRatio);
+		
+		// check for linearity
+		if (lineRatio < 0.95)
+			return false;
+		
+		return true;
+	}
+	
+	protected double distance(Point2D.Double p1, Point2D.Double p2) {
+		
+		return Math.sqrt( (p2.x-p1.x)*(p2.x-p1.x) + (p2.y-p1.y)*(p2.y-p1.y) );
+	}
+
+	protected double pathDistance(List<Point2D.Double> points) {
+		
+		double distance = 0.0;
+		
+		for (int i = 1; i < points.size() - 1; ++i) {
+			
+			distance += distance(points.get(i-1), points.get(i));
+		}
+		
+		return distance;
+	}
+	
+	protected List<IShape> myShapes;
 }

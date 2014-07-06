@@ -48,8 +48,7 @@ public class IShape {
 				|| shapeName == ShapeName.BASS_CLEF)
 			return ShapeType.CLEF;
 		
-		else if (shapeName == ShapeName.ONE
-				|| shapeName == ShapeName.TWO
+		else if (shapeName == ShapeName.TWO
 				|| shapeName == ShapeName.THREE
 				|| shapeName == ShapeName.FOUR
 				|| shapeName == ShapeName.FIVE
@@ -153,7 +152,7 @@ public class IShape {
 		RAW,
 		STAFF_LINE, WHOLE_STAFF,
 		TREBLE_CLEF, BASS_CLEF,
-		ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE,
+		TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE,
 		SHARP, FLAT
 	}
 	

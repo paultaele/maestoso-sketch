@@ -48,15 +48,16 @@ public class ShapeClassifier {
 				return classifier.getResult();
 		}
 		
+		// test for keys and beats
 		if (containsWholeStaff && containsClef && !containsTimeSignature) {
 			
-			// test for accidentals
+			// test for keys
 			if (!containsBeat) {
 				
-//				classifier = new KeyShapeClassifier();
-//				isClassified = classifier.classify(shapes);
-//				if (isClassified)
-//					return classifier.getResult();
+				classifier = new AccidentalShapeClassifier();
+				isClassified = classifier.classify(shapes);
+				if (isClassified)
+					return classifier.getResult();
 			}
 			
 			// test for beats

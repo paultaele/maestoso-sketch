@@ -141,9 +141,6 @@ public class ClefShapeClassifier extends AbstractShapeClassifier implements ISha
 
 	
 	
-	
-	private List<IShape> myShapes;
-	
 	public static final String DATA_DIR_PATHNAME = "src/edu/tamu/srl/music/data/clef/";
 	public static final double MIN_SCORE_THRESHOLD = 0.70;
 	public static final int IMAGE_X_POS = 10;

@@ -115,24 +115,8 @@ public class StaffLineShapeClassifier extends AbstractShapeClassifier implements
 		return line;
 	}
 	
-	private double distance(Point2D.Double p1, Point2D.Double p2) {
-		
-		return Math.sqrt( (p2.x-p1.x)*(p2.x-p1.x) + (p2.y-p1.y)*(p2.y-p1.y) );
-	}
-
-	private double pathDistance(List<Point2D.Double> points) {
-		
-		double distance = 0.0;
-		
-		for (int i = 1; i < points.size() - 1; ++i) {
-			
-			distance += distance(points.get(i-1), points.get(i));
-		}
-		
-		return distance;
-	}
+	
 
 	
 	private IShape myShape;
-	private List<IShape> myShapes;
 }
