@@ -116,7 +116,7 @@ public class StaffLineShapeClassifier extends AbstractShapeClassifier implements
 	}
 	
 	
-
 	
 	private IShape myShape;
-}
+	
+	}

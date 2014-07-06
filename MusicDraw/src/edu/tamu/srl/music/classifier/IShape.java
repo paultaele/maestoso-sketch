@@ -151,15 +151,17 @@ public class IShape {
 		
 		RAW,
 		STAFF_LINE, WHOLE_STAFF,
+		KEY_SHARP, KEY_FLAT,
 		TREBLE_CLEF, BASS_CLEF,
 		TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE,
-		SHARP, FLAT
+		SHARP, FLAT, NATURAL
 	}
 	
 	public enum ShapeType {
 		
 		NONE,
 		STAFF,
+		KEY,
 		CLEF,
 		BEAT,
 		ACCIDENTAL

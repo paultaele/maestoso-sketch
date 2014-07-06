@@ -109,10 +109,10 @@ public abstract class AbstractShapeClassifier implements IShapeClassifier {
 		double distance = distance(pointStart, pointEnd);
 		double pathDistance = pathDistance(points);
 		double lineRatio = distance / pathDistance;
-		System.out.println("LINE RATIO: " + lineRatio);
 		
 		// check for linearity
-		if (lineRatio < 0.95)
+		System.out.println("LINE RATIO: " + lineRatio); // TODO
+		if (lineRatio < 0.95 || lineRatio > 1.05)
 			return false;
 		
 		return true;

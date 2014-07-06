@@ -54,7 +54,7 @@ public class ShapeClassifier {
 			// test for keys
 			if (!containsBeat) {
 				
-				classifier = new AccidentalShapeClassifier();
+				classifier = new KeyShapeClassifier();
 				isClassified = classifier.classify(shapes);
 				if (isClassified)
 					return classifier.getResult();
