@@ -38,9 +38,17 @@ public class ClefShapeClassifier extends AbstractShapeClassifier implements ISha
 		//
 		Hausdorff classifier = new Hausdorff();
 		List<List<Point2D.Double>> strokes = getStrokes(rawShapes);
-		List<Template> templates = getTemplates(DATA_DIR_PATHNAME);
+//		List<Template> templates = getTemplates(DATA_DIR_PATHNAME);
+		List<Template> templates = Template.getTemplates(DATA_DIR_NAME);
 		Pair result = classifier.classify(strokes, templates);
 		
+		// TODO
+		if (ENABLE_OUTPUT) {
+			System.out.println("### TESTING FOR CLEF ###"); // TODO
+			System.out.println("SCORE: " + result.score());
+		}
+		
+		//
 		if (result.score() > MIN_SCORE_THRESHOLD) {
 
 			// get new shape type
@@ -141,6 +149,7 @@ public class ClefShapeClassifier extends AbstractShapeClassifier implements ISha
 
 	
 	
+	public static final String DATA_DIR_NAME = "clef";
 	public static final String DATA_DIR_PATHNAME = "src/edu/tamu/srl/music/data/clef/";
 	public static final double MIN_SCORE_THRESHOLD = 0.70;
 	public static final int IMAGE_X_POS = 10;

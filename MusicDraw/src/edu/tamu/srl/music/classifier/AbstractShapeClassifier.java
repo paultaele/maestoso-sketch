@@ -16,38 +16,38 @@ public abstract class AbstractShapeClassifier implements IShapeClassifier {
 
 	public abstract List<IShape> getResult();
 	
-	protected List<Template> getTemplates(String pathname) {
-		
-		// get all XML test data files
-		File dataDir = new File(pathname);
-		File[] files = dataDir.listFiles();
-		List<File> dataFiles = new ArrayList<File>();
-		for (File file : files) {
-			
-			if (file.getName().endsWith(".xml")) {
-				dataFiles.add(file);
-			}
-		}
-
-		// convert XML test data files to XmlSketch objects
-		XmlSketchParser parser;
-		List<XmlSketch> sketches = new ArrayList<XmlSketch>();
-		for (File dataFile : dataFiles) {
-			
-			parser = new XmlSketchParser(dataFile.getAbsolutePath());
-			sketches.add(parser.getSketch());
-		}
-		
-		// convert XmlSketch objects to Template objects
-		List<Template> templates = new ArrayList<Template>();
-		for (XmlSketch sketch : sketches) {
-			
-			Template template = convertToTemplate(sketch);
-			templates.add(template);
-		}
-		
-		return templates;
-	}
+//	protected List<Template> getTemplates(String pathname) {
+//		
+//		// get all XML test data files
+//		File dataDir = new File(pathname);
+//		File[] files = dataDir.listFiles();
+//		List<File> dataFiles = new ArrayList<File>();
+//		for (File file : files) {
+//			
+//			if (file.getName().endsWith(".xml")) {
+//				dataFiles.add(file);
+//			}
+//		}
+//
+//		// convert XML test data files to XmlSketch objects
+//		XmlSketchParser parser;
+//		List<XmlSketch> sketches = new ArrayList<XmlSketch>();
+//		for (File dataFile : dataFiles) {
+//			
+//			parser = new XmlSketchParser(dataFile.getAbsolutePath());
+//			sketches.add(parser.getSketch());
+//		}
+//		
+//		// convert XmlSketch objects to Template objects
+//		List<Template> templates = new ArrayList<Template>();
+//		for (XmlSketch sketch : sketches) {
+//			
+//			Template template = convertToTemplate(sketch);
+//			templates.add(template);
+//		}
+//		
+//		return templates;
+//	}
 
 	private Template convertToTemplate(XmlSketch sketch) {
 		
@@ -111,7 +111,6 @@ public abstract class AbstractShapeClassifier implements IShapeClassifier {
 		double lineRatio = distance / pathDistance;
 		
 		// check for linearity
-		System.out.println("LINE RATIO: " + lineRatio); // TODO
 		if (lineRatio < 0.95 || lineRatio > 1.05)
 			return false;
 		
@@ -136,4 +135,6 @@ public abstract class AbstractShapeClassifier implements IShapeClassifier {
 	}
 	
 	protected List<IShape> myShapes;
+	
+	protected boolean ENABLE_OUTPUT = true;
 }

@@ -107,7 +107,7 @@ public class SketchPanel extends JPanel {
 				// TEMP
 				if (shapes != null && !	shapes.isEmpty())
 					for (IShape s : shapes)
-						System.out.print("    (" + s.getShapeName() + " | " + s.getShapeType() + ")");
+						System.out.print("    (" + s.getShapeName() + " | " + s.getShapeGroup() + ")");
 				System.out.println();
 				// TEMP
 				

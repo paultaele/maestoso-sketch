@@ -43,11 +43,16 @@ public class KeyShapeClassifier
 		//
 		Hausdorff classifier = new Hausdorff();
 		List<List<Point2D.Double>> strokes = getStrokes(rawShapes);
-		List<Template> templates = getTemplates(DATA_DIR_PATHNAME);
+//		List<Template> templates = getTemplates(DATA_DIR_PATHNAME);
+		List<Template> templates = Template.getTemplates(DATA_DIR_NAME);
 		Pair result = classifier.classify(strokes, templates);
 
-		//
-		System.out.println("SCORE: " + result.score());
+		// TODO
+		if (ENABLE_OUTPUT) {
+			System.out.println("### TESTING FOR KEY ###"); // TODO
+			System.out.println("SCORE: " + result.score());
+		}
+		
 		if (result.score() > MIN_SCORE_THRESHOLD) {
 			
 			// case: shape name is key sharp
@@ -98,6 +103,7 @@ public class KeyShapeClassifier
 
 	
 	
+	public static final String DATA_DIR_NAME = "key";
 	public static final String DATA_DIR_PATHNAME = "src/edu/tamu/srl/music/data/key/";
 	public static final double MIN_SCORE_THRESHOLD = 0.75;
 }

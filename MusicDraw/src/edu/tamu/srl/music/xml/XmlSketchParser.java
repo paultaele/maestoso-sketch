@@ -1,4 +1,5 @@
 package edu.tamu.srl.music.xml;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,11 @@ import org.xml.sax.helpers.DefaultHandler;
 // http://www.javacodegeeks.com/2012/01/xml-parsing-using-saxparser-with.html
 public class XmlSketchParser extends DefaultHandler {
 
+	public XmlSketchParser(File xmlFile) {
+		
+		this(xmlFile.getAbsolutePath());
+	}
+	
 	public XmlSketchParser(String xmlFilePath) {
 		
 		//

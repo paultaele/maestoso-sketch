@@ -3,7 +3,7 @@ package edu.tamu.srl.music.classifier;
 import java.util.List;
 
 import edu.tamu.srl.music.classifier.IShape.ShapeName;
-import edu.tamu.srl.music.classifier.IShape.ShapeType;
+import edu.tamu.srl.music.classifier.IShape.ShapeGroup;
 
 public class ShapeClassifier {
 
@@ -11,9 +11,9 @@ public class ShapeClassifier {
 
 		// 
 		boolean containsWholeStaff = contains(shapes, ShapeName.WHOLE_STAFF);
-		boolean containsClef = contains(shapes, ShapeType.CLEF);
-		boolean containsBeat = contains(shapes, ShapeType.BEAT);
-		boolean containsTimeSignature = contains(shapes, ShapeType.BEAT, 2);
+		boolean containsClef = contains(shapes, ShapeGroup.CLEF);
+		boolean containsBeat = contains(shapes, ShapeGroup.BEAT);
+		boolean containsTimeSignature = contains(shapes, ShapeGroup.BEAT, 2);
 				
 		//
 		boolean isClassified = false;
@@ -40,7 +40,7 @@ public class ShapeClassifier {
 		
 		// test for clef
 		if (containsWholeStaff && !containsClef) {
-				
+			
 			// test for staff line
 			classifier = new ClefShapeClassifier();
 			isClassified = classifier.classify(shapes);
@@ -65,21 +65,7 @@ public class ShapeClassifier {
 			isClassified = classifier.classify(shapes);
 			if (isClassified)
 				return classifier.getResult();
-			
-//			if (isClassified) {
-//				
-//				
-//				// test for time signature
-//				List<IShape> newShapes = classifier.getResult();
-//				classifier = new TimeSignatureShapeClassifier();
-//				isClassified = classifier.classify(newShapes);
-//				if (isClassified)
-//					return classifier.getResult();
-//				else
-//					return newShapes;
-//			}
 		}
-		
 		
 		//
 		return shapes;
@@ -90,7 +76,7 @@ public class ShapeClassifier {
 		return contains(shapes, shapeName, 1);
 	}
 	
-	public static boolean contains(List<IShape> shapes, IShape.ShapeType shapeType) {
+	public static boolean contains(List<IShape> shapes, IShape.ShapeGroup shapeType) {
 		
 		return contains(shapes, shapeType, 1);
 	}
@@ -111,12 +97,12 @@ public class ShapeClassifier {
 		return false;
 	}
 	
-	public static boolean contains(List<IShape> shapes, IShape.ShapeType shapeType, int totalCount) {
+	public static boolean contains(List<IShape> shapes, IShape.ShapeGroup shapeType, int totalCount) {
 		
 		int count = 0;
 		for (IShape shape : shapes) {
 		
-			if (shape.getShapeType() == shapeType) {
+			if (shape.getShapeGroup() == shapeType) {
 				
 				++count;
 				if (count == totalCount)

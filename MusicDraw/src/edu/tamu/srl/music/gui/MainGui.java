@@ -6,6 +6,8 @@ import java.awt.event.*;
 
 import javax.swing.*;
 
+import edu.tamu.srl.music.classifier.Template;
+
 /**
  * The main GUI for the application.
  * 
@@ -44,6 +46,9 @@ public class MainGui implements Runnable {
 		
 		// initialize the main frame
         myFrame = new JFrame();
+        
+        // load templates from disk
+        Template.loadTemplates();
         
         // create the main panel and add it to the main frame
         createMainPanel();

@@ -10,7 +10,7 @@ public class IShape {
 	public IShape(ShapeName shapeName, IStroke stroke) {
 		
 		myShapeName = shapeName;
-		myShapeType = getShapeType(shapeName);
+		myShapeGroup = myShapeGroup(shapeName);
 		myStrokes = new ArrayList<IStroke>();
 		myStrokes.add(stroke);
 		myImageFile = null;
@@ -24,7 +24,7 @@ public class IShape {
 	public IShape(ShapeName shapeName, List<IStroke> strokes) {
 		
 		myShapeName = shapeName;
-		myShapeType = getShapeType(shapeName);
+		myShapeGroup = myShapeGroup(shapeName);
 		myStrokes = strokes;
 		myImageFile = null;
 		myImageX = 0;
@@ -38,15 +38,15 @@ public class IShape {
 		myBoundingBox = new BoundingBox(points);
 	}
 	
-	private ShapeType getShapeType(ShapeName shapeName) {
+	private ShapeGroup myShapeGroup(ShapeName shapeName) {
 		
 		if (shapeName == ShapeName.STAFF_LINE
 				|| shapeName == ShapeName.WHOLE_STAFF)
-			return ShapeType.STAFF;
+			return ShapeGroup.STAFF;
 		
 		else if (shapeName == ShapeName.TREBLE_CLEF
 				|| shapeName == ShapeName.BASS_CLEF)
-			return ShapeType.CLEF;
+			return ShapeGroup.CLEF;
 		
 		else if (shapeName == ShapeName.TWO
 				|| shapeName == ShapeName.THREE
@@ -56,14 +56,18 @@ public class IShape {
 				|| shapeName == ShapeName.SEVEN
 				|| shapeName == ShapeName.EIGHT
 				|| shapeName == ShapeName.NINE)
-			return ShapeType.BEAT;
+			return ShapeGroup.BEAT;
+		
+		else if (shapeName == ShapeName.KEY_SHARP
+				|| shapeName == ShapeName.KEY_FLAT)
+			return ShapeGroup.KEY;
 		
 		else if (shapeName == ShapeName.SHARP
 				|| shapeName == ShapeName.FLAT)
-			return ShapeType.ACCIDENTAL;
+			return ShapeGroup.ACCIDENTAL;
 		
 		else
-			return ShapeType.NONE;
+			return ShapeGroup.NONE;
 	}
 	
 	public ShapeName getShapeName() {
@@ -71,9 +75,9 @@ public class IShape {
 		return myShapeName;
 	}
 	
-	public ShapeType getShapeType() {
+	public ShapeGroup getShapeGroup() {
 		
-		return myShapeType;
+		return myShapeGroup;
 	}
 	
 	public List<IStroke> getStrokes() {
@@ -157,7 +161,7 @@ public class IShape {
 		SHARP, FLAT, NATURAL
 	}
 	
-	public enum ShapeType {
+	public enum ShapeGroup {
 		
 		NONE,
 		STAFF,
@@ -170,7 +174,7 @@ public class IShape {
 	
 	
 	private ShapeName myShapeName;
-	private ShapeType myShapeType;
+	private ShapeGroup myShapeGroup;
 	private List<IStroke> myStrokes;
 	private File myImageFile;
 	private boolean myHasImage;

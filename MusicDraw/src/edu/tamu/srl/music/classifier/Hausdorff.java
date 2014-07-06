@@ -1,6 +1,7 @@
 package edu.tamu.srl.music.classifier;
 
 import java.awt.geom.Point2D;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,52 +9,50 @@ public class Hausdorff {
 
 	public Pair classify(List<List<Point2D.Double>> strokes, List<Template> templates) {
 		
-		// resample the strokes
-		strokes = resample(strokes, N);
-		for (Template template : templates)
-			template.setPoints(resample(template.getStrokes(), N));
-		
-		// scale the points
-		strokes = scaleTo(strokes, SIZE);
-		for (Template template : templates)
-			template.setPoints(scaleTo(template.getStrokes(), SIZE));
-		
-		// translate the point
-		strokes = translateTo(strokes, K);
-		for (Template template : templates)
-			template.setPoints(translateTo(template.getStrokes(), K));
+		// transform the strokes
+		strokes = resample(strokes, N);		// resample
+		strokes = scaleTo(strokes, SIZE);	// scale
+		strokes = translateTo(strokes, K);	// translate
 		
 		//
 		Template Tmin = templates.get(0);
 		Template Tmax = templates.get(0);
-		double minD = Double.MAX_VALUE;
-		double minS = Double.MAX_VALUE;
-		double maxD = Double.MIN_VALUE;
-		double maxS = Double.MIN_VALUE;
+		double minDistance = Double.MAX_VALUE;
+		double minScore = Double.MAX_VALUE;
+		double maxDistance = Double.MIN_VALUE;
+		double maxScore = Double.MIN_VALUE;
 		for (int i = 0; i < templates.size(); ++i) {
 			
 			Template T = templates.get(i);
 			double d = distance(strokes, T.getStrokes());
 			double s = 1.0 - Math.abs((1.0 - d) / (Math.sqrt(SIZE*SIZE + SIZE*SIZE))) / 10.0;
 			
-			if (d < minD) {
+			if (d < minDistance) {
 				Tmin = T;
-				minD = d;
-				minS = s;
+				minDistance = d;
+				minScore = s;
 			}
-			if (d > maxD) {
+			if (d > maxDistance) {
 				Tmax = T;
-				maxD = d;
-				maxS = s;
+				maxDistance = d;
+				maxScore = s;
 			}
 		}
-//		System.out.println("min: " + Tmin.getShape() + ": d=" + minD + " , s=" + minS);
+//		System.out.println("min: " + Tmin.getShape() + ": d=" + minDistance + " , s=" + minScore);
 //		System.out.println("max: " + Tmax.getShape() + ": d=" + maxD + " , s=" + maxS);
 		
-		return new Pair(Tmin, minS);
+//		// TODO : debug
+//		System.out.println("ORIGINAL");
+//		debug(strokes);
+//		System.out.println("###");
+//		System.out.println("MIN TEMPLATE");
+//		debug(Tmin.getStrokes());
+//		// TODO : debug
+		
+		return new Pair(Tmin, minScore);
 	}
 	
-	private List<List<Point2D.Double>> resample(List<List<Point2D.Double>> strokes, int n) {
+	public static List<List<Point2D.Double>> resample(List<List<Point2D.Double>> strokes, int n) {
 		
 		// set the variable for point spacing
 		// initialize the variable for total distance
@@ -96,7 +95,7 @@ public class Hausdorff {
 		return newStrokes;
 	}
 	
-	private List<List<Point2D.Double>> scaleTo(List<List<Point2D.Double>> strokes, int size) {
+	public static List<List<Point2D.Double>> scaleTo(List<List<Point2D.Double>> strokes, int size) {
 		
 		List<List<Point2D.Double>> newStrokes = new ArrayList<List<Point2D.Double>>();
 		
@@ -128,7 +127,7 @@ public class Hausdorff {
 		return newStrokes;
 	}
 	
-	private List<List<Point2D.Double>> translateTo(List<List<Point2D.Double>> strokes, Point2D.Double k) {
+	public static List<List<Point2D.Double>> translateTo(List<List<Point2D.Double>> strokes, Point2D.Double k) {
 		
 		List<List<Point2D.Double>> newStrokes = new ArrayList<List<Point2D.Double>>();
 		
@@ -159,7 +158,7 @@ public class Hausdorff {
 		return newStrokes;
 	}
 	
-	private double pathLength(List<List<Point2D.Double>> A) {
+	private static double pathLength(List<List<Point2D.Double>> A) {
 		
 		double d = 0.0;
 		for (List<Point2D.Double> points : A) {
@@ -170,7 +169,7 @@ public class Hausdorff {
 		return d;
 	}
 	
-	private double pathLengthPoints(List<Point2D.Double> A) {
+	private static double pathLengthPoints(List<Point2D.Double> A) {
 		
 		double d = 0.0;
 		for (int i = 1; i < A.size(); ++i) {
@@ -181,7 +180,7 @@ public class Hausdorff {
 		return d;
 	}
 	
-	private double distance(Point2D.Double a, Point2D.Double b) {
+	private static double distance(Point2D.Double a, Point2D.Double b) {
 	
 		double distance = Math.sqrt( (b.x-a.x)*(b.x-a.x) + (b.y-a.y)*(b.y-a.y) );
 		
@@ -216,7 +215,7 @@ public class Hausdorff {
 		return d;
 	}
 	
-	private BoundingBox boundingBox(List<Point2D.Double> points) {
+	private static BoundingBox boundingBox(List<Point2D.Double> points) {
 		
 		double minX = Double.POSITIVE_INFINITY;
 		double maxX = Double.NEGATIVE_INFINITY;
@@ -241,7 +240,7 @@ public class Hausdorff {
 		return new BoundingBox(minX, minY, maxX, maxY);
 	}
 
-	private Point2D.Double centroid(List<Point2D.Double> points) {
+	private static Point2D.Double centroid(List<Point2D.Double> points) {
 		
 		double meanX = 0.0;
 		double meanY = 0.0;
@@ -255,7 +254,20 @@ public class Hausdorff {
 		return new Point2D.Double(meanX, meanY);
 	}
 	
-	
+	private void debug(List<List<Point2D.Double>> strokes) {
+		
+		for (List<Point2D.Double> stroke : strokes) {
+			
+			for (Point2D.Double point : stroke) {
+				
+				DecimalFormat df = new DecimalFormat("#.##");
+				String x = df.format(point.x);
+				String y = df.format(point.x);
+				System.out.println("(" + x + ", " + y + ")");
+			}
+			System.out.println("%");
+		}
+	}
 	
 	public static final int N = 64;
 	public static final int SIZE = 250;
