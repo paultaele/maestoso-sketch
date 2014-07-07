@@ -16,71 +16,6 @@ public abstract class AbstractShapeClassifier implements IShapeClassifier {
 
 	public abstract List<IShape> getResult();
 	
-//	protected List<Template> getTemplates(String pathname) {
-//		
-//		// get all XML test data files
-//		File dataDir = new File(pathname);
-//		File[] files = dataDir.listFiles();
-//		List<File> dataFiles = new ArrayList<File>();
-//		for (File file : files) {
-//			
-//			if (file.getName().endsWith(".xml")) {
-//				dataFiles.add(file);
-//			}
-//		}
-//
-//		// convert XML test data files to XmlSketch objects
-//		XmlSketchParser parser;
-//		List<XmlSketch> sketches = new ArrayList<XmlSketch>();
-//		for (File dataFile : dataFiles) {
-//			
-//			parser = new XmlSketchParser(dataFile.getAbsolutePath());
-//			sketches.add(parser.getSketch());
-//		}
-//		
-//		// convert XmlSketch objects to Template objects
-//		List<Template> templates = new ArrayList<Template>();
-//		for (XmlSketch sketch : sketches) {
-//			
-//			Template template = convertToTemplate(sketch);
-//			templates.add(template);
-//		}
-//		
-//		return templates;
-//	}
-
-	private Template convertToTemplate(XmlSketch sketch) {
-		
-		// get the XML strokes and shape ID from the XML sketch
-		List<XmlStroke> xmlStrokes = sketch.getStrokes();
-		String shape = sketch.getShape();
-		
-		// initialize the list of points and strokes
-		List<Point2D.Double> points = new ArrayList<Point2D.Double>();
-		List<List<Point2D.Double>> strokes = new ArrayList<List<Point2D.Double>>();
-		
-		// iterate through each stroke
-		for (XmlStroke xmlStroke : xmlStrokes) {
-			
-			// iterate through each point
-			for (XmlPoint xmlPoint : xmlStroke.toPoints()) {
-				
-				// get the current point
-				double x = xmlPoint.X();
-				double y = xmlPoint.Y();
-				Point2D.Double point = new Point2D.Double(x, y);
-				
-				points.add(point);
-			}
-			
-			// add the points to the list of strokes and then reset the points
-			strokes.add(points);
-			points = new ArrayList<Point2D.Double>();
-		}
-		
-		return new Template(shape, strokes);
-	}
-	
 	protected List<List<Point2D.Double>> getStrokes(List<IShape> shapes) {
 		
 		List<List<Point2D.Double>> strokes = new ArrayList<List<Point2D.Double>>();
@@ -136,5 +71,5 @@ public abstract class AbstractShapeClassifier implements IShapeClassifier {
 	
 	protected List<IShape> myShapes;
 	
-	protected boolean ENABLE_OUTPUT = true;
+	protected boolean ENABLE_OUTPUT = false;
 }

@@ -1,7 +1,6 @@
 package edu.tamu.srl.music.classifier;
 
 import java.awt.geom.Point2D;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,11 +15,8 @@ public class Hausdorff {
 		
 		//
 		Template Tmin = templates.get(0);
-		Template Tmax = templates.get(0);
 		double minDistance = Double.MAX_VALUE;
 		double minScore = Double.MAX_VALUE;
-		double maxDistance = Double.MIN_VALUE;
-		double maxScore = Double.MIN_VALUE;
 		for (int i = 0; i < templates.size(); ++i) {
 			
 			Template T = templates.get(i);
@@ -32,22 +28,7 @@ public class Hausdorff {
 				minDistance = d;
 				minScore = s;
 			}
-			if (d > maxDistance) {
-				Tmax = T;
-				maxDistance = d;
-				maxScore = s;
-			}
 		}
-//		System.out.println("min: " + Tmin.getShape() + ": d=" + minDistance + " , s=" + minScore);
-//		System.out.println("max: " + Tmax.getShape() + ": d=" + maxD + " , s=" + maxS);
-		
-//		// TODO : debug
-//		System.out.println("ORIGINAL");
-//		debug(strokes);
-//		System.out.println("###");
-//		System.out.println("MIN TEMPLATE");
-//		debug(Tmin.getStrokes());
-//		// TODO : debug
 		
 		return new Pair(Tmin, minScore);
 	}
@@ -254,20 +235,7 @@ public class Hausdorff {
 		return new Point2D.Double(meanX, meanY);
 	}
 	
-	private void debug(List<List<Point2D.Double>> strokes) {
-		
-		for (List<Point2D.Double> stroke : strokes) {
-			
-			for (Point2D.Double point : stroke) {
-				
-				DecimalFormat df = new DecimalFormat("#.##");
-				String x = df.format(point.x);
-				String y = df.format(point.x);
-				System.out.println("(" + x + ", " + y + ")");
-			}
-			System.out.println("%");
-		}
-	}
+	
 	
 	public static final int N = 64;
 	public static final int SIZE = 250;

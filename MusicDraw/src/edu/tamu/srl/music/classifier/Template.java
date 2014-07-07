@@ -92,13 +92,6 @@ public class Template {
 		
 		// set the initial variable
 		myTemplatesMap = map;
-		
-		// debug
-//		System.out.println("###debugging###");
-//		Template test = myTemplatesMap.get("beat").get(27);
-//		System.out.println(test.getShape());
-//		debug( test.getStrokes() );
-//		System.exit(0);
 	}
 	
 	private static Template convertToTemplate(XmlSketch sketch) {
@@ -152,21 +145,7 @@ public class Template {
 		return templates;
 	}
 	
-	private static void debug(List<List<Point2D.Double>> strokes) {
-		
-		for (List<Point2D.Double> stroke : strokes) {
-			
-			for (Point2D.Double point : stroke) {
-				
-				DecimalFormat df = new DecimalFormat("#.##");
-				String x = df.format(point.x);
-				String y = df.format(point.x);
-				System.out.println("(" + x + ", " + y + ")");
-			}
-			System.out.println("%");
-		}
-	}
-	
+
 	
 	private List<List<Point2D.Double>> myStrokes;
 	private String myShape;
