@@ -52,20 +52,20 @@ public class ClefShapeClassifier extends AbstractShapeClassifier implements ISha
 		if (result.score() > MIN_SCORE_THRESHOLD) {
 
 			// get new shape type
-			ShapeName newShapeType = null;
-			File newImage = null;
+			ShapeName newShapeName = null;
+			BufferedImage newImage = null;
 			if (result.shape().equals("TrebleClef")) {
 				
-				newShapeType = ShapeName.TREBLE_CLEF;
-				newImage = new File(IShape.IMAGE_DIR_PATHNAME + "trebleclef.png");
+				newShapeName = ShapeName.TREBLE_CLEF;
+				newImage = IShape.getImage(newShapeName.name());
 			}
 			else if (result.shape().equals("BassClef")) {
 				
 				if (strokes.size() != 3)
 					return false;
 				
-				newShapeType = ShapeName.BASS_CLEF;
-				newImage = new File(IShape.IMAGE_DIR_PATHNAME + "bassclef.png");
+				newShapeName = ShapeName.BASS_CLEF;
+				newImage = IShape.getImage(newShapeName.name());
 			}
 			
 			// get new strokes
@@ -73,21 +73,20 @@ public class ClefShapeClassifier extends AbstractShapeClassifier implements ISha
 			for (IShape rawShape : rawShapes) {
 				
 				IStroke rawStroke = rawShape.getStrokes().get(0);
-				rawStroke.setColor(Color.red); // TEMP
+				rawStroke.setColor(new Color(128, 0, 128)); // TEMP
 				newStrokes.add(rawStroke);
 			}
 			
-			// create clef and set its image
-			IShape newShape = new IShape(newShapeType, newStrokes);
+			// create shape and set its image
+			IShape newShape = new IShape(newShapeName, newStrokes);
 			newShape.setImageFile(newImage);
-			
-			// get the staff from the list of shapes
 			IShape staffShape = null;
-			for (IShape shape : shapes)
-				if (shape.getShapeName() == IShape.ShapeName.WHOLE_STAFF)
+			for (IShape shape : shapes) {
+				if (shape.getShapeName() == IShape.ShapeName.WHOLE_STAFF) {
 					staffShape = shape;
-					
-			// set clef's location
+					break;
+				}
+			}
 			setLocation(newShape, (StaffShape)staffShape);
 			
 			// add clef to list of shapes
@@ -106,44 +105,38 @@ public class ClefShapeClassifier extends AbstractShapeClassifier implements ISha
 		return myShapes;
 	}
 	
-	private void setLocation(IShape clef, StaffShape staff) {
+	private void setLocation(IShape shape, StaffShape staff) {
 		
-		try {
 		int staffTopY = (int)staff.getLineY(0);
 		int staffBottomY = (int)staff.getLineY(staff.NUM_LINES - 1);
 		int staffHeight = staffBottomY - staffTopY;
 		int lineInterval = (int) staff.getLineInterval();
 		
-		BufferedImage bufferedImage = ImageIO.read(clef.getImageFile());
+		BufferedImage bufferedImage = shape.getImageFile();
 		int imageWidth = bufferedImage.getWidth();
 		int imageHeight = bufferedImage.getHeight();
 		
-		if (clef.getShapeName() == ShapeName.TREBLE_CLEF) {
+		if (shape.getShapeName() == ShapeName.TREBLE_CLEF) {
 			
-			clef.setImageX(IMAGE_X_POS);
-			clef.setImageY(staffTopY - lineInterval);
+			shape.setImageX(IMAGE_X_POS);
+			shape.setImageY(staffTopY - lineInterval);
 			
 			int newImageHeight = staffHeight + (int)(lineInterval*1.5);
 			int newImageWidth = (newImageHeight*imageWidth)/imageHeight;
 			
-			clef.setImageWidth(newImageWidth);
-			clef.setImageHeight(newImageHeight);
+			shape.setImageWidth(newImageWidth);
+			shape.setImageHeight(newImageHeight);
 		}
-		else if (clef.getShapeName() == ShapeName.BASS_CLEF) {
+		else if (shape.getShapeName() == ShapeName.BASS_CLEF) {
 			
-			clef.setImageX(IMAGE_X_POS);
-			clef.setImageY(staffTopY);
+			shape.setImageX(IMAGE_X_POS);
+			shape.setImageY(staffTopY);
 			
 			int newImageHeight = staffHeight - (int)(lineInterval*0.5);
 			int newImageWidth = (newImageHeight*imageWidth)/imageHeight;
 			
-			clef.setImageWidth(newImageWidth);
-			clef.setImageHeight(newImageHeight);
-		}
-		
-		
-		} catch(IOException e) {
-			;
+			shape.setImageWidth(newImageWidth);
+			shape.setImageHeight(newImageHeight);
 		}
 	}
 

@@ -63,7 +63,7 @@ public class StaffLineShapeClassifier extends AbstractShapeClassifier implements
 
 		// check if staff line matches entire width of draw application
 		double distanceRatio = distance / MainGui.FRAME_WIDTH;
-		if ( distanceRatio < 0.9 ||  distanceRatio > 1.1 )
+		if ( distanceRatio < DISTANCE_RATIO_FLOOR ||  distanceRatio > DISTANCE_RATIO_CEILING )
 			return false;
 			
 		// check if staff line is horizontal
@@ -119,4 +119,6 @@ public class StaffLineShapeClassifier extends AbstractShapeClassifier implements
 	
 	private IShape myShape;
 	
-	}
+	public static final double DISTANCE_RATIO_FLOOR = 0.15;
+	public static final double DISTANCE_RATIO_CEILING = 1.1;
+}

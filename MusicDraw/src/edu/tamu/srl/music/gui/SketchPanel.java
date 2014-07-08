@@ -224,25 +224,19 @@ public class SketchPanel extends JPanel {
 	    	for (IShape shape : shapes) {
 	    		
 	    		//
-	    		if (shape.hasImage()) {
+	    		if (shape.hasImage() && ENABLE_IMAGES) {
 	    			
-	    			try {
-	    				
-		    			int width = shape.getImageHeight();
-		    			int height = shape.getImageHeight();
-		    			int xPos = shape.getImageX();
-		    			int yPos = shape.getImageY();
-		    			
-		    			BufferedImage otherImage = ImageIO.read(shape.getImageFile());
-		    			BufferedImage newImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-		    			Graphics g = newImage.createGraphics();
-		    			g.drawImage(otherImage, 0, 0, width, height, null);
-		    			g.dispose();
-		    			myGraphics2D.drawImage(newImage, xPos, yPos, null);
-	
-		    			} catch (IOException e) {
-		    			e.printStackTrace();
-	    			}
+	    			int width = shape.getImageWidth();
+	    			int height = shape.getImageHeight();
+	    			int xPos = shape.getImageX();
+	    			int yPos = shape.getImageY();
+	    			
+	    			BufferedImage otherImage = shape.getImageFile();
+	    			BufferedImage newImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+	    			Graphics g = newImage.createGraphics();
+	    			g.drawImage(otherImage, 0, 0, width, height, null);
+	    			g.dispose();
+	    			myGraphics2D.drawImage(newImage, xPos, yPos, null);
 	    		}
 	    		
 	    		//
@@ -346,4 +340,6 @@ public class SketchPanel extends JPanel {
 		= new BasicStroke(STROKE_WIDTH, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
 	
 	public static Color ACTIVE_COLOR = Color.black;
+	
+	public static final boolean ENABLE_IMAGES = true;
 }

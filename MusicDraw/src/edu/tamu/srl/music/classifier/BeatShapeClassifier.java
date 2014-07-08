@@ -2,6 +2,7 @@ package edu.tamu.srl.music.classifier;
 
 import java.awt.Color;
 import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -30,14 +31,9 @@ public class BeatShapeClassifier extends AbstractShapeClassifier implements ISha
 			}
 		}
 		
-		// line test
-		if (isLine(rawShapes))
-			return false;
-		
-		//
+		// create and run the classifier
 		Hausdorff classifier = new Hausdorff();
 		List<List<Point2D.Double>> strokes = getStrokes(rawShapes);
-//		List<Template> templates = getTemplates(DATA_DIR_PATHNAME);
 		List<Template> templates = Template.getTemplates(DATA_DIR_NAME);
 		Pair result = classifier.classify(strokes, templates);
 
@@ -47,25 +43,58 @@ public class BeatShapeClassifier extends AbstractShapeClassifier implements ISha
 			System.out.println("SCORE: " + result.score());
 		}
 			
-		//
+		// case: the result's score exceeds the minimum threshold
+		// therefore, the stroke(s) have high enough confidence to be that shape
 		if (result.score() > MIN_SCORE_THRESHOLD) {
 			
-			//
-			ShapeName newShapeType = getShapeType(result.shape());
+			// set the IShape object
+			ShapeName newShapeName = getShapeType(result.shape());
 			List<IStroke> newStrokes = new ArrayList<IStroke>();
 			for (IShape rawShape : rawShapes) {
-
+				
 				IStroke newStroke = rawShape.getStrokes().get(0);
-				newStroke.setColor(Color.red); // TEMP
 				newStrokes.add(newStroke);
 			}
-			IShape shape = new IShape(newShapeType, newStrokes);
+			IShape newShape = new IShape(newShapeName, newStrokes);
+			
+			// check if the shape falls in any special case
+			// if the shape is a special case, then it's not that shape
+			boolean isSpecialCase = isSpecialCase(newShape);
+			if (isSpecialCase)
+				return false;
+			else
+				newShape.setColor(Color.red); // TEMP
+			
+			// set the shape's image
+			newShape.setImageFile(IShape.getImage(newShapeName.name()));
+			setLocation(newShape, shapes);
 			
 			//
-			shapes.add(shape);
+			shapes.add(newShape);
 			myShapes = shapes;
 			return true;
 		}
+		
+		return false;
+	}
+	
+	private boolean isSpecialCase(IShape shape) {
+		
+		// line test
+		// note: no beat shape is a singleton line
+		if (shape.getStrokes().size() == 1) {
+			
+			List<Point2D.Double> points = shape.getStrokes().get(0).getPoints();
+			if (isLine(points))
+				return true;
+		}
+		
+//		// 9 test
+//		if (shape.getShapeName() == ShapeName.NINE) {
+//			
+//			if (shape.getStrokes().size() != 1)
+//				return true;
+//		}
 		
 		return false;
 	}
@@ -97,6 +126,51 @@ public class BeatShapeClassifier extends AbstractShapeClassifier implements ISha
 		return ShapeName.RAW;
 	}
 	
+	private void setLocation(IShape shape, List<IShape> shapes) {
+		
+		// get the staff as reference for setting the shape
+		IShape staff = null;
+		for (IShape s : shapes) {
+			if (s.getShapeName() == IShape.ShapeName.WHOLE_STAFF) {
+				staff = s;
+				break;
+			}
+		}
+		StaffShape staffShape = (StaffShape)staff;
+		
+		// check if there is another beat already drawn to use its location as reference
+		boolean hasBeat = false;
+		IShape other = null;
+		for (IShape s : shapes) {
+			
+			if (s.getShapeGroup() == IShape.ShapeGroup.BEAT) {
+				
+				hasBeat = true;
+				other = s;
+			}
+		}
+		
+		//
+		int imageWidth = shape.getImageFile().getWidth();
+		int imageHeight = shape.getImageFile().getHeight();
+		
+		if (hasBeat) {
+			
+			shape.setImageX(other.getImageX());
+			shape.setImageY((int)staffShape.getLineY(2));
+		}
+		else {
+			
+			shape.setImageX((int)shape.getBoundingBox().minX());
+			shape.setImageY((int)staffShape.getLineY(0));
+		}
+		
+		int newImageHeight = (int)(staffShape.getLineInterval() * 2);
+		int newImageWidth = (newImageHeight*imageWidth)/imageHeight;
+		
+		shape.setImageWidth(newImageWidth);
+		shape.setImageHeight(newImageHeight);
+	}
 	
 	public static final String DATA_DIR_NAME = "beat";
 	public static final String DATA_DIR_PATHNAME = "src/edu/tamu/srl/music/data/beat/";

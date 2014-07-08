@@ -28,15 +28,7 @@ public abstract class AbstractShapeClassifier implements IShapeClassifier {
 		return strokes;
 	}
 	
-	protected boolean isLine(List<IShape> shapes) {
-		
-		// case: the list of raw strokes is either 0 or 2+
-		// a line is only a single stroke
-		if (shapes.size() != 1)
-			return false;
-		
-		// get the singleton shape's single stroke's list of points
-		List<Point2D.Double> points = shapes.get(0).getStrokes().get(0).getPoints();
+	protected boolean isLine(List<Point2D.Double> points) {
 		
 		// check if staff line is a line
 		Point2D.Double pointStart = points.get(0);

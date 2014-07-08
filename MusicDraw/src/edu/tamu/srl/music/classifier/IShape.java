@@ -1,9 +1,15 @@
 package edu.tamu.srl.music.classifier;
 
+import java.awt.Color;
 import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+
+import javax.imageio.ImageIO;
 
 public class IShape {
 	
@@ -85,12 +91,12 @@ public class IShape {
 		return myStrokes;
 	}
 	
-	public File getImageFile() {
+	public BufferedImage getImageFile() {
 		
 		return myImageFile;
 	}
 	
-	public void setImageFile(File imageFile) {
+	public void setImageFile(BufferedImage imageFile) {
 		
 		myHasImage = true;
 		myImageFile = imageFile;
@@ -146,6 +152,14 @@ public class IShape {
 		myImageY = imageY;
 	}
 	
+	public void setColor(Color color) {
+		
+		for (IStroke stroke : myStrokes) {
+			
+			stroke.setColor(color);
+		}
+	}
+	
 	public BoundingBox getBoundingBox() {
 		
 		return myBoundingBox;
@@ -170,13 +184,44 @@ public class IShape {
 		BEAT,
 		ACCIDENTAL
 	}
+	
+	public static void loadImages() {
+		
+		HashMap<String, BufferedImage> map = new HashMap<String, BufferedImage>();
+		File directory = new File(IMAGE_DIR_PATHNAME);
+		for (File file : directory.listFiles()) {
+			
+			if (file.isFile() && file.getName().endsWith(".png")) {
+				
+				String name = file.getName();
+				name = name.substring(0, name.length() - 4);
+				BufferedImage bufferedImage = null;
+				try {
+					bufferedImage = ImageIO.read(file);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				
+				map.put(name, bufferedImage);
+			}
+		}
+		
+		myImagesMap = map;
+	}
+	
+	public static BufferedImage getImage(String shapeName) {
+		
+		BufferedImage bufferedImage = myImagesMap.get(shapeName);
+		
+		return bufferedImage;
+	}
 
 	
 	
 	private ShapeName myShapeName;
 	private ShapeGroup myShapeGroup;
 	private List<IStroke> myStrokes;
-	private File myImageFile;
+	private BufferedImage myImageFile;
 	private boolean myHasImage;
 	private boolean myHasTransformed;
 	private int myImageWidth;
@@ -185,5 +230,6 @@ public class IShape {
 	private int myImageY;
 	private BoundingBox myBoundingBox;
 	
+	private static HashMap<String, BufferedImage> myImagesMap;
 	public static final String IMAGE_DIR_PATHNAME = "src/edu/tamu/srl/music/images/";
 }
