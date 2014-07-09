@@ -14,6 +14,7 @@ public class ShapeClassifier {
 		boolean containsClef = contains(shapes, ShapeGroup.CLEF);
 		boolean containsBeat = contains(shapes, ShapeGroup.BEAT);
 		boolean containsTimeSignature = contains(shapes, ShapeGroup.BEAT, 2);
+		boolean canWriteMusic = containsWholeStaff && containsClef && containsTimeSignature;
 				
 		//
 		boolean isClassified = false;
@@ -65,6 +66,24 @@ public class ShapeClassifier {
 			isClassified = classifier.classify(shapes);
 			if (isClassified)
 				return classifier.getResult();
+		}
+		
+		if (canWriteMusic) {
+			
+			// test for notes
+//			classifier = new NoteShapeClassifier();
+//			isClassified = classifier.classify(shapes);
+//			if (isClassified)
+//				return classifier.getResult();
+			
+			// test for rests
+			
+			
+			// test for bar lines
+//			classifier = new BarLineClassifier();
+//			isClassifier = classifier.classify(shapes);
+//			if (isClassified)
+//				return classifier.getResult();
 		}
 		
 		//

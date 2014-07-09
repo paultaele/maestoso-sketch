@@ -30,8 +30,8 @@ public class BoundingBox {
 				myMaxY = point.y;
 		}
 		
-		myCenterX = width() / 2.0;
-		myCenterY = height() / 2.0;
+		myCenterX = (myMinX + myMaxX) / 2.0;
+		myCenterY = (myMinY + myMaxY) / 2.0;
 	}
 	
 	public BoundingBox(double minX, double minY, double maxX, double maxY) {

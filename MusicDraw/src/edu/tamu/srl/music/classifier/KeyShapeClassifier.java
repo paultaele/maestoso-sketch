@@ -28,10 +28,8 @@ public class KeyShapeClassifier
 		List<IShape> rawShapes = new ArrayList<IShape>();
 		Iterator<IShape> iterator = shapes.iterator();
 		while (iterator.hasNext()) {
-			
 			IShape shape = iterator.next();
 			if (shape.getShapeName() == ShapeName.RAW) {
-				
 				rawShapes.add(shape);
 				iterator.remove();
 			}
@@ -52,15 +50,30 @@ public class KeyShapeClassifier
 		// therefore, the stroke(s) have high enough confidence to be that shape
 		if (result.score() > MIN_SCORE_THRESHOLD) {
 			
-			// set the IShape object
+			// get the shape name
 			ShapeName newShapeName = getShapeName(result.shape());
+			
+			// get the stroke
 			List<IStroke> newStrokes = new ArrayList<IStroke>();
 			for (IShape rawShape : rawShapes) {
-
 				IStroke newStroke = rawShape.getStrokes().get(0);
 				newStrokes.add(newStroke);
 			}
-			IShape newShape = new IShape(newShapeName, newStrokes);
+			
+			// get the staff position
+			IShape staff = null;
+			for (IShape s : shapes) {
+				if (s.getShapeName() == IShape.ShapeName.WHOLE_STAFF) {
+					staff = s;
+					break;
+				}
+			}
+			StaffShape staffShape = (StaffShape)staff;
+			IShape temp = new IShape(ShapeName.RAW, newStrokes);
+			int position = staffShape.getStaffPosition(temp.getBoundingBox().centerY());
+			
+			// set the shape
+			IShape newShape = new KeyShape(newShapeName, newStrokes, position);
 			
 			// check if the shape falls in any special case
 			// if the shape is a special case, then it's not that shape
@@ -85,6 +98,8 @@ public class KeyShapeClassifier
 	
 	private void setLocation(IShape shape, List<IShape> shapes) {
 		
+		KeyShape keyShape = (KeyShape)shape;
+		
 		// get the staff as reference for setting the shape
 		IShape staff = null;
 		for (IShape s : shapes) {
@@ -96,7 +111,7 @@ public class KeyShapeClassifier
 		StaffShape staffShape = (StaffShape)staff;
 		
 		// get the buffered image's width and height
-		BufferedImage bufferedImage = IShape.getImage(shape.getShapeName().name());
+		BufferedImage bufferedImage = IShape.getImage(keyShape.getShapeName().name());
 		int imageWidth = bufferedImage.getWidth();
 		int imageHeight = bufferedImage.getHeight();
 		
@@ -104,11 +119,8 @@ public class KeyShapeClassifier
 		int newImageHeight = (int)(staffShape.getLineInterval() * 2);
 		int newImageWidth = (newImageHeight*imageWidth)/imageHeight;
 		
-		// find the centerY of the key flat
-		double centerY = (shape.getBoundingBox().minY() + shape.getBoundingBox().maxY()) / 2.0;
+		// set the shape's offset to line up with the staff lines
 		double shapeOffset = staffShape.getLineInterval();
-		
-		//
 		if (shape.getShapeName() == ShapeName.KEY_FLAT)
 			shapeOffset *= 0.9;
 		else if (shape.getShapeName() == ShapeName.KEY_SHARP)
@@ -116,10 +128,9 @@ public class KeyShapeClassifier
 		
 		//
 		double xPos = shape.getBoundingBox().minX();
-		int staffPos = staffShape.getStaffPosition(centerY);
-		double staffPosY = staffShape.getStaffPositionY(staffPos);
+		double yPos = staffShape.getStaffPositionY(keyShape.getStaffPosition()) - shapeOffset;
 		shape.setImageX((int)xPos);
-		shape.setImageY((int)(staffPosY - shapeOffset));
+		shape.setImageY((int)yPos);
 
 		//
 		shape.setImageWidth(newImageWidth);

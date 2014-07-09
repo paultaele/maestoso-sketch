@@ -9,12 +9,14 @@ public class StaffShape extends IShape {
 		// set the shape name and strokes
 		super(shapeName, strokes);
 
+		//
 		myLineInterval = lineInterval;
 		myLineYs = new double[NUM_LINES];
 		for (int i = 0; i < myLineYs.length; ++i)
 			myLineYs[i] = topY + myLineInterval*i;
 		
-		myPositionZero = myLineYs[0] - (myLineInterval / 2.0);
+		//
+		myPositionZero = myLineYs[0] - myLineInterval;
 	}
 	
 	public int getLineY(int lineNumber) {
@@ -33,6 +35,7 @@ public class StaffShape extends IShape {
 		double halfInterval = myLineInterval * 0.5;
 		double currentY = myPositionZero;
 		int currentPos = 0;
+		int finalPos = 0;
 		
 		//
 		if (targetY >= currentY) {
@@ -44,9 +47,9 @@ public class StaffShape extends IShape {
 			}
 			
 			if (currentY - targetY < targetY - (currentY - halfInterval))
-				return currentPos;
+				finalPos = currentPos;
 			else
-				return currentPos - 1;
+				finalPos = currentPos - 1;
 		}
 		
 		else if (targetY < currentY) {
@@ -58,19 +61,20 @@ public class StaffShape extends IShape {
 			}
 			
 			if (targetY - currentY < (currentY + halfInterval) - targetY)
-				return currentPos;
+				finalPos = currentPos;
 			else
-				return currentPos + 1;
+				finalPos = currentPos + 1;
 		}
 		
-		return -1;
+		return finalPos;
 	}
 
 	public double getStaffPositionY(int position) {
 		
 		double halfInterval = myLineInterval * 0.5;
+		double staffPositionY = myPositionZero + halfInterval*position;
 		
-		return myPositionZero + halfInterval*position;
+		return staffPositionY;
 	}
 	
 	private double myLineInterval;

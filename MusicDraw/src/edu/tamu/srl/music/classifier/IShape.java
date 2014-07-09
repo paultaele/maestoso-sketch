@@ -172,7 +172,8 @@ public class IShape {
 		KEY_SHARP, KEY_FLAT,
 		TREBLE_CLEF, BASS_CLEF,
 		TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE,
-		SHARP, FLAT, NATURAL
+		SHARP, FLAT, NATURAL,
+		SINGLE_BAR, DOUBLE_BAR
 	}
 	
 	public enum ShapeGroup {
@@ -182,7 +183,8 @@ public class IShape {
 		KEY,
 		CLEF,
 		BEAT,
-		ACCIDENTAL
+		ACCIDENTAL,
+		BAR
 	}
 	
 	public static void loadImages() {
