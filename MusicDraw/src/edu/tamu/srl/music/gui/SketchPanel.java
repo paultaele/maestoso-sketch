@@ -104,12 +104,13 @@ public class SketchPanel extends JPanel {
 				List<IShape> shapes = shapeClassifier.classify(myShapes);
 				myShapes = shapes;
 				
-				// TEMP
-				if (shapes != null && !	shapes.isEmpty())
-					for (IShape s : shapes)
-						System.out.print("    (" + s.getShapeName() + " | " + s.getShapeGroup() + ")");
-				System.out.println();
-				// TEMP
+				if (DISPLAY_SHAPES_LIST) {
+					
+					if (shapes != null && !	shapes.isEmpty())
+						for (IShape s : shapes)
+							System.out.print("    (" + s.getShapeName() + " | " + s.getShapeGroup() + ")");
+					System.out.println();
+				}
 				
 				// update the sketch panel
 				myShapes.add(null);
@@ -224,7 +225,7 @@ public class SketchPanel extends JPanel {
 	    	for (IShape shape : shapes) {
 	    		
 	    		//
-	    		if (shape.hasImage() && ENABLE_IMAGES) {
+	    		if (shape.hasImage() && DISPLAY_SHAPE_IMAGES) {
 	    			
 	    			int width = shape.getImageWidth();
 	    			int height = shape.getImageHeight();
@@ -341,5 +342,7 @@ public class SketchPanel extends JPanel {
 	
 	public static Color ACTIVE_COLOR = Color.black;
 	
-	public static final boolean ENABLE_IMAGES = true;
+	public static final boolean DISPLAY_SHAPE_IMAGES = true;
+	public static final boolean DISPLAY_SHAPES_LIST = false;
+	public static final boolean DISPLAY_SHAPE_SCORES = false;
 }

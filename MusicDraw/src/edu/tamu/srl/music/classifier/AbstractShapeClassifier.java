@@ -62,6 +62,4 @@ public abstract class AbstractShapeClassifier implements IShapeClassifier {
 	}
 	
 	protected List<IShape> myShapes;
-	
-	protected boolean ENABLE_OUTPUT = false;
 }

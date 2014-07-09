@@ -2,12 +2,16 @@ package edu.tamu.srl.music.classifier;
 
 import java.awt.Color;
 import java.awt.geom.Point2D;
+import java.awt.geom.Point2D.Double;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
 import edu.tamu.srl.music.classifier.IShape.ShapeName;
+import edu.tamu.srl.music.gui.SketchPanel;
 
 public class KeyShapeClassifier
 	extends AbstractShapeClassifier implements IShapeClassifier {
@@ -39,9 +43,8 @@ public class KeyShapeClassifier
 		List<Template> templates = Template.getTemplates(DATA_DIR_NAME);
 		Pair result = classifier.classify(rawStrokes, templates);
 
-		// TODO
-		if (ENABLE_OUTPUT) {
-			System.out.println("### TESTING FOR KEY ###"); // TODO
+		if (SketchPanel.DISPLAY_SHAPE_SCORES) {
+			System.out.println("### TESTING FOR KEY ###");
 			System.out.println("SCORE: " + result.score());
 		}
 		
@@ -67,7 +70,7 @@ public class KeyShapeClassifier
 			else
 				newShape.setColor(Color.blue); // TEMP
 			
-			// TODO : set the shape's image
+			// set the shape's image
 			newShape.setImageFile(IShape.getImage(newShapeName.name()));
 			setLocation(newShape, shapes);
 			
@@ -92,17 +95,33 @@ public class KeyShapeClassifier
 		}
 		StaffShape staffShape = (StaffShape)staff;
 		
-		//
+		// get the buffered image's width and height
 		BufferedImage bufferedImage = IShape.getImage(shape.getShapeName().name());
 		int imageWidth = bufferedImage.getWidth();
 		int imageHeight = bufferedImage.getHeight();
 		
+		// set the buffered image's new width and height
 		int newImageHeight = (int)(staffShape.getLineInterval() * 2);
 		int newImageWidth = (newImageHeight*imageWidth)/imageHeight;
 		
-		shape.setImageX((int)shape.getBoundingBox().minX());
-		shape.setImageY((int)shape.getBoundingBox().minY());
+		// find the centerY of the key flat
+		double centerY = (shape.getBoundingBox().minY() + shape.getBoundingBox().maxY()) / 2.0;
+		double shapeOffset = staffShape.getLineInterval();
 		
+		//
+		if (shape.getShapeName() == ShapeName.KEY_FLAT)
+			shapeOffset *= 0.9;
+		else if (shape.getShapeName() == ShapeName.KEY_SHARP)
+			shapeOffset *= 1.1;
+		
+		//
+		double xPos = shape.getBoundingBox().minX();
+		int staffPos = staffShape.getStaffPosition(centerY);
+		double staffPosY = staffShape.getStaffPositionY(staffPos);
+		shape.setImageX((int)xPos);
+		shape.setImageY((int)(staffPosY - shapeOffset));
+
+		//
 		shape.setImageWidth(newImageWidth);
 		shape.setImageHeight(newImageHeight);
 	}

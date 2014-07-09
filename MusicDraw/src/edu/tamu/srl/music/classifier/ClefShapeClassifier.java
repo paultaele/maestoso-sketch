@@ -12,6 +12,7 @@ import java.util.List;
 import javax.imageio.ImageIO;
 
 import edu.tamu.srl.music.classifier.IShape.ShapeName;
+import edu.tamu.srl.music.gui.SketchPanel;
 
 public class ClefShapeClassifier extends AbstractShapeClassifier implements IShapeClassifier {
 
@@ -43,7 +44,7 @@ public class ClefShapeClassifier extends AbstractShapeClassifier implements ISha
 		Pair result = classifier.classify(strokes, templates);
 		
 		// TODO
-		if (ENABLE_OUTPUT) {
+		if (SketchPanel.DISPLAY_SHAPE_SCORES) {
 			System.out.println("### TESTING FOR CLEF ###"); // TODO
 			System.out.println("SCORE: " + result.score());
 		}
