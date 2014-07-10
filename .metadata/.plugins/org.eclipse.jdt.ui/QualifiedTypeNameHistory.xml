@@ -8,7 +8,7 @@
 <fullyQualifiedTypeName name="java.awt.geom.Point2D"/>
 <fullyQualifiedTypeName name="java.util.Collections"/>
 <fullyQualifiedTypeName name="java.util.Comparator"/>
-<fullyQualifiedTypeName name="java.awt.geom.Point2D.Double"/>
 <fullyQualifiedTypeName name="edu.tamu.srl.music.gui.SketchPanel"/>
 <fullyQualifiedTypeName name="edu.tamu.srl.music.classifier.IShape.ShapeName"/>
+<fullyQualifiedTypeName name="java.awt.geom.Point2D.Double"/>
 </qualifiedTypeNameHistroy>

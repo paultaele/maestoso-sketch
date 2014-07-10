@@ -1,0 +1,90 @@
+package edu.tamu.srl.music.classifier;
+
+import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import edu.tamu.srl.music.classifier.IShape.ShapeName;
+
+public class BarShapeClassifier extends AbstractShapeClassifier implements IShapeClassifier {
+
+	@Override
+	public boolean classify(List<IShape> originals) {
+		
+		// clone the list of original shapes
+		List<IShape> shapes = new ArrayList<IShape>();
+		for (IShape original : originals)
+			shapes.add(original);
+		
+		// extract all raw shapes
+		List<IShape> rawShapes = new ArrayList<IShape>();
+		Iterator<IShape> iterator = shapes.iterator();
+		while (iterator.hasNext()) {
+			IShape shape = iterator.next();
+			if (shape.getShapeName() == ShapeName.RAW) {
+				rawShapes.add(shape);
+				iterator.remove();
+			}
+		}
+		
+		// get the staff as reference for setting the shape
+		IShape staff = null;
+		for (IShape s : shapes) {
+			if (s.getShapeName() == IShape.ShapeName.WHOLE_STAFF) {
+				staff = s;
+				break;
+			}
+		}
+		StaffShape staffShape = (StaffShape)staff;
+		
+		
+		
+		// 
+		boolean isBarLine = isBarLine(rawShapes, staffShape);
+		
+		
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public List<IShape> getResult() {
+		
+		return myShapes;
+	}
+
+	private boolean isBarLine(List<IShape> rawShapes, StaffShape staffShape) {
+		
+		// singleton raw shape test
+		if (rawShapes.size() != 0)
+			return false;
+		
+		//
+		IShape rawShape = rawShapes.get(0);
+		IStroke rawStroke = rawShape.getStrokes().get(0);
+		List<Point2D.Double> rawPoints = rawStroke.getPoints();
+		
+		// line test
+		if (isLine(rawPoints))
+			return false;
+		
+		// get the top and bottom points
+		Point2D.Double topPoint, bottomPoint;
+		if (rawPoints.get(0).y < rawPoints.get(rawPoints.size() - 1).y) {
+			topPoint = rawPoints.get(0);
+			bottomPoint = rawPoints.get(rawPoints.size() - 1);
+		}
+		else {
+			topPoint = rawPoints.get(rawPoints.size() - 1);
+			bottomPoint = rawPoints.get(0);
+		}
+		
+		// horizontal test
+		double deltaX = bottomPoint.y - topPoint.y;
+		
+		// location/height test
+		
+		return false;
+	}
+}

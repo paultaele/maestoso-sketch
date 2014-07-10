@@ -1,0 +1,58 @@
+package edu.tamu.srl.music.classifier;
+
+import java.util.List;
+
+public class StaffShape extends IShape {
+
+	public StaffShape(List<IStroke> strokes, ShapeName shapeName, double topY, double lineInterval) {
+		
+		// set the shape name and strokes
+		super(shapeName, strokes);
+
+		myLineInterval = lineInterval;
+		myLineYs = new double[NUM_LINES];
+		for (int i = 0; i < myLineYs.length; ++i)
+			myLineYs[i] = topY + myLineInterval*i;
+		
+		myPositionZero = myLineYs[0] - (myLineInterval / 2.0);
+	}
+	
+	public int getLineY(int lineNumber) {
+		
+		return (int)myLineYs[lineNumber];
+	}
+	
+	public int getLineInterval() {
+		
+		return (int)myLineInterval;
+	}
+	
+	public int getPosition(double yCoord) {
+		
+		//
+		double value = myPositionZero;
+		double halfInterval = myLineInterval * 0.5;
+		int count = 0;
+		
+		if (yCoord > myPositionZero) {
+			
+			while (value < yCoord) {
+				
+				value += halfInterval;
+				
+			}
+		}
+		
+		return -1;
+	}
+
+	
+	
+	private double myLineInterval;
+	private double[] myLineYs;
+	private double[] myPositions;
+	private double myPositionZero;
+	
+	public static final int NUM_LINES = 5;
+	public static final int NUM_POSITIONS = 10;
+}

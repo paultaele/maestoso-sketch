@@ -50,3 +50,11 @@
 1404878940306	Delete element
 1404880192807	Rename local variable 'canDrawMusic'
 1404922990378	Rename type 'BarLineClassifier'
+1404923812776	Rename type 'ClefShapeClassifier'
+1404923845892	Rename type 'BarClassifier'
+1404923862781	Rename type 'ClefClassifier'
+1404924735363	Rename local variable 'points'
+1404928370810	Rename local variable 'bar'
+1404953332236	Rename local variable 'bar'
+1404953563723	Rename local variable 'bar1'
+1404953836973	Rename local variable 'bar'
