@@ -80,10 +80,10 @@ public class ShapeClassifier {
 			
 			
 			// test for bar lines
-//			classifier = new BarLineClassifier();
-//			isClassifier = classifier.classify(shapes);
-//			if (isClassified)
-//				return classifier.getResult();
+			classifier = new BarShapeClassifier();
+			isClassified = classifier.classify(shapes);
+			if (isClassified)
+				return classifier.getResult();
 		}
 		
 		//

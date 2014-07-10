@@ -343,6 +343,6 @@ public class SketchPanel extends JPanel {
 	public static Color ACTIVE_COLOR = Color.black;
 	
 	public static final boolean DISPLAY_SHAPE_IMAGES = true;
-	public static final boolean DISPLAY_SHAPES_LIST = false;
+	public static final boolean DISPLAY_SHAPES_LIST = true;
 	public static final boolean DISPLAY_SHAPE_SCORES = false;
 }

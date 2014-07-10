@@ -30,6 +30,11 @@ public abstract class AbstractShapeClassifier implements IShapeClassifier {
 	
 	protected boolean isLine(List<Point2D.Double> points) {
 		
+		return isLine(points, LINE_RATIO_FLOOR, LINE_RATIO_CEILING);
+	}
+	
+	protected boolean isLine(List<Point2D.Double> points, double floor, double ceiling) {
+		
 		// check if staff line is a line
 		Point2D.Double pointStart = points.get(0);
 		Point2D.Double pointEnd = points.get(points.size()-1);
@@ -38,7 +43,7 @@ public abstract class AbstractShapeClassifier implements IShapeClassifier {
 		double lineRatio = distance / pathDistance;
 		
 		// check for linearity
-		if (lineRatio < 0.95 || lineRatio > 1.05)
+		if (lineRatio < floor || lineRatio > ceiling)
 			return false;
 		
 		return true;
@@ -61,5 +66,10 @@ public abstract class AbstractShapeClassifier implements IShapeClassifier {
 		return distance;
 	}
 	
+	
+	
 	protected List<IShape> myShapes;
+	
+	public static final double LINE_RATIO_FLOOR = 0.90;
+	public static final double LINE_RATIO_CEILING = 1.10;
 }

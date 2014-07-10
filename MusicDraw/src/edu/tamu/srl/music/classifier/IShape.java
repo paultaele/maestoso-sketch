@@ -72,6 +72,11 @@ public class IShape {
 				|| shapeName == ShapeName.FLAT)
 			return ShapeGroup.ACCIDENTAL;
 		
+		else if (shapeName == ShapeName.SINGLE_BAR
+				|| shapeName == ShapeName.DOUBLE_BAR)
+			
+			return ShapeGroup.BAR;
+		
 		else
 			return ShapeGroup.NONE;
 	}
