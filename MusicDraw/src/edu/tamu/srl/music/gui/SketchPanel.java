@@ -108,7 +108,7 @@ public class SketchPanel extends JPanel {
 					
 					if (shapes != null && !	shapes.isEmpty())
 						for (IShape s : shapes)
-							System.out.print("    (" + s.getShapeName() + " | " + s.getShapeGroup() + ")");
+							System.out.print("(" + s.getShapeName() + "|" + s.getShapeGroup() + ") ");
 					System.out.println();
 				}
 				
@@ -344,5 +344,5 @@ public class SketchPanel extends JPanel {
 	
 	public static final boolean DISPLAY_SHAPE_IMAGES = true;
 	public static final boolean DISPLAY_SHAPES_LIST = true;
-	public static final boolean DISPLAY_SHAPE_SCORES = false;
+	public static final boolean DISPLAY_SHAPE_SCORES = true;
 }

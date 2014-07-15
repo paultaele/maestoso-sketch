@@ -77,7 +77,10 @@ public class ShapeClassifier {
 //				return classifier.getResult();
 			
 			// test for rests
-			
+			classifier = new RestShapeClassifier();
+			isClassified = classifier.classify(shapes);
+			if (isClassified)
+				return classifier.getResult();
 			
 			// test for bar lines
 			classifier = new BarShapeClassifier();

@@ -49,7 +49,7 @@ public class BeatShapeClassifier extends AbstractShapeClassifier implements ISha
 		if (result.score() > MIN_SCORE_THRESHOLD) {
 			
 			// set the IShape object
-			ShapeName newShapeName = getShapeType(result.shape());
+			ShapeName newShapeName = getShapeName(result.shape());
 			List<IStroke> newStrokes = new ArrayList<IStroke>();
 			for (IShape rawShape : rawShapes) {
 				
@@ -60,7 +60,7 @@ public class BeatShapeClassifier extends AbstractShapeClassifier implements ISha
 			
 			// check if the shape falls in any special case
 			// if the shape is a special case, then it's not that shape
-			boolean isSpecialCase = isSpecialCase(newShape);
+			boolean isSpecialCase = isSpecialCase(newShape, shapes);
 			if (isSpecialCase)
 				return false;
 			else
@@ -79,23 +79,33 @@ public class BeatShapeClassifier extends AbstractShapeClassifier implements ISha
 		return false;
 	}
 	
-	private boolean isSpecialCase(IShape shape) {
+	private boolean isSpecialCase(IShape candidate, List<IShape> shapes) {
 		
 		// line test
 		// note: no beat shape is a singleton line
-		if (shape.getStrokes().size() == 1) {
+		if (candidate.getStrokes().size() == 1) {
 			
-			List<Point2D.Double> points = shape.getStrokes().get(0).getPoints();
+			List<Point2D.Double> points = candidate.getStrokes().get(0).getPoints();
 			if (isLine(points))
 				return true;
 		}
 		
-//		// 9 test
-//		if (shape.getShapeName() == ShapeName.NINE) {
-//			
-//			if (shape.getStrokes().size() != 1)
-//				return true;
-//		}
+		// path length test
+		IShape staff = null;
+		for (IShape shape : shapes) {
+			if (shape.getShapeName() == IShape.ShapeName.WHOLE_STAFF) {
+				staff = shape;
+				break;
+			}
+		}
+		StaffShape staffShape = (StaffShape)staff;
+		double pathLength = 0.0;
+		for (IStroke stroke : candidate.getStrokes()) {
+			pathLength += pathDistance(stroke.getPoints());
+		}
+		if (pathLength < staffShape.getLineInterval() * 2.0) { // check if path length is less than two staff line intervals
+			return true;
+		}
 		
 		return false;
 	}
@@ -105,7 +115,7 @@ public class BeatShapeClassifier extends AbstractShapeClassifier implements ISha
 		return myShapes;
 	}
 	
-	private ShapeName getShapeType(String shapeName) {
+	private ShapeName getShapeName(String shapeName) {
 		
 		if (shapeName.equals("2"))
 			return ShapeName.TWO;

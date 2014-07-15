@@ -96,6 +96,11 @@ public class KeyShapeClassifier
 		return false;
 	}
 	
+	public List<IShape> getResult() {
+
+		return myShapes;
+	}
+	
 	private void setLocation(IShape shape, List<IShape> shapes) {
 		
 		KeyShape keyShape = (KeyShape)shape;
@@ -135,12 +140,6 @@ public class KeyShapeClassifier
 		//
 		shape.setImageWidth(newImageWidth);
 		shape.setImageHeight(newImageHeight);
-	}
-
-	@Override
-	public List<IShape> getResult() {
-
-		return myShapes;
 	}
 	
 	private boolean isSpecialCase(IShape shape) {

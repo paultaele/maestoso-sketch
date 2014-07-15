@@ -74,8 +74,16 @@ public class IShape {
 		
 		else if (shapeName == ShapeName.SINGLE_BAR
 				|| shapeName == ShapeName.DOUBLE_BAR)
-			
 			return ShapeGroup.BAR;
+		
+		else if (shapeName == ShapeName.LOWER_BRACKET
+				|| shapeName == shapeName.UPPER_BRACKET
+				|| shapeName == shapeName.WHOLE_REST
+				|| shapeName == shapeName.HALF_REST
+				|| shapeName == shapeName.QUARTER_REST
+				|| shapeName == shapeName.EIGHTH_REST)
+			return ShapeGroup.REST;
+			
 		
 		else
 			return ShapeGroup.NONE;
@@ -178,7 +186,8 @@ public class IShape {
 		TREBLE_CLEF, BASS_CLEF,
 		TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE,
 		SHARP, FLAT, NATURAL,
-		SINGLE_BAR, DOUBLE_BAR
+		SINGLE_BAR, DOUBLE_BAR,
+		LOWER_BRACKET, UPPER_BRACKET, WHOLE_REST, HALF_REST, QUARTER_REST, EIGHTH_REST
 	}
 	
 	public enum ShapeGroup {
@@ -189,7 +198,8 @@ public class IShape {
 		CLEF,
 		BEAT,
 		ACCIDENTAL,
-		BAR
+		BAR,
+		REST
 	}
 	
 	public static void loadImages() {
