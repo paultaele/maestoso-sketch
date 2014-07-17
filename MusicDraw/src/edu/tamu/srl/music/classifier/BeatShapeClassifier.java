@@ -67,8 +67,7 @@ public class BeatShapeClassifier extends AbstractShapeClassifier implements ISha
 				newShape.setColor(Color.red); // TEMP
 			
 			// set the shape's image
-			newShape.setImageFile(IShape.getImage(newShapeName.name()));
-			setLocation(newShape, shapes);
+			setImage(newShape, shapes);
 			
 			//
 			shapes.add(newShape);
@@ -137,7 +136,7 @@ public class BeatShapeClassifier extends AbstractShapeClassifier implements ISha
 		return ShapeName.RAW;
 	}
 	
-	private void setLocation(IShape shape, List<IShape> shapes) {
+	private void setImage(IShape shape, List<IShape> shapes) {
 		
 		// get the staff as reference for setting the shape
 		IShape staff = null;
@@ -162,25 +161,29 @@ public class BeatShapeClassifier extends AbstractShapeClassifier implements ISha
 		}
 		
 		//
-		int imageWidth = shape.getImageFile().getWidth();
-		int imageHeight = shape.getImageFile().getHeight();
+		BufferedImage bufferedImage = IShape.getImage(shape.getShapeName().name());
+		double originalWidth = bufferedImage.getWidth();
+		double originalHeight = bufferedImage.getHeight();
+		double width = 0.0;
+		double height = 0.0;
+		double x = 0.0;
+		double y = 0.0;
 		
 		if (hasBeat) {
 			
-			shape.setImageX(other.getImageX());
-			shape.setImageY((int)staffShape.getLineY(2));
+			x = other.getImages().get(0).x();
+			y = staffShape.getLineY(2);
 		}
 		else {
 			
-			shape.setImageX((int)shape.getBoundingBox().minX());
-			shape.setImageY((int)staffShape.getLineY(0));
+			x = shape.getBoundingBox().minX();
+			y = staffShape.getLineY(0);
 		}
+		height = (int)(staffShape.getLineInterval() * 2);
+		width = ((int)height*originalWidth)/originalHeight;
 		
-		int newImageHeight = (int)(staffShape.getLineInterval() * 2);
-		int newImageWidth = (newImageHeight*imageWidth)/imageHeight;
-		
-		shape.setImageWidth(newImageWidth);
-		shape.setImageHeight(newImageHeight);
+		IImage image = new IImage(bufferedImage, x, y, width, height);
+		shape.addImage(image);
 	}
 	
 	public static final String DATA_DIR_NAME = "beat";

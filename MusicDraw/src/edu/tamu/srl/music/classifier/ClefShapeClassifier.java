@@ -39,7 +39,6 @@ public class ClefShapeClassifier extends AbstractShapeClassifier implements ISha
 		//
 		Hausdorff classifier = new Hausdorff();
 		List<List<Point2D.Double>> strokes = getStrokes(rawShapes);
-//		List<Template> templates = getTemplates(DATA_DIR_PATHNAME);
 		List<Template> templates = Template.getTemplates(DATA_DIR_NAME);
 		Pair result = classifier.classify(strokes, templates);
 		
@@ -80,7 +79,7 @@ public class ClefShapeClassifier extends AbstractShapeClassifier implements ISha
 			
 			// create shape and set its image
 			IShape newShape = new IShape(newShapeName, newStrokes);
-			newShape.setImageFile(newImage);
+//			newShape.setImageFile(newImage);
 			IShape staffShape = null;
 			for (IShape shape : shapes) {
 				if (shape.getShapeName() == IShape.ShapeName.WHOLE_STAFF) {
@@ -88,7 +87,13 @@ public class ClefShapeClassifier extends AbstractShapeClassifier implements ISha
 					break;
 				}
 			}
-			setLocation(newShape, (StaffShape)staffShape);
+			setImage(newShape, (StaffShape)staffShape);
+			
+			// check if the shape falls in any special case
+			// if the shape is a special case, then it's not that shape
+			boolean isSpecialCase = isSpecialCase(newShape, shapes);
+			if (isSpecialCase)
+				return false;
 			
 			// add clef to list of shapes
 			shapes.add(newShape);
@@ -106,39 +111,70 @@ public class ClefShapeClassifier extends AbstractShapeClassifier implements ISha
 		return myShapes;
 	}
 	
-	private void setLocation(IShape shape, StaffShape staff) {
+	private boolean isSpecialCase(IShape shape, List<IShape> shapes) {
+		
+		// get the staff as reference for setting the shape
+		IShape staff = null;
+		for (IShape s : shapes) {
+			if (s.getShapeName() == IShape.ShapeName.WHOLE_STAFF) {
+				staff = s;
+				break;
+			}
+		}
+		StaffShape staffShape = (StaffShape)staff;
+		double interval = staffShape.getLineInterval();
+		
+		// case: shape is treble clef
+		if (shape.getShapeName() == ShapeName.TREBLE_CLEF) {
+			double length = pathDistance(shape.getStrokes().get(0).getPoints());
+			if (length < interval * 8)
+				return true;
+		}
+		
+		// case: shape is bass clef
+		if (shape.getShapeName() == ShapeName.BASS_CLEF) {
+			double length = pathDistance(shape.getStrokes().get(0).getPoints());
+			if (length < interval * 4)
+				return true;
+		}
+		
+		return false;
+	}
+	
+	private void setImage(IShape shape, StaffShape staff) {
 		
 		int staffTopY = (int)staff.getLineY(0);
 		int staffBottomY = (int)staff.getLineY(staff.NUM_LINES - 1);
 		int staffHeight = staffBottomY - staffTopY;
 		int lineInterval = (int) staff.getLineInterval();
 		
-		BufferedImage bufferedImage = shape.getImageFile();
-		int imageWidth = bufferedImage.getWidth();
-		int imageHeight = bufferedImage.getHeight();
+		BufferedImage bufferedImage = IShape.getImage(shape.getShapeName().name());
+		double originalWidth = bufferedImage.getWidth();
+		double originalHeight = bufferedImage.getHeight();
+		
+		double x = 0.0;
+		double y = 0.0;
+		double width = 0;
+		double height = 0;
 		
 		if (shape.getShapeName() == ShapeName.TREBLE_CLEF) {
 			
-			shape.setImageX(IMAGE_X_POS);
-			shape.setImageY(staffTopY - lineInterval);
-			
-			int newImageHeight = staffHeight + (int)(lineInterval*1.5);
-			int newImageWidth = (newImageHeight*imageWidth)/imageHeight;
-			
-			shape.setImageWidth(newImageWidth);
-			shape.setImageHeight(newImageHeight);
+			x = IMAGE_X_POS;
+			y = staffTopY - lineInterval;
+			height = staffHeight + lineInterval*1.5;
+			width = (height*originalWidth)/originalHeight;
 		}
 		else if (shape.getShapeName() == ShapeName.BASS_CLEF) {
 			
-			shape.setImageX(IMAGE_X_POS);
-			shape.setImageY(staffTopY);
-			
-			int newImageHeight = staffHeight - (int)(lineInterval*0.5);
-			int newImageWidth = (newImageHeight*imageWidth)/imageHeight;
-			
-			shape.setImageWidth(newImageWidth);
-			shape.setImageHeight(newImageHeight);
+			x = IMAGE_X_POS;
+			y = staffTopY;
+			height = staffHeight - lineInterval*0.5;
+			width = (height*originalWidth)/originalHeight;
 		}
+		
+		//
+		IImage image = new IImage(bufferedImage, x, y, width, height);
+		shape.addImage(image);
 	}
 
 	

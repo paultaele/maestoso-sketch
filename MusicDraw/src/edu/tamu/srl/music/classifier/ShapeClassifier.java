@@ -71,10 +71,10 @@ public class ShapeClassifier {
 		if (canWriteMusic) {
 			
 			// test for notes
-//			classifier = new NoteShapeClassifier();
-//			isClassified = classifier.classify(shapes);
-//			if (isClassified)
-//				return classifier.getResult();
+			classifier = new NoteShapeClassifier();
+			isClassified = classifier.classify(shapes);
+			if (isClassified)
+				return classifier.getResult();
 			
 			// test for rests
 			classifier = new RestShapeClassifier();

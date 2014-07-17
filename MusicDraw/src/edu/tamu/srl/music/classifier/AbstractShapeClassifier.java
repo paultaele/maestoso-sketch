@@ -3,8 +3,10 @@ package edu.tamu.srl.music.classifier;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
+import edu.tamu.srl.music.classifier.IShape.ShapeName;
 import edu.tamu.srl.music.xml.XmlPoint;
 import edu.tamu.srl.music.xml.XmlSketch;
 import edu.tamu.srl.music.xml.XmlSketchParser;
@@ -64,6 +66,39 @@ public abstract class AbstractShapeClassifier implements IShapeClassifier {
 		}
 		
 		return distance;
+	}
+	
+	protected List<IShape> cloneShapes(List<IShape> originals) {
+		List<IShape> shapes = new ArrayList<IShape>();
+		for (IShape original : originals) {
+			shapes.add(original);
+		}
+		return shapes;
+	}
+
+	protected List<IShape> extractRawShapes(List<IShape> shapes) {
+		List<IShape> rawShapes = new ArrayList<IShape>();
+		Iterator<IShape> iterator = shapes.iterator();
+		while (iterator.hasNext()) {
+			IShape shape = iterator.next();
+			if (shape.getShapeName() == ShapeName.RAW) {
+				rawShapes.add(shape);
+				iterator.remove();
+			}
+		}
+		return rawShapes;
+	}
+	
+	protected StaffShape getStaffShape(List<IShape> shapes) {
+		IShape staff = null;
+		for (IShape s : shapes) {
+			if (s.getShapeName() == IShape.ShapeName.WHOLE_STAFF) {
+				staff = s;
+				break;
+			}
+		}
+		StaffShape staffShape = (StaffShape)staff;
+		return staffShape;
 	}
 	
 	

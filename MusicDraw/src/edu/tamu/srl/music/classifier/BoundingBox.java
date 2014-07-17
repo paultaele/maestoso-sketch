@@ -1,6 +1,7 @@
 package edu.tamu.srl.music.classifier;
 
 import java.awt.geom.Point2D;
+import java.awt.geom.Point2D.Double;
 import java.util.List;
 
 public class BoundingBox {
@@ -12,10 +13,10 @@ public class BoundingBox {
 	
 	private void createBoundingBox(List<Point2D.Double> points) {
 		
-		myMinX = Double.MAX_VALUE;
-		myMinY = Double.MAX_VALUE;
-		myMaxX = Double.MIN_VALUE;
-		myMaxY = Double.MIN_VALUE;
+		myMinX = java.lang.Double.MAX_VALUE;
+		myMinY = java.lang.Double.MAX_VALUE;
+		myMaxX = java.lang.Double.MIN_VALUE;
+		myMaxY = java.lang.Double.MIN_VALUE;
 		
 		for (Point2D.Double point : points) {
 			
@@ -32,6 +33,7 @@ public class BoundingBox {
 		
 		myCenterX = (myMinX + myMaxX) / 2.0;
 		myCenterY = (myMinY + myMaxY) / 2.0;
+		myCenter = new Point2D.Double(myCenterX, myCenterY);
 	}
 	
 	public BoundingBox(double minX, double minY, double maxX, double maxY) {
@@ -40,6 +42,10 @@ public class BoundingBox {
 		myMinY = minY;
 		myMaxX = maxX;
 		myMaxY = maxY;
+		
+		myCenterX = (myMinX + myMaxX) / 2.0;
+		myCenterY = (myMinY + myMaxY) / 2.0;
+		myCenter = new Point2D.Double(myCenterX, myCenterY);
 	}
 	
 	public double width() {
@@ -82,10 +88,33 @@ public class BoundingBox {
 		return myCenterY;
 	}
 	
+	public Point2D.Double center() {
+		
+		return myCenter; 
+	}
+	
+	public boolean contains(Point2D.Double point) {
+		
+		double x = point.x;
+		double y = point.y;
+		
+		if (x < myMinX)
+			return false;
+		if (myMaxX < x)
+			return false;
+		if (y < myMinY)
+			return false;
+		if (myMaxY < y)
+			return false;
+		
+		return true;
+	}
+	
 	private double myMinX;
 	private double myMinY;
 	private double myMaxX;
 	private double myMaxY;
 	private double myCenterX;
 	private double myCenterY;
+	private Point2D.Double myCenter;
 }

@@ -4,16 +4,16 @@ import java.util.List;
 
 public class KeyShape extends IShape {
 
-	public KeyShape(ShapeName shapeName, List<IStroke> strokes, int staffPosition) {
+	public KeyShape(ShapeName shapeName, List<IStroke> strokes, int position) {
 		super(shapeName, strokes);
 		
-		myStaffPosition = staffPosition;
+		myPosition = position;
 	}
 
-	public int getStaffPosition() {
+	public int getPosition() {
 		
-		return myStaffPosition;
+		return myPosition;
 	}
 	
-	private int myStaffPosition;
+	private int myPosition;
 }

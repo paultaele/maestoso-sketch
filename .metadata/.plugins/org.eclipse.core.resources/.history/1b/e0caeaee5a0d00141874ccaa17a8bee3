@@ -1,0 +1,15 @@
+package edu.tamu.srl.music.classifier;
+
+public class NoteShape extends IShape {
+
+	public NoteShape(ShapeName shapeName, IStroke stroke, HeadType headType) {
+		
+		super(shapeName, stroke);
+		myHeadType = headType;
+	}
+
+	public enum HeadType { FILLED, EMPTY }
+	public enum StemType { UPWARD, DOWNWARD }
+	
+	private HeadType myHeadType;
+}

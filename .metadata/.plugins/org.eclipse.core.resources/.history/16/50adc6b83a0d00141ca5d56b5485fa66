@@ -1,0 +1,19 @@
+package edu.tamu.srl.music.classifier;
+
+public class IImage {
+
+	public IImage(double x, double y, double width, double height) {
+		
+		;
+//		shape.setImageWidth(newImageWidth);
+//		shape.setImageHeight(newImageHeight);
+	}
+	
+	
+	
+	private BufferedImage myImage;
+	private double myX;
+	private double myY;
+	private double myWidth;
+	private double myHeight;
+}

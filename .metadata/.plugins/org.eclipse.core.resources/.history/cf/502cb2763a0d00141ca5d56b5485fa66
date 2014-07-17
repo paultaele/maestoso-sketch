@@ -1,0 +1,9 @@
+package edu.tamu.srl.music.classifier;
+
+public class IImage {
+
+	public IImage() {
+		
+		;
+	}
+}

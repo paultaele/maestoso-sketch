@@ -84,8 +84,7 @@ public class KeyShapeClassifier
 				newShape.setColor(Color.blue); // TEMP
 			
 			// set the shape's image
-			newShape.setImageFile(IShape.getImage(newShapeName.name()));
-			setLocation(newShape, shapes);
+			setImage(newShape, shapes);
 			
 			// add the shape to the list of shapes
 			shapes.add(newShape);
@@ -101,7 +100,7 @@ public class KeyShapeClassifier
 		return myShapes;
 	}
 	
-	private void setLocation(IShape shape, List<IShape> shapes) {
+	private void setImage(IShape shape, List<IShape> shapes) {
 		
 		KeyShape keyShape = (KeyShape)shape;
 		
@@ -114,15 +113,15 @@ public class KeyShapeClassifier
 			}
 		}
 		StaffShape staffShape = (StaffShape)staff;
-		
+
 		// get the buffered image's width and height
 		BufferedImage bufferedImage = IShape.getImage(keyShape.getShapeName().name());
-		int imageWidth = bufferedImage.getWidth();
-		int imageHeight = bufferedImage.getHeight();
-		
-		// set the buffered image's new width and height
-		int newImageHeight = (int)(staffShape.getLineInterval() * 2);
-		int newImageWidth = (newImageHeight*imageWidth)/imageHeight;
+		double x = 0.0;
+		double y = 0.0;
+		double originalWidth = bufferedImage.getWidth();
+		double originalHeight = bufferedImage.getHeight();
+		double height = staffShape.getLineInterval() * 2.0;
+		double width = (height*originalWidth)/originalHeight;
 		
 		// set the shape's offset to line up with the staff lines
 		double shapeOffset = staffShape.getLineInterval();
@@ -130,16 +129,18 @@ public class KeyShapeClassifier
 			shapeOffset *= 0.9;
 		else if (shape.getShapeName() == ShapeName.KEY_SHARP)
 			shapeOffset *= 1.1;
-		
-		//
-		double xPos = shape.getBoundingBox().minX();
-		double yPos = staffShape.getStaffPositionY(keyShape.getStaffPosition()) - shapeOffset;
-		shape.setImageX((int)xPos);
-		shape.setImageY((int)yPos);
+		x = shape.getBoundingBox().minX();
+		y = staffShape.getStaffPositionY(keyShape.getPosition()) - shapeOffset;
 
 		//
-		shape.setImageWidth(newImageWidth);
-		shape.setImageHeight(newImageHeight);
+//		shape.setImageX((int)x);
+//		shape.setImageY((int)y);
+//		shape.setImageWidth((int)width);
+//		shape.setImageHeight((int)height);
+		
+		//
+		IImage image = new IImage(bufferedImage, x, y, width, height);
+		shape.addImage(image);
 	}
 	
 	private boolean isSpecialCase(IShape shape) {
@@ -165,6 +166,7 @@ public class KeyShapeClassifier
 			
 			if (shape.getStrokes().size() == 1) {
 				
+				// ???
 				IStroke flatStroke = shape.getStrokes().get(0);
 				Point2D.Double lastPoint = flatStroke.get(flatStroke.size() - 1);
 				Point2D.Double point = null;

@@ -25,6 +25,7 @@ public class IShape {
 		myHasImage = false;
 		
 		myBoundingBox = new BoundingBox(stroke.getPoints());
+		myImages = new ArrayList<IImage>();
 	}
 	
 	public IShape(ShapeName shapeName, List<IStroke> strokes) {
@@ -42,6 +43,7 @@ public class IShape {
 			for (Point2D.Double point : stroke.getPoints())
 				points.add(point);
 		myBoundingBox = new BoundingBox(points);
+		myImages = new ArrayList<IImage>();
 	}
 	
 	private ShapeGroup myShapeGroup(ShapeName shapeName) {
@@ -77,16 +79,25 @@ public class IShape {
 			return ShapeGroup.BAR;
 		
 		else if (shapeName == ShapeName.LOWER_BRACKET
-				|| shapeName == shapeName.UPPER_BRACKET
-				|| shapeName == shapeName.WHOLE_REST
-				|| shapeName == shapeName.HALF_REST
-				|| shapeName == shapeName.QUARTER_REST
-				|| shapeName == shapeName.EIGHTH_REST)
+				|| shapeName == ShapeName.UPPER_BRACKET
+				|| shapeName == ShapeName.WHOLE_REST
+				|| shapeName == ShapeName.HALF_REST
+				|| shapeName == ShapeName.QUARTER_REST
+				|| shapeName == ShapeName.EIGHTH_REST)
 			return ShapeGroup.REST;
+		
+		else if (shapeName == ShapeName.NOTE)
+			return ShapeGroup.NOTE;
 			
 		
 		else
 			return ShapeGroup.NONE;
+	}
+	
+	public void addImage(IImage image) {
+		
+		myHasImage = true;
+		myImages.add(image);
 	}
 	
 	public ShapeName getShapeName() {
@@ -104,15 +115,9 @@ public class IShape {
 		return myStrokes;
 	}
 	
-	public BufferedImage getImageFile() {
+	public List<IImage> getImages() {
 		
-		return myImageFile;
-	}
-	
-	public void setImageFile(BufferedImage imageFile) {
-		
-		myHasImage = true;
-		myImageFile = imageFile;
+		return myImages;
 	}
 	
 	public boolean hasImage() {
@@ -123,46 +128,6 @@ public class IShape {
 	public boolean hasTransformed() {
 		
 		return myHasTransformed;
-	}
-	
-	public int getImageWidth() {
-		
-		return myImageWidth;
-	}
-	
-	public int getImageHeight() {
-		
-		return myImageHeight;
-	}
-	
-	public int getImageX() {
-		
-		return myImageX;
-	}
-	
-	public int getImageY() {
-		
-		return myImageY;
-	}
-	
-	public void setImageWidth(int imageWidth) {
-		
-		myImageWidth = imageWidth;
-	}
-	
-	public void setImageHeight(int imageHeight) {
-		
-		myImageHeight = imageHeight;
-	}
-	
-	public void setImageX(int imageX) {
-		
-		myImageX = imageX;
-	}
-	
-	public void setImageY(int imageY) {
-		
-		myImageY = imageY;
 	}
 	
 	public void setColor(Color color) {
@@ -187,7 +152,8 @@ public class IShape {
 		TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE,
 		SHARP, FLAT, NATURAL,
 		SINGLE_BAR, DOUBLE_BAR,
-		LOWER_BRACKET, UPPER_BRACKET, WHOLE_REST, HALF_REST, QUARTER_REST, EIGHTH_REST
+		LOWER_BRACKET, UPPER_BRACKET, WHOLE_REST, HALF_REST, QUARTER_REST, EIGHTH_REST,
+		NOTE
 	}
 	
 	public enum ShapeGroup {
@@ -199,7 +165,8 @@ public class IShape {
 		BEAT,
 		ACCIDENTAL,
 		BAR,
-		REST
+		REST,
+		NOTE
 	}
 	
 	public static void loadImages() {
@@ -246,6 +213,7 @@ public class IShape {
 	private int myImageX;
 	private int myImageY;
 	private BoundingBox myBoundingBox;
+	private List<IImage> myImages;
 	
 	private static HashMap<String, BufferedImage> myImagesMap;
 	public static final String IMAGE_DIR_PATHNAME = "src/edu/tamu/srl/music/images/";

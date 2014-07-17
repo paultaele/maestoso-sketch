@@ -21,6 +21,7 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
+import edu.tamu.srl.music.classifier.IImage;
 import edu.tamu.srl.music.classifier.IShape;
 import edu.tamu.srl.music.classifier.IStroke;
 import edu.tamu.srl.music.classifier.ShapeClassifier;
@@ -227,17 +228,36 @@ public class SketchPanel extends JPanel {
 	    		//
 	    		if (shape.hasImage() && DISPLAY_SHAPE_IMAGES) {
 	    			
-	    			int width = shape.getImageWidth();
-	    			int height = shape.getImageHeight();
-	    			int xPos = shape.getImageX();
-	    			int yPos = shape.getImageY();
+//	    			int wdth = shape.getImageWidth();
+//	    			int hght = shape.getImageHeight();
+//	    			int xPos = shape.getImageX();
+//	    			int yPos = shape.getImageY();
+//	    			
+//	    			BufferedImage otherImage = shape.getImageFile();
+//	    			BufferedImage newImage = new BufferedImage(wdth, hght, BufferedImage.TYPE_INT_ARGB);
+//	    			Graphics graphics = newImage.createGraphics();
+//	    			graphics.drawImage(otherImage, 0, 0, wdth, hght, null);
+//	    			graphics.dispose();
+//	    			myGraphics2D.drawImage(newImage, xPos, yPos, null);
 	    			
-	    			BufferedImage otherImage = shape.getImageFile();
-	    			BufferedImage newImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-	    			Graphics g = newImage.createGraphics();
-	    			g.drawImage(otherImage, 0, 0, width, height, null);
-	    			g.dispose();
-	    			myGraphics2D.drawImage(newImage, xPos, yPos, null);
+	    			// =====
+	    			
+	    			int width, height, x, y;
+	    			BufferedImage originalImage, scaledImage;
+	    			for (IImage image : shape.getImages()) {
+	    				
+	    				x = (int)image.x();
+	    				y = (int)image.y();
+	    				width = (int)image.width();
+	    				height = (int)image.height();
+	    				originalImage = image.image();
+	    				scaledImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+	    				
+	    				Graphics g = scaledImage.createGraphics();
+		    			g.drawImage(originalImage, 0, 0, width, height, null);
+		    			g.dispose();
+		    			myGraphics2D.drawImage(scaledImage, x, y, null);
+	    			}
 	    		}
 	    		
 	    		//
@@ -343,6 +363,6 @@ public class SketchPanel extends JPanel {
 	public static Color ACTIVE_COLOR = Color.black;
 	
 	public static final boolean DISPLAY_SHAPE_IMAGES = true;
-	public static final boolean DISPLAY_SHAPES_LIST = true;
-	public static final boolean DISPLAY_SHAPE_SCORES = true;
+	public static final boolean DISPLAY_SHAPES_LIST = false;
+	public static final boolean DISPLAY_SHAPE_SCORES = false;
 }

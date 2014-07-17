@@ -15,24 +15,18 @@ public class RestShapeClassifier extends AbstractShapeClassifier implements ISha
 	public boolean classify(List<IShape> originals) {
 		
 		// clone the list of original shapes
-		List<IShape> shapes = new ArrayList<IShape>();
-		for (IShape original : originals)
-			shapes.add(original);
-		
 		// extract all raw shapes
-		List<IShape> rawShapes = new ArrayList<IShape>();
-		Iterator<IShape> iterator = shapes.iterator();
-		while (iterator.hasNext()) {
-			
-			IShape shape = iterator.next();
-			if (shape.getShapeName() == ShapeName.RAW) {
-				
-				rawShapes.add(shape);
-				iterator.remove();
-			}
-		}
+		// get the staff as reference for setting the shape
+		List<IShape> shapes = cloneShapes(originals);
+		List<IShape> rawShapes = extractRawShapes(shapes);
 		
-		// TODO: scribble check
+		// filled rest test
+		List<IShape> shapesWithFilledRest = hasFilledRest(rawShapes, shapes);
+		if (shapesWithFilledRest != null) {
+			
+			myShapes = shapesWithFilledRest;
+			return true;
+		}
 		
 		// create and run the classifier
 		Hausdorff classifier = new Hausdorff();
@@ -72,8 +66,8 @@ public class RestShapeClassifier extends AbstractShapeClassifier implements ISha
 			if (newShape.getShapeName() != ShapeName.UPPER_BRACKET
 					&& newShape.getShapeName() != ShapeName.LOWER_BRACKET) {
 				
-				newShape.setImageFile(IShape.getImage(newShapeName.name()));
-				setLocation(newShape, shapes);
+//				newShape.setImageFile(IShape.getImage(newShapeName.name()));
+				setImage(newShape, shapes);
 			}
 			
 			//
@@ -91,7 +85,77 @@ public class RestShapeClassifier extends AbstractShapeClassifier implements ISha
 		return myShapes;
 	}
 	
-	private void setLocation(IShape shape, List<IShape> shapes) {
+	private List<IShape> hasFilledRest(List<IShape> rawShapes, List<IShape> originalShapes) {
+		
+		// case: singleton test
+		if (rawShapes.size() > 1)
+			return null;
+		
+		// get scribble candidate
+		IShape scribble = rawShapes.get(0);
+		
+		// copy original shapes
+		List<IShape> shapes = new ArrayList<IShape>();
+		for (IShape originalShape : originalShapes)
+			shapes.add(originalShape);
+		
+		// get bracket
+		boolean hasBracket = false;
+		IShape bracket = null;
+		Iterator<IShape> iterator = shapes.iterator();
+		while (iterator.hasNext()) {
+			
+			IShape shape = iterator.next();
+			if (shape.getShapeName() == ShapeName.UPPER_BRACKET
+					|| shape.getShapeName() == ShapeName.LOWER_BRACKET) {
+				
+				bracket = shape;
+				iterator.remove();
+				hasBracket = true;
+				break;
+			}
+		}
+		if (!hasBracket)
+			return null;
+		
+		// bracket contains scribble test
+		// TODO: more stringent test
+		if (!bracket.getBoundingBox().contains(scribble.getBoundingBox().center())) {
+		
+			return null;
+		}
+		
+		// sufficiently filled test
+		IStroke scribbleStroke = scribble.getStrokes().get(0);
+		int numContained = 0;
+		int totalContained = scribbleStroke.size();
+		for (Point2D.Double point : scribbleStroke.getPoints()) {
+			if (bracket.getBoundingBox().contains(point))
+				++numContained;
+		}
+		if (((double)numContained/(double)totalContained) < FILLED_REST_RATIO_FLOOR)
+			return null;
+		
+		// create filled rest
+		List<IStroke> strokes = new ArrayList<IStroke>();
+		strokes.add(scribble.getStrokes().get(0));
+		strokes.add(bracket.getStrokes().get(0));
+		IShape.ShapeName shapeName = null;
+		if (bracket.getShapeName() == ShapeName.LOWER_BRACKET)
+			shapeName = ShapeName.WHOLE_REST;
+		else if (bracket.getShapeName() == ShapeName.UPPER_BRACKET)
+			shapeName = ShapeName.HALF_REST;
+		IShape filledRest = new IShape(shapeName, strokes);
+		shapes.add(filledRest);
+		
+		// TODO: set location
+//		filledRest.setImageFile(IShape.getImage(filledRest.getShapeName().name()));
+		setImage(filledRest, shapes);
+		
+		return shapes;
+	}
+	
+	private void setImage(IShape shape, List<IShape> shapes) {
 		
 		// get the staff as reference for setting the shape
 		IShape staff = null;
@@ -105,42 +169,60 @@ public class RestShapeClassifier extends AbstractShapeClassifier implements ISha
 		
 		// get the buffered image's width and height
 		BufferedImage bufferedImage = IShape.getImage(shape.getShapeName().name());
-		double imageHeight = bufferedImage.getHeight();
-		double imageWidth = bufferedImage.getWidth();
+		double originalHeight = bufferedImage.getHeight();
+		double originalWidth = bufferedImage.getWidth();
 		
 		//
-		double xPos = 0.0;
-		double yPos = 0.0;
-		double newImageWidth = 0.0;
-		double newImageHeight = 0.0;
+		double x = 0.0;
+		double y = 0.0;
+		double width = 0.0;
+		double height = 0.0;
 		
 		if (shape.getShapeName() == ShapeName.QUARTER_REST) {
-			xPos = shape.getBoundingBox().minX();
-			yPos = staffShape.getStaffPositionY(3);
+			x = shape.getBoundingBox().minX();
+			y = staffShape.getStaffPositionY(3);
 					
-			newImageHeight = staffShape.getLineInterval() * 3;
-			newImageWidth = (newImageHeight*imageWidth)/imageHeight;
+			height = staffShape.getLineInterval() * 3;
+			width = (height*originalWidth)/originalHeight;
 		}
 		else if (shape.getShapeName() == ShapeName.EIGHTH_REST) {
-			xPos = shape.getBoundingBox().minX();
-			yPos = staffShape.getStaffPositionY(4);
+			x = shape.getBoundingBox().minX();
+			y = staffShape.getStaffPositionY(4);
 					
-			newImageHeight = staffShape.getLineInterval() * 2;
-			newImageWidth = (newImageHeight*imageWidth)/imageHeight;
+			height = staffShape.getLineInterval() * 2;
+			width = (height*originalWidth)/originalHeight;
+		}
+		else if (shape.getShapeName() == ShapeName.WHOLE_REST) {
+			x = shape.getBoundingBox().minX();
+			y = staffShape.getStaffPositionY(4);
+					
+			height = staffShape.getLineInterval() * 0.5;
+			width = (height*originalWidth)/originalHeight;
+		}
+		else if (shape.getShapeName() == ShapeName.HALF_REST) {
+			x = shape.getBoundingBox().minX();
+			y = staffShape.getStaffPositionY(5);
+					
+			height = staffShape.getLineInterval() * 0.5;
+			width = (height*originalWidth)/originalHeight;
 		}
 		else {
-			xPos = shape.getBoundingBox().minX();
-			yPos = shape.getBoundingBox().minY();
-			newImageHeight = imageHeight;
-			newImageWidth = imageWidth;
+			x = shape.getBoundingBox().minX();
+			y = shape.getBoundingBox().minY();
+			height = originalHeight;
+			width = originalWidth;
 		}
 		
 		//
-		shape.setImageX((int)xPos);
-		shape.setImageY((int)yPos);
-		shape.setImageWidth((int)newImageWidth);
-		shape.setImageHeight((int)newImageHeight);
+//		shape.setImageX((int)x);
+//		shape.setImageY((int)y);
+//		shape.setImageWidth((int)width);
+//		shape.setImageHeight((int)height);
+		
+		IImage image = new IImage(bufferedImage, x, y, width, height);
+		shape.addImage(image);
 	}
+	
 	
 	private boolean isSpecialCase(IShape shape, List<IShape> shapes) {
 		
@@ -200,10 +282,11 @@ public class RestShapeClassifier extends AbstractShapeClassifier implements ISha
 			double top = shape.getBoundingBox().minY();
 			double bottom = shape.getBoundingBox().maxY();
 			if (top < staffShape.getLineY(0)
-//					|| top > staffShape.getLineY(1)
-//					|| bottom < staffShape.getLineY(3)
-					|| bottom > staffShape.getLineY(4)
-			)
+					|| bottom > staffShape.getLineY(4))
+				return true;
+			
+			// case: length test
+			if (pathDistance(shape.getStrokes().get(0).getPoints()) < staffShape.getLineInterval())
 				return true;
 		}
 		
@@ -218,41 +301,9 @@ public class RestShapeClassifier extends AbstractShapeClassifier implements ISha
 			double top = shape.getBoundingBox().minY();
 			double bottom = shape.getBoundingBox().maxY();
 			if (top < staffShape.getLineY(0)
-//					|| top > staffShape.getLineY(2)
-//					|| bottom < staffShape.getLineY(2)
-					|| bottom > staffShape.getLineY(4)
-			)
+					|| bottom > staffShape.getLineY(4))
 				return true;
 		}
-		
-//		// sharp test
-//		if (shape.getShapeName() == ShapeName.KEY_SHARP) {
-//			
-//			if (shape.getStrokes().size() != 4)
-//				return true;
-//		}
-//		
-//		// flat test
-//		if (shape.getShapeName() == ShapeName.KEY_FLAT) {
-//			
-//			if (shape.getStrokes().size() == 1) {
-//				
-//				IStroke flatStroke = shape.getStrokes().get(0);
-//				Point2D.Double lastPoint = flatStroke.get(flatStroke.size() - 1);
-//				Point2D.Double point = null;
-//				boolean isLastPointFarRight = true;
-//				for (int i = 0; i < flatStroke.size() - 1; ++i) {
-//					
-//					point = flatStroke.get(i);
-//					if (point.x > lastPoint.x) {
-//						isLastPointFarRight = false;
-//						break;
-//					}
-//				}
-//				if (isLastPointFarRight)
-//					return true;
-//			}
-//		}
 		
 		// shape is not a special case
 		return false;
@@ -277,4 +328,5 @@ public class RestShapeClassifier extends AbstractShapeClassifier implements ISha
 	public static final String DATA_DIR_NAME = "rest";
 	public static final String DATA_DIR_PATHNAME = "src/edu/tamu/srl/music/data/rest/";
 	public static final double MIN_SCORE_THRESHOLD = 0.75;
+	public static final double FILLED_REST_RATIO_FLOOR = 0.8;
 }
