@@ -180,28 +180,28 @@ public class RestShapeClassifier extends AbstractShapeClassifier implements ISha
 		
 		if (shape.getShapeName() == ShapeName.QUARTER_REST) {
 			x = shape.getBoundingBox().minX();
-			y = staffShape.getStaffPositionY(3);
+			y = staffShape.getPositionY(3);
 					
 			height = staffShape.getLineInterval() * 3;
 			width = (height*originalWidth)/originalHeight;
 		}
 		else if (shape.getShapeName() == ShapeName.EIGHTH_REST) {
 			x = shape.getBoundingBox().minX();
-			y = staffShape.getStaffPositionY(4);
+			y = staffShape.getPositionY(4);
 					
 			height = staffShape.getLineInterval() * 2;
 			width = (height*originalWidth)/originalHeight;
 		}
 		else if (shape.getShapeName() == ShapeName.WHOLE_REST) {
 			x = shape.getBoundingBox().minX();
-			y = staffShape.getStaffPositionY(4);
+			y = staffShape.getPositionY(4);
 					
 			height = staffShape.getLineInterval() * 0.5;
 			width = (height*originalWidth)/originalHeight;
 		}
 		else if (shape.getShapeName() == ShapeName.HALF_REST) {
 			x = shape.getBoundingBox().minX();
-			y = staffShape.getStaffPositionY(5);
+			y = staffShape.getPositionY(5);
 					
 			height = staffShape.getLineInterval() * 0.5;
 			width = (height*originalWidth)/originalHeight;

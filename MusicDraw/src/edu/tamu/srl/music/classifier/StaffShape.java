@@ -29,7 +29,7 @@ public class StaffShape extends IShape {
 		return (int)myLineInterval;
 	}
 	
-	public int getStaffPosition(double targetY) {
+	public int getPosition(double targetY) {
 		
 		//
 		double halfInterval = myLineInterval * 0.5;
@@ -69,7 +69,7 @@ public class StaffShape extends IShape {
 		return finalPos;
 	}
 
-	public double getStaffPositionY(int position) {
+	public double getPositionY(int position) {
 		
 		double halfInterval = myLineInterval * 0.5;
 		double staffPositionY = myPositionZero + halfInterval*position;

@@ -6,11 +6,12 @@
 <fullyQualifiedTypeName name="java.util.Collections"/>
 <fullyQualifiedTypeName name="java.util.Comparator"/>
 <fullyQualifiedTypeName name="edu.tamu.srl.music.gui.SketchPanel"/>
-<fullyQualifiedTypeName name="edu.tamu.srl.music.classifier.IShape.ShapeName"/>
-<fullyQualifiedTypeName name="java.awt.geom.Point2D"/>
-<fullyQualifiedTypeName name="java.awt.geom.Point2D.Double"/>
-<fullyQualifiedTypeName name="java.awt.Color"/>
 <fullyQualifiedTypeName name="java.awt.image.BufferedImage"/>
 <fullyQualifiedTypeName name="edu.tamu.srl.music.classifier.IImage"/>
 <fullyQualifiedTypeName name="edu.tamu.srl.music.classifier.NoteShape.HeadType"/>
+<fullyQualifiedTypeName name="edu.tamu.srl.music.classifier.NoteShape.StemType"/>
+<fullyQualifiedTypeName name="edu.tamu.srl.music.classifier.IShape.ShapeName"/>
+<fullyQualifiedTypeName name="java.awt.Color"/>
+<fullyQualifiedTypeName name="java.awt.geom.Point2D"/>
+<fullyQualifiedTypeName name="java.awt.geom.Point2D.Double"/>
 </qualifiedTypeNameHistroy>

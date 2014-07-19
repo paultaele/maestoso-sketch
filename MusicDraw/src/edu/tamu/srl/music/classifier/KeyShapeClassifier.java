@@ -70,7 +70,7 @@ public class KeyShapeClassifier
 			}
 			StaffShape staffShape = (StaffShape)staff;
 			IShape temp = new IShape(ShapeName.RAW, newStrokes);
-			int position = staffShape.getStaffPosition(temp.getBoundingBox().centerY());
+			int position = staffShape.getPosition(temp.getBoundingBox().centerY());
 			
 			// set the shape
 			IShape newShape = new KeyShape(newShapeName, newStrokes, position);
@@ -130,7 +130,7 @@ public class KeyShapeClassifier
 		else if (shape.getShapeName() == ShapeName.KEY_SHARP)
 			shapeOffset *= 1.1;
 		x = shape.getBoundingBox().minX();
-		y = staffShape.getStaffPositionY(keyShape.getPosition()) - shapeOffset;
+		y = staffShape.getPositionY(keyShape.getPosition()) - shapeOffset;
 
 		//
 //		shape.setImageX((int)x);

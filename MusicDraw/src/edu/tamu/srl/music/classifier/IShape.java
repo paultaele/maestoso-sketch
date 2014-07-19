@@ -19,9 +19,6 @@ public class IShape {
 		myShapeGroup = myShapeGroup(shapeName);
 		myStrokes = new ArrayList<IStroke>();
 		myStrokes.add(stroke);
-		myImageFile = null;
-		myImageX = 0;
-		myImageY = 0;
 		myHasImage = false;
 		
 		myBoundingBox = new BoundingBox(stroke.getPoints());
@@ -33,9 +30,6 @@ public class IShape {
 		myShapeName = shapeName;
 		myShapeGroup = myShapeGroup(shapeName);
 		myStrokes = strokes;
-		myImageFile = null;
-		myImageX = 0;
-		myImageY = 0;
 		myHasImage = false;
 		
 		List<Point2D.Double> points = new ArrayList<Point2D.Double>();
@@ -204,14 +198,9 @@ public class IShape {
 	
 	private ShapeName myShapeName;
 	private ShapeGroup myShapeGroup;
-	private List<IStroke> myStrokes;
-	private BufferedImage myImageFile;
+	protected List<IStroke> myStrokes;
 	private boolean myHasImage;
 	private boolean myHasTransformed;
-	private int myImageWidth;
-	private int myImageHeight;
-	private int myImageX;
-	private int myImageY;
 	private BoundingBox myBoundingBox;
 	private List<IImage> myImages;
 	

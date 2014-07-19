@@ -33,7 +33,6 @@ public class BoundingBox {
 		
 		myCenterX = (myMinX + myMaxX) / 2.0;
 		myCenterY = (myMinY + myMaxY) / 2.0;
-		myCenter = new Point2D.Double(myCenterX, myCenterY);
 	}
 	
 	public BoundingBox(double minX, double minY, double maxX, double maxY) {
@@ -45,7 +44,6 @@ public class BoundingBox {
 		
 		myCenterX = (myMinX + myMaxX) / 2.0;
 		myCenterY = (myMinY + myMaxY) / 2.0;
-		myCenter = new Point2D.Double(myCenterX, myCenterY);
 	}
 	
 	public double width() {
@@ -88,10 +86,11 @@ public class BoundingBox {
 		return myCenterY;
 	}
 	
-	public Point2D.Double center() {
-		
-		return myCenter; 
-	}
+	public Point2D.Double center() { return new Point2D.Double(myCenterX, myCenterY); }
+	public Point2D.Double left() { return new Point2D.Double(myMinX, myCenterY); }
+	public Point2D.Double right() { return new Point2D.Double(myMaxX, myCenterY); }
+	public Point2D.Double top() { return new Point2D.Double(myCenterX, myMinY); }
+	public Point2D.Double bottom() { return new Point2D.Double(myCenterX, myMaxY); }
 	
 	public boolean contains(Point2D.Double point) {
 		
@@ -116,5 +115,4 @@ public class BoundingBox {
 	private double myMaxY;
 	private double myCenterX;
 	private double myCenterY;
-	private Point2D.Double myCenter;
 }

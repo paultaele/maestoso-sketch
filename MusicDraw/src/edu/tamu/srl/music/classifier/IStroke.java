@@ -5,6 +5,8 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 
+import edu.tamu.srl.music.classifier.IShape.ShapeName;
+
 public class IStroke  {
 
 	public IStroke() {
@@ -61,8 +63,20 @@ public class IStroke  {
 		return myPoints;
 	}
 	
+	public BoundingBox getBoundingBox() {
+		
+		if (myBoundingBox == null) {
+			
+			IShape temp = new IShape(ShapeName.RAW, this);
+			myBoundingBox = temp.getBoundingBox();
+		}
+		
+		return myBoundingBox;
+	}
+	
 	
 	
 	private List<Point2D.Double> myPoints;
 	private Color myColor;
+	private BoundingBox myBoundingBox;
 }

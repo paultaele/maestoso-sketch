@@ -1,0 +1,118 @@
+package edu.tamu.srl.music.classifier;
+
+import java.awt.geom.Point2D;
+import java.awt.geom.Point2D.Double;
+import java.util.List;
+
+public class BoundingBox {
+	
+	public BoundingBox(List<Point2D.Double> points) {
+		
+		createBoundingBox(points);
+	}
+	
+	private void createBoundingBox(List<Point2D.Double> points) {
+		
+		myMinX = java.lang.Double.MAX_VALUE;
+		myMinY = java.lang.Double.MAX_VALUE;
+		myMaxX = java.lang.Double.MIN_VALUE;
+		myMaxY = java.lang.Double.MIN_VALUE;
+		
+		for (Point2D.Double point : points) {
+			
+			if (point.x < myMinX)
+				myMinX = point.x;
+			else if (point.x > myMaxX)
+				myMaxX = point.x;
+			
+			if (point.y < myMinY)
+				myMinY = point.y;
+			else if (point.y > myMaxY)
+				myMaxY = point.y;
+		}
+		
+		myCenterX = (myMinX + myMaxX) / 2.0;
+		myCenterY = (myMinY + myMaxY) / 2.0;
+	}
+	
+	public BoundingBox(double minX, double minY, double maxX, double maxY) {
+		
+		myMinX = minX;
+		myMinY = minY;
+		myMaxX = maxX;
+		myMaxY = maxY;
+		
+		myCenterX = (myMinX + myMaxX) / 2.0;
+		myCenterY = (myMinY + myMaxY) / 2.0;
+	}
+	
+	public double width() {
+		
+		return myMaxX - myMinX;
+	}
+	
+	public double height() {
+		
+		return myMaxY - myMinY;
+	}
+	
+	public double minX() {
+		
+		return myMinX;
+	}
+	
+	public double minY() {
+		
+		return myMinY;
+	}
+	
+	public double maxX() {
+		
+		return myMaxX;
+	}
+	
+	public double maxY() {
+		
+		return myMaxY;
+	}
+	
+	public double centerX() {
+		
+		return myCenterX;
+	}
+	
+	public double centerY() {
+		
+		return myCenterY;
+	}
+	
+	public Point2D.Double center() { return new Point2D.Double(myCenterX, myCenterY); }
+	public Point2D.Double left() { return new Point2D.Double(myMinX, myCenterX); }
+	public Point2D.Double right() { return new Point2D.Double(myMaxX, myCenterX); }
+	public Point2D.Double top() { return new Point2D.Double(myCenterX, myCenterX); }
+	public Point2D.Double right() { return new Point2D.Double(myMaxX, myCenterX); }
+	
+	public boolean contains(Point2D.Double point) {
+		
+		double x = point.x;
+		double y = point.y;
+		
+		if (x < myMinX)
+			return false;
+		if (myMaxX < x)
+			return false;
+		if (y < myMinY)
+			return false;
+		if (myMaxY < y)
+			return false;
+		
+		return true;
+	}
+	
+	private double myMinX;
+	private double myMinY;
+	private double myMaxX;
+	private double myMaxY;
+	private double myCenterX;
+	private double myCenterY;
+}
