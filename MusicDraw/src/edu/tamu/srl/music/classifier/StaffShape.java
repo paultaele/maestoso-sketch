@@ -83,4 +83,6 @@ public class StaffShape extends IShape {
 	
 	public static final int NUM_LINES = 5;
 	public static final int NUM_POSITIONS = 10;
+	public static final int TOP_LEDGER_MIN_POSITION = 0;
+	public static final int BOTTOM_LEDGER_MIN_POSITION = 12;
 }

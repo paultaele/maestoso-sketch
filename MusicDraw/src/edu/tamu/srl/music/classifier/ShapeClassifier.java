@@ -87,6 +87,12 @@ public class ShapeClassifier {
 			isClassified = classifier.classify(shapes);
 			if (isClassified)
 				return classifier.getResult();
+			
+			// test for ledger lines
+			classifier = new LedgerShapeClassifier();
+			isClassified = classifier.classify(shapes);
+			if (isClassified)
+				return classifier.getResult();
 		}
 		
 		//

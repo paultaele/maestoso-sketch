@@ -72,6 +72,10 @@ public class IShape {
 				|| shapeName == ShapeName.DOUBLE_BAR)
 			return ShapeGroup.BAR;
 		
+		else if (shapeName == ShapeName.LOWER_LINE
+				|| shapeName == ShapeName.UPPER_LINE)
+			return ShapeGroup.LEDGER;
+		
 		else if (shapeName == ShapeName.LOWER_BRACKET
 				|| shapeName == ShapeName.UPPER_BRACKET
 				|| shapeName == ShapeName.WHOLE_REST
@@ -82,7 +86,6 @@ public class IShape {
 		
 		else if (shapeName == ShapeName.NOTE)
 			return ShapeGroup.NOTE;
-			
 		
 		else
 			return ShapeGroup.NONE;
@@ -146,6 +149,7 @@ public class IShape {
 		TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE,
 		SHARP, FLAT, NATURAL,
 		SINGLE_BAR, DOUBLE_BAR,
+		LOWER_LINE, UPPER_LINE,
 		LOWER_BRACKET, UPPER_BRACKET, WHOLE_REST, HALF_REST, QUARTER_REST, EIGHTH_REST,
 		NOTE
 	}
@@ -159,6 +163,7 @@ public class IShape {
 		BEAT,
 		ACCIDENTAL,
 		BAR,
+		LEDGER,
 		REST,
 		NOTE
 	}

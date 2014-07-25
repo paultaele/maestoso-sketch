@@ -8,6 +8,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import edu.tamu.srl.music.classifier.IShape.ShapeName;
+import edu.tamu.srl.music.classifier.NoteShape.FlagType;
+import edu.tamu.srl.music.classifier.NoteShape.HeadType;
+import edu.tamu.srl.music.classifier.NoteShape.StemType;
 
 public class NoteShapeClassifier extends AbstractShapeClassifier implements IShapeClassifier {
 
@@ -21,22 +24,36 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 		StaffShape staffShape = getStaffShape(shapes);
 		List<IShape> newShapes = null;
 		
-		// filled note head test
+		// 1. Filled note head test.
 		newShapes = hasFilledNoteHead(rawShapes, shapes, staffShape);
 		if (newShapes != null) {
 			myShapes = newShapes;
 			return true;
 		}
 		
-		// empty note head test
+		// 2. Empty note head test.
 		newShapes = hasEmptyNoteHead(rawShapes, shapes, staffShape);
 		if (newShapes != null) {
 			myShapes = newShapes;
 			return true;
 		}
 		
-		// stem test
+		// 3. Stem test.
 		newShapes = hasStem(rawShapes, shapes, staffShape);
+		if (newShapes != null) {
+			myShapes = newShapes;
+			return true;
+		}
+		
+		// 4. Flag test.
+		newShapes = hasFlag(rawShapes, shapes, staffShape);
+		if (newShapes != null) {
+			myShapes = newShapes;
+			return true;
+		}
+		
+		// 5. Beam test.
+		newShapes = hasBeam(rawShapes, shapes, staffShape);
 		if (newShapes != null) {
 			myShapes = newShapes;
 			return true;
@@ -48,6 +65,193 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 	public List<IShape> getResult() {
 		
 		return myShapes;
+	}
+	
+	private List<IShape> hasBeam(List<IShape> rawShapes, List<IShape> originals, StaffShape staffShape) {
+		
+		// non-multiple notes test
+		// do not recognize stems if there are no multiple notes (i.e., greater than 1 note)
+		List<IShape> shapes = cloneShapes(originals);
+		int noteCount = 0;
+		for (IShape shape : shapes) {
+			if (shape.getShapeName() == ShapeName.NOTE)
+				++noteCount;
+		}
+		if (noteCount < 2)
+			return null;
+		
+		// singleton raw shape test
+		// input should only be a single raw shape (stroke), which is the filled note head shape
+		if (rawShapes.size() > 1)
+			return null;
+		
+		// get all the notes that have stems and do not already have a flag or beam
+		List<NoteShape> candidateNotes = new ArrayList<NoteShape>();
+		for (IShape shape : shapes) {
+
+			NoteShape candidateNote = null;
+			if (shape.getShapeName() == ShapeName.NOTE) {
+				
+				candidateNote = (NoteShape)shape;
+				
+				if (candidateNote.hasStem() && !candidateNote.hasBeam() && !candidateNote.hasFlag() && candidateNote.headType() == HeadType.FILLED)
+					candidateNotes.add(candidateNote);
+			}
+		}
+		
+		// multiple candidate notes test
+		if (candidateNotes.size() < 2)
+			return null;
+		
+		//
+		IShape scribble = rawShapes.get(0);
+		IStroke scribbleStroke = scribble.getStrokes().get(0);
+		List<Point2D.Double> scribblePoints = scribbleStroke.getPoints();
+		double interval = staffShape.getLineInterval();	// diameter
+		double length = pathDistance(scribblePoints);
+		
+		//
+		Point2D.Double beamFirstPoint = scribblePoints.get(0);
+		Point2D.Double beamLastPoint = scribblePoints.get(scribblePoints.size() - 1);
+		Point2D.Double beamLeftPoint = beamFirstPoint.x < beamLastPoint.x ? beamFirstPoint : beamLastPoint;
+		Point2D.Double beamRightPoint = beamFirstPoint.x > beamLastPoint.x ? beamFirstPoint : beamLastPoint;
+		NoteShape leftNote = null;
+		NoteShape rightNote = null;
+		for (NoteShape candidateNote : candidateNotes) {
+			
+			Point2D.Double stemEndpoint = candidateNote.getStemEndpoint();
+				
+			if (distance(beamLeftPoint, stemEndpoint) < interval * STEM_BEAM_COINCIDENT_MAX_RATIO)
+				leftNote = candidateNote;
+			else if (distance(beamRightPoint, stemEndpoint) < interval * STEM_BEAM_COINCIDENT_MAX_RATIO)
+				rightNote = candidateNote;
+		}
+		if (leftNote == null || rightNote == null)
+			return null;
+
+		//
+		Point2D.Double leftStemEndpoint = leftNote.getStemEndpoint();
+		Point2D.Double rightStemEndpoint = rightNote.getStemEndpoint();
+		List<Point2D.Double> beamPoints = new ArrayList<Point2D.Double>();
+		beamPoints.add(leftStemEndpoint);
+		beamPoints.add(rightStemEndpoint);
+		IStroke beamStroke = new IStroke(beamPoints, scribbleStroke.getColor());
+		leftNote.addBeam(beamStroke, null, rightNote);
+		rightNote.addBeam(beamStroke, leftNote, null);
+		shapes.remove(leftNote);
+		shapes.remove(rightNote);
+		shapes.add(leftNote);
+		shapes.add(rightNote);
+		beamStroke.setColor(DEBUG_COLOR); // TODO : remove later?
+		return shapes;
+	}
+	
+	private List<IShape> hasFlag(List<IShape> rawShapes, List<IShape> originals, StaffShape staffShape) {
+		
+		// non-zero notes test
+		// do not recognize stems if there are no notes
+		List<IShape> shapes = cloneShapes(originals);
+		int noteCount = 0;
+		for (IShape shape : shapes) {
+			if (shape.getShapeName() == ShapeName.NOTE)
+				++noteCount;
+		}
+		if (noteCount == 0)
+			return null;
+		
+		// singleton raw shape test
+		// input should only be a single raw shape (stroke), which is the filled note head shape
+		if (rawShapes.size() > 1)
+			return null;
+		
+		IShape scribble = rawShapes.get(0);
+		IStroke scribbleStroke = scribble.getStrokes().get(0);
+		List<Point2D.Double> scribblePoints = scribbleStroke.getPoints();
+		double interval = staffShape.getLineInterval();	// diameter
+		double length = pathDistance(scribblePoints);
+		
+		// length test
+		// should be of length between interval and double interval
+		if (length < interval || (interval*2) < length)
+			return null;
+		
+		// far left endpoint test
+		// 1. check if first or last endpoint is far left
+		// 2. check if that endpoint is the farthest left
+		Point2D.Double firstFlagEndpoint = scribblePoints.get(0);
+		Point2D.Double lastFlagEndpoint = scribblePoints.get(scribblePoints.size() - 1);
+		Point2D.Double leftFlagEndpoint = firstFlagEndpoint.x < lastFlagEndpoint.x ? firstFlagEndpoint : lastFlagEndpoint;
+		Point2D.Double rightFlagEndpoint = firstFlagEndpoint.x > lastFlagEndpoint.x ? firstFlagEndpoint : lastFlagEndpoint;
+		for (Point2D.Double currentScribblePoint : scribblePoints) {
+			if (currentScribblePoint.x < leftFlagEndpoint.x)
+				return null;
+		}
+		
+		// range test
+		// should not go past the width of the interval
+		if (rightFlagEndpoint.x - leftFlagEndpoint.x > interval )
+			return null;
+		
+		// coincident test
+		NoteShape note = null;
+		double coincidentThreshold = interval * STEM_FLAG_COINCIDENT_MAX_RATIO;
+		Iterator<IShape> iterator = shapes.iterator();
+		boolean foundNote = false;
+		while (iterator.hasNext()) { // iterate through each shape
+			
+			IShape shape = iterator.next();
+			
+			if (shape.getShapeName() == ShapeName.NOTE) {
+				
+				note = (NoteShape)shape;
+				
+				// skip note if it already has a flag or a stem
+				if (!note.hasStem() || note.hasFlag() || note.hasBeam() || note.headType() == HeadType.EMPTY)
+					continue;
+				
+				Point2D.Double stemEndpoint = null;
+				if (note.stemType() == NoteShape.StemType.DOWNWARD)
+					stemEndpoint = note.getStemBox().bottom();
+				else
+					stemEndpoint = note.getStemBox().top();
+				
+				if (distance(leftFlagEndpoint, stemEndpoint) > coincidentThreshold)
+					continue;
+				
+				foundNote = true;
+				break;
+			}
+		}
+		if (!foundNote)
+			return null;
+		// inward flag test
+		// flag should point inward towards note head
+		if (note.stemType() == StemType.DOWNWARD && leftFlagEndpoint.y < rightFlagEndpoint.y)
+			return null;
+		else if (note.stemType() == StemType.UPWARD && leftFlagEndpoint.y > rightFlagEndpoint.y)
+			return null;
+		
+		// create beautified stem
+		BoundingBox stemBox = note.getStemBox();
+		Point2D.Double flagLeftPoint = null;
+		Point2D.Double flagRightPoint = null;
+		if (note.stemType() == StemType.DOWNWARD) {
+			flagLeftPoint = new Point2D.Double(stemBox.centerX(), stemBox.maxY());
+			flagRightPoint = new Point2D.Double(stemBox.centerX()+interval/2, stemBox.maxY()-interval);
+		}
+		else if (note.stemType() == StemType.UPWARD) {
+			flagLeftPoint = new Point2D.Double(stemBox.centerX(), stemBox.minY());
+			flagRightPoint = new Point2D.Double(stemBox.centerX()+interval/2, stemBox.minY()+interval);
+		}
+		List<Point2D.Double> flagPoints = new ArrayList<Point2D.Double>();
+		flagPoints.add(flagLeftPoint);
+		flagPoints.add(flagRightPoint);
+		IStroke flagStroke = new IStroke(flagPoints, scribbleStroke.getColor());
+		
+		//
+		note.addFlag(flagStroke, FlagType.SINGLE);
+		flagStroke.setColor(DEBUG_COLOR); // TODO : remove later?
+		return shapes;
 	}
 	
 	private List<IShape> hasStem(List<IShape> rawShapes, List<IShape> originals, StaffShape staffShape) {
@@ -68,7 +272,6 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 		if (rawShapes.size() > 1)
 			return null;
 		
-		//
 		IShape scribble = rawShapes.get(0);
 		IStroke scribbleStroke = scribble.getStrokes().get(0);
 		List<Point2D.Double> scribblePoints = scribbleStroke.getPoints();
@@ -98,10 +301,10 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 		if (angle < VERTICAL_ANGLE_MIN_THRESHOLD || VERTICAL_ANGLE_MAX_THRESHOLD < angle)
 			return null;
 		
-		// minimum closeness test
+		// coincident test
 		NoteShape note = null;
 		boolean isDownwardStem = false;
-		double minCloseness = interval * STEM_TO_HEAD_MIN_CLOSENESS_RATIO;
+		double coincidentThreshold = interval * STEM_HEAD_COINCIDENT_MAX_RATIO;
 		Iterator<IShape> iterator = shapes.iterator();
 		boolean foundNote = false;
 		while (iterator.hasNext()) { // iterate through each shape
@@ -143,7 +346,7 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 					stemPoint = stemBottomPoint;
 					isDownwardStem = false;
 				}
-				if (distance(notePoint, stemPoint) > minCloseness)
+				if (distance(notePoint, stemPoint) > coincidentThreshold)
 					continue;
 				
 				// get the note and stop iterating
@@ -173,13 +376,10 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 		stemPoints.add(stemBottomPoint);
 		IStroke stemStroke = new IStroke(stemPoints, scribbleStroke.getColor());
 		
-		// TODO : add stem to note
-		// * NoteShape note;
-		// * IStroke stemStroke
+		//
 		NoteShape.StemType stemType = isDownwardStem ? NoteShape.StemType.DOWNWARD : NoteShape.StemType.UPWARD;
 		note.addStem(stemStroke, stemType);
 		stemStroke.setColor(DEBUG_COLOR); // TODO : remove later?
-//		IShape stemShape = new IShape(ShapeName.RAW, stemStroke);
 		return shapes;
 	}
 
@@ -212,18 +412,153 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 		
 		// create filled note head
 		IStroke scribbleStroke = scribble.getStrokes().get(0);
-		scribbleStroke.setColor(DEBUG_COLOR); // TODO : remove later?
-		ShapeName shapeName = ShapeName.NOTE;
-		int position = staffShape.getPosition(scribbleStroke.getBoundingBox().centerY());
-		double positionX = scribbleStroke.getBoundingBox().centerX();
-		double positionY = staffShape.getPositionY(position);
-
-		// get the beautified note stroke
-		List<Point2D.Double> notePoints = getFilledNoteStroke(positionX, positionY, interval);
-		IStroke noteStroke = new IStroke(notePoints, scribbleStroke.getColor());
-		IShape noteShape = new NoteShape(shapeName, noteStroke, NoteShape.HeadType.EMPTY, position);
+		scribbleStroke.setColor(DEBUG_COLOR);
+		
+		// add the note shape to the list of shapes
+		IShape noteShape = createNoteShape(scribbleStroke, shapes, NoteShape.HeadType.FILLED, staffShape);
 		shapes.add(noteShape);
 		return shapes;
+	}
+	
+	private IShape createNoteShape(IStroke scribbleStroke, List<IShape> shapes, NoteShape.HeadType headType, StaffShape staffShape) {
+		
+		// 1. Get the points of interest of the scribble stroke.
+		double interval = staffShape.getLineInterval();
+		Point2D.Double noteTop = scribbleStroke.getBoundingBox().top();
+		Point2D.Double noteCenter = scribbleStroke.getBoundingBox().center();
+		Point2D.Double noteBottom = scribbleStroke.getBoundingBox().bottom();
+		
+		// 2. Determine if the scribble's center lies outside the staff lines.
+		int position = staffShape.getPosition(noteCenter.y);
+		double positionX = 0.0;
+		double positionY = 0.0;
+		int numLines = 0;
+		List<IShape> lines = null;
+		ShapeName ledgerType = null;
+		if (StaffShape.TOP_LEDGER_MIN_POSITION < position && position < StaffShape.BOTTOM_LEDGER_MIN_POSITION) {
+			positionX = scribbleStroke.getBoundingBox().centerX();
+			positionY = staffShape.getPositionY(position);
+		}
+		else {
+			// get the ledger line type
+			ledgerType = position <= StaffShape.TOP_LEDGER_MIN_POSITION ? ShapeName.UPPER_LINE : ShapeName.LOWER_LINE;
+			// get all ledger lines that belong to the note head
+			lines = new ArrayList<IShape>();
+			Iterator<IShape> iterator = shapes.iterator();
+			while (iterator.hasNext()) {
+				
+				// find all shapes of a certain ledger line type
+				IShape shape = iterator.next();
+				if (shape.getShapeName() == ledgerType) {
+				
+					Point2D.Double lineLeftPoint = shape.getBoundingBox().left();
+					Point2D.Double lineRightPoint = shape.getBoundingBox().right();
+					
+					// add note's ledger lines to list
+					if (lineLeftPoint.x < noteCenter.x && noteCenter.x < lineRightPoint.x) {
+						lines.add(shape);
+						iterator.remove();
+					}
+				}
+			}
+			
+			// 1. count the number of ledger lines
+			numLines = lines.size();
+			if (numLines == 0) {
+				
+				positionX = scribbleStroke.getBoundingBox().centerX();
+				if (ledgerType == ShapeName.UPPER_LINE)
+					positionY = staffShape.getPositionY(StaffShape.TOP_LEDGER_MIN_POSITION+1);
+				else
+					positionY = staffShape.getPositionY(StaffShape.BOTTOM_LEDGER_MIN_POSITION-1);
+			}
+			else {
+				
+				// 2. find the furtherest ledger line
+				IShape farLine = lines.get(0);
+				for (IShape line : lines) {
+	
+					if (ledgerType == ShapeName.UPPER_LINE) {
+						if (line.getBoundingBox().center().y < farLine.getBoundingBox().center().y)
+							farLine = line;
+					}
+					else {
+						if (line.getBoundingBox().center().y > farLine.getBoundingBox().center().y)
+							farLine = line;
+					}
+				}
+				
+				// 3. determine if note center is above, below, or at furtherest ledger line
+				int offset = 0;
+				Point2D.Double farLineCenter = farLine.getBoundingBox().center();
+				double topDistance = distance(noteTop, farLineCenter);
+				double centerDistance = distance(noteCenter, farLineCenter);
+				double bottomDistance = distance(noteBottom, farLineCenter);
+				if (topDistance < centerDistance && topDistance < bottomDistance)
+					offset = 1;
+				else if (bottomDistance < topDistance && bottomDistance < centerDistance)
+					offset = -1;
+				else
+					offset = 0;
+				
+				// 4. set the note to this y position and keep the current x's position
+				if (ledgerType == ShapeName.UPPER_LINE) {
+					position = -numLines*2+NUM_LINE_POSITION_OFFSET+offset;
+				}
+				else {
+					position = numLines*2 + (StaffShape.BOTTOM_LEDGER_MIN_POSITION - NUM_LINE_POSITION_OFFSET)+offset;
+				}
+				positionX = scribbleStroke.getBoundingBox().centerX();
+				positionY = staffShape.getPositionY(position);
+			}
+		}
+		
+		// get the beautified note stroke
+		ShapeName shapeName = ShapeName.NOTE;
+		List<Point2D.Double> notePoints = null;
+		if (headType == HeadType.FILLED)
+			notePoints = getFilledNoteStroke(positionX, positionY, interval);
+		else if (headType == HeadType.EMPTY)
+			notePoints = getEmptyNoteStroke(positionX, positionY, interval);
+		IStroke noteStroke = new IStroke(notePoints, scribbleStroke.getColor());
+		NoteShape noteShape = new NoteShape(shapeName, noteStroke, headType, position);
+		
+		// add the ledger lines (if any)
+		if (numLines > 0) {
+			
+			List<IStroke> lineStrokes = new ArrayList<IStroke>();
+			double x = noteShape.getBoundingBox().center().x;
+			double leftX = x - interval*0.75;
+			double rightX = x + interval*0.75;
+			int startPosition = ledgerType == shapeName.UPPER_LINE ? StaffShape.TOP_LEDGER_MIN_POSITION : StaffShape.BOTTOM_LEDGER_MIN_POSITION;
+			for (int i = 0; i < numLines; ++i) {
+
+				int positionOffset = 2 * i;
+				if (ledgerType == shapeName.UPPER_LINE)
+					positionOffset *= -1;
+				double y = staffShape.getPositionY(startPosition + positionOffset);
+				
+				// set the line's stroke
+				Point2D.Double leftPoint = new Point2D.Double(leftX, y);
+				Point2D.Double rightPoint = new Point2D.Double(rightX, y);
+				List<Point2D.Double> linePoints = new ArrayList<Point2D.Double>();
+				linePoints.add(leftPoint);
+				linePoints.add(rightPoint);
+				IStroke lineStroke = new IStroke(linePoints, DEBUG_COLOR);
+				lineStrokes.add(lineStroke);
+				
+				// add the line strokes to the note
+				noteShape.addLedgerLines(lineStrokes);
+			}
+			
+//			// start temp
+//			for (IShape lineShape : lines)
+//				lineStrokes.add(lineShape.getStrokes().get(0));
+//			noteShape.addLedgerLines(lineStrokes);
+//			// end temp
+		}
+		
+		return noteShape;
 	}
 
 	private List<IShape> hasEmptyNoteHead(List<IShape> rawShapes, List<IShape> shapes, StaffShape staffShape) { 
@@ -264,19 +599,28 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 		
 		// create empty note head
 		IStroke scribbleStroke = scribble.getStrokes().get(0);
-		scribbleStroke.setColor(DEBUG_COLOR); // TODO : remove later?
-		ShapeName shapeName = ShapeName.NOTE;
-		IShape temp = new IShape(ShapeName.RAW, scribbleStroke);
-		int position = staffShape.getPosition(temp.getBoundingBox().centerY());
-		double positionX = temp.getBoundingBox().centerX();
-		double positionY = staffShape.getPositionY(position);
+		scribbleStroke.setColor(DEBUG_COLOR);
 		
-		// get the beautified note stroke
-		List<Point2D.Double> notePoints = getEmptyNoteStroke(positionX, positionY, interval);
-		IStroke noteStroke = new IStroke(notePoints, scribbleStroke.getColor());
-		IShape noteShape = new NoteShape(shapeName, noteStroke, NoteShape.HeadType.EMPTY, position);
+		// add the note shape to the list of shapes
+		IShape noteShape = createNoteShape(scribbleStroke, shapes, NoteShape.HeadType.EMPTY, staffShape);
 		shapes.add(noteShape);
 		return shapes;
+		
+//		// create empty note head
+//		IStroke scribbleStroke = scribble.getStrokes().get(0);
+//		scribbleStroke.setColor(DEBUG_COLOR);
+//		ShapeName shapeName = ShapeName.NOTE;
+//		IShape temp = new IShape(ShapeName.RAW, scribbleStroke);
+//		int position = staffShape.getPosition(temp.getBoundingBox().centerY());
+//		double positionX = temp.getBoundingBox().centerX();
+//		double positionY = staffShape.getPositionY(position);
+//		
+//		// get the beautified note stroke
+//		List<Point2D.Double> notePoints = getEmptyNoteStroke(positionX, positionY, interval);
+//		IStroke noteStroke = new IStroke(notePoints, scribbleStroke.getColor());
+//		IShape noteShape = new NoteShape(shapeName, noteStroke, NoteShape.HeadType.EMPTY, position);
+//		shapes.add(noteShape);
+//		return shapes;
 	}
 	
 	private List<Point2D.Double> getEmptyNoteStroke(double positionX, double positionY, double diameter) {
@@ -322,6 +666,8 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 		return newPoints;
 	}
 	
+	
+	
 	public static final double NOTE_HEAD_BOX_MIN_RATIO = 0.5;
 	public static final double NOTE_HEAD_BOX_MAX_RATIO = 1.4;
 	public static final double STEM_LENGTH_MIN_RATIO = 2;
@@ -330,7 +676,9 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 	public static final double VERTICAL_ANGLE_MAX_THRESHOLD = 100.0;
 	public static final double CLOSED_SHAPE_MIN_RATIO = 0.3;
 	public static final double VISUALIZED_NOTE_HEAD_RATIO = 0.8;
-	public static final double STEM_TO_HEAD_MIN_CLOSENESS_RATIO = 0.4;
+	public static final double STEM_HEAD_COINCIDENT_MAX_RATIO = 0.4;
+	public static final double STEM_FLAG_COINCIDENT_MAX_RATIO = 0.4;
+	public static final double STEM_BEAM_COINCIDENT_MAX_RATIO = 0.4;
 	public static final double STEM_LENGTH_RATIO = 2.5;
-	public static final Color DEBUG_COLOR = new Color(128, 0, 128);
+	public static final int NUM_LINE_POSITION_OFFSET = 2;
 }

@@ -1,5 +1,6 @@
 package edu.tamu.srl.music.classifier;
 
+import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.util.ArrayList;
@@ -53,17 +54,16 @@ public abstract class AbstractShapeClassifier implements IShapeClassifier {
 	
 	protected double distance(Point2D.Double p1, Point2D.Double p2) {
 		
-		return Math.sqrt( (p2.x-p1.x)*(p2.x-p1.x) + (p2.y-p1.y)*(p2.y-p1.y) );
+		double distance = Math.sqrt( (p2.x-p1.x)*(p2.x-p1.x) + (p2.y-p1.y)*(p2.y-p1.y) );
+		
+		return distance;
 	}
 
 	protected double pathDistance(List<Point2D.Double> points) {
 		
 		double distance = 0.0;
-		
-		for (int i = 1; i < points.size() - 1; ++i) {
-			
+		for (int i = 1; i < points.size(); ++i)
 			distance += distance(points.get(i-1), points.get(i));
-		}
 		
 		return distance;
 	}
@@ -107,4 +107,5 @@ public abstract class AbstractShapeClassifier implements IShapeClassifier {
 	
 	public static final double LINE_RATIO_FLOOR = 0.90;
 	public static final double LINE_RATIO_CEILING = 1.10;
+	public static final Color DEBUG_COLOR = new Color(128, 0, 128);
 }

@@ -198,7 +198,9 @@ public class SketchPanel extends JPanel {
 		myShapes = shapes;
 		
 		// remove last shape from list of shapes
-		myShapes.remove(myShapes.size()-1);
+		IShape lastShape = myShapes.get(myShapes.size()-1);		// get the last shape
+		myShapes.remove(myShapes.size()-1);						// remove the last shape from the list of shapes
+		lastShape = null;										// nullify the last shape
 		
 		// repaint current list of shapes
 		repaintShapes(myShapes);

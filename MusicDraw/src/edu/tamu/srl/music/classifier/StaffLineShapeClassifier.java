@@ -70,7 +70,7 @@ public class StaffLineShapeClassifier extends AbstractShapeClassifier implements
 		double xDiff = pointEnd.x - pointStart.x;
 		double yDiff = pointEnd.y - pointStart.y;
 		double angle = Math.toDegrees(Math.atan2(yDiff, xDiff));
-		if (angle < -5.0 || angle > 5.0)
+		if (angle < HORIZONTAL_ANGLE_MIN_THRESHOLD || HORIZONTAL_ANGLE_MAX_THRESHOLD < angle)
 			return false;
 
 		// check if staff line is a line
@@ -121,4 +121,6 @@ public class StaffLineShapeClassifier extends AbstractShapeClassifier implements
 	
 	public static final double DISTANCE_RATIO_FLOOR = 0.15;
 	public static final double DISTANCE_RATIO_CEILING = 1.1;
+	public static final double HORIZONTAL_ANGLE_MIN_THRESHOLD = -5.0;
+	public static final double HORIZONTAL_ANGLE_MAX_THRESHOLD = 5.0;
 }
