@@ -2,20 +2,21 @@
 <qualifiedTypeNameHistroy>
 <fullyQualifiedTypeName name="javax.imageio.ImageIO"/>
 <fullyQualifiedTypeName name="edu.tamu.srl.music.classifier.IShape"/>
-<fullyQualifiedTypeName name="edu.tamu.srl.music.classifier.IShape.ShapeGroup"/>
 <fullyQualifiedTypeName name="java.util.Collections"/>
 <fullyQualifiedTypeName name="java.util.Comparator"/>
 <fullyQualifiedTypeName name="edu.tamu.srl.music.gui.SketchPanel"/>
 <fullyQualifiedTypeName name="java.awt.image.BufferedImage"/>
 <fullyQualifiedTypeName name="edu.tamu.srl.music.classifier.IImage"/>
 <fullyQualifiedTypeName name="java.awt.Color"/>
-<fullyQualifiedTypeName name="edu.tamu.srl.music.classifier.NoteShape.StemType"/>
 <fullyQualifiedTypeName name="edu.tamu.srl.music.classifier.NoteShape.FlagType"/>
 <fullyQualifiedTypeName name="java.awt.geom.Point2D"/>
 <fullyQualifiedTypeName name="java.util.ArrayList"/>
 <fullyQualifiedTypeName name="edu.tamu.srl.music.classifier.NoteShape.HeadType"/>
-<fullyQualifiedTypeName name="edu.tamu.srl.music.classifier.NoteShapeClassifier"/>
-<fullyQualifiedTypeName name="edu.tamu.srl.music.classifier.IShape.ShapeName"/>
 <fullyQualifiedTypeName name="java.util.List"/>
+<fullyQualifiedTypeName name="java.lang.Double"/>
+<fullyQualifiedTypeName name="edu.tamu.srl.music.classifier.IShape.ShapeName"/>
+<fullyQualifiedTypeName name="edu.tamu.srl.music.classifier.IShape.ShapeGroup"/>
+<fullyQualifiedTypeName name="edu.tamu.srl.music.classifier.NoteShapeClassifier"/>
+<fullyQualifiedTypeName name="edu.tamu.srl.music.classifier.NoteShape.StemType"/>
 <fullyQualifiedTypeName name="java.awt.geom.Point2D.Double"/>
 </qualifiedTypeNameHistroy>

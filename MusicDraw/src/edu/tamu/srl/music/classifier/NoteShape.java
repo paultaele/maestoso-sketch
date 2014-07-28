@@ -15,9 +15,9 @@ public class NoteShape extends IShape {
 		
 		myHeadType = headType;
 		myStemType = StemType.NONE;
-		myFlagType = FlagType.NONE;
 		myAccidentalType = AccidentalType.NONE;
-		myDotType = DotType.NONE;
+		myHasFlag = false;
+		myHasDot = false;
 	}
 	
 	public void addStem(IStroke stemStroke, StemType stemType) {
@@ -28,10 +28,10 @@ public class NoteShape extends IShape {
 		myStemType = stemType;
 	}
 	
-	public void addFlag(IStroke flagStroke, FlagType flagType) {
+	public void addFlag(IStroke flagStroke) {
 		
 		myStrokes.add(flagStroke);
-		myFlagType = flagType;
+		myHasFlag = true;
 	}
 	
 	public void addBeam(IStroke stroke, NoteShape leftNote, NoteShape rightNote) {
@@ -42,6 +42,12 @@ public class NoteShape extends IShape {
 			myRightNote = rightNote;
 		if (leftNote != null && rightNote == null)
 			myStrokes.add(stroke);
+	}
+	
+	public void addDot(IStroke stroke) {
+		
+		myStrokes.add(stroke);
+		myHasDot = true;
 	}
 	
 	public void addLedgerLines(List<IStroke> lines) {
@@ -67,35 +73,33 @@ public class NoteShape extends IShape {
 	public int position() { return myPosition; }
 	public HeadType headType() { return myHeadType; }
 	public StemType stemType() { return myStemType; }
-	public FlagType flagType() { return myFlagType; }
 	public AccidentalType accidentalType() { return myAccidentalType; }
 	public DotType dotType() { return myDotType; }
 	public NoteShape leftNote() { return myLeftNote; }
 	public NoteShape rightNote() { return myRightNote; }
 	
 	public boolean hasStem() { return myStemType != StemType.NONE; }
-	public boolean hasFlag() { return myFlagType != FlagType.NONE; }
 	public boolean hasBeam() { return (myLeftNote != null) || (myRightNote != null); }
 	public boolean hasAccidental() { return myAccidentalType != AccidentalType.NONE; }
-	public boolean hasDot() { return myDotType != DotType.NONE; }
+	public boolean hasDot() { return myHasDot; }
+	public boolean hasFlag() { return myHasFlag; }
 	
 	public enum HeadType { FILLED, EMPTY }
 	public enum StemType { UPWARD, DOWNWARD, NONE }
-	public enum FlagType { SINGLE, NONE }
-	public enum BeamType { SINGLE, NONE }
 	public enum AccidentalType { FLAT, SHARP, NATURAL, NONE }
 	private enum DotType { DOT, NONE }
 
 	
-	
+
 	private BoundingBox myHeadBox;
 	private BoundingBox myStemBox;
+	
+	private boolean myHasFlag;
+	private boolean myHasDot;
 	
 	private int myPosition;
 	private HeadType myHeadType;
 	private StemType myStemType;
-	private FlagType myFlagType;
-	private BeamType myBeamType;
 	private AccidentalType myAccidentalType;
 	private DotType myDotType;
 	private NoteShape myLeftNote;

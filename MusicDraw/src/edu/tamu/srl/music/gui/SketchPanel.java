@@ -230,20 +230,6 @@ public class SketchPanel extends JPanel {
 	    		//
 	    		if (shape.hasImage() && DISPLAY_SHAPE_IMAGES) {
 	    			
-//	    			int wdth = shape.getImageWidth();
-//	    			int hght = shape.getImageHeight();
-//	    			int xPos = shape.getImageX();
-//	    			int yPos = shape.getImageY();
-//	    			
-//	    			BufferedImage otherImage = shape.getImageFile();
-//	    			BufferedImage newImage = new BufferedImage(wdth, hght, BufferedImage.TYPE_INT_ARGB);
-//	    			Graphics graphics = newImage.createGraphics();
-//	    			graphics.drawImage(otherImage, 0, 0, wdth, hght, null);
-//	    			graphics.dispose();
-//	    			myGraphics2D.drawImage(newImage, xPos, yPos, null);
-	    			
-	    			// =====
-	    			
 	    			int width, height, x, y;
 	    			BufferedImage originalImage, scaledImage;
 	    			for (IImage image : shape.getImages()) {
@@ -263,7 +249,8 @@ public class SketchPanel extends JPanel {
 	    		}
 	    		
 	    		//
-	    		else {
+//	    		else {
+	    		if (shape.canDisplayStrokes()) {
 	    			
 	    			// iterate through each stroke
 			    	for (IStroke stroke : shape.getStrokes()) {

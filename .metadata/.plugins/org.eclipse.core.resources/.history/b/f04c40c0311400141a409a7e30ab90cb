@@ -1,0 +1,10 @@
+package edu.tamu.srl.music.classifier;
+
+import edu.tamu.srl.music.classifier.IShape.ShapeName;
+
+public class RestShape extends IShape {
+
+	public RestShape(ShapeName shapeName, IStroke head, HeadType headType, int position) {
+
+	}
+}

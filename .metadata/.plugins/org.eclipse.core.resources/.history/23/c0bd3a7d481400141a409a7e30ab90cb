@@ -1,0 +1,13 @@
+package edu.tamu.srl.music.classifier;
+
+import java.util.List;
+
+public class RestShape extends IShape {
+	
+	public RestShape(ShapeName shapeName, List<IStroke> strokes) {
+		
+		super(shapeName, strokes);
+		
+	}
+
+}

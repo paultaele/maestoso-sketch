@@ -20,3 +20,12 @@
 1406274612895	Rename local variable 'leftPoint'
 1406274621657	Rename local variable 'rightPoint'
 1406285659222	Rename local variable 'currentPosition'
+1406315837560	Rename field 'myDisplayStrokes'
+1406316464032	Delete element
+1406316872444	Rename local variable 'originals'
+1406317224547	Rename local variable 'scribble'
+1406317235679	Rename local variable 'scribbleStroke'
+1406317239224	Rename local variable 'dot'
+1406317243279	Rename local variable 'scribblePoints'
+1406326186441	Rename field 'MAX_DOT_POINTS'
+1406408530326	Rename local variable 'closestRest'

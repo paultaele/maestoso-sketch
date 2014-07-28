@@ -1,0 +1,10 @@
+package edu.tamu.srl.music.classifier;
+
+public class RestShape extends IShape {
+	
+	public RestShape(ShapeName shapeName, IStroke stroke) {
+		
+		super(shapeName, stroke);
+	}
+
+}

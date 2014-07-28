@@ -23,6 +23,7 @@ public class IShape {
 		
 		myBoundingBox = new BoundingBox(stroke.getPoints());
 		myImages = new ArrayList<IImage>();
+		myCanDisplayStrokes = true;
 	}
 	
 	public IShape(ShapeName shapeName, List<IStroke> strokes) {
@@ -38,6 +39,7 @@ public class IShape {
 				points.add(point);
 		myBoundingBox = new BoundingBox(points);
 		myImages = new ArrayList<IImage>();
+		myCanDisplayStrokes = true;
 	}
 	
 	private ShapeGroup myShapeGroup(ShapeName shapeName) {
@@ -95,6 +97,17 @@ public class IShape {
 		
 		myHasImage = true;
 		myImages.add(image);
+		myCanDisplayStrokes = false;
+	}
+	
+	public void addStroke(IStroke stroke) {
+		
+		myStrokes.add(stroke);
+	}
+	
+	public void clearStrokes() {
+		
+		myStrokes.clear();
 	}
 	
 	public ShapeName getShapeName() {
@@ -125,6 +138,16 @@ public class IShape {
 	public boolean hasTransformed() {
 		
 		return myHasTransformed;
+	}
+	
+	public boolean canDisplayStrokes() {
+		
+		return myCanDisplayStrokes;
+	}
+	
+	public void toggleDisplayStrokes(boolean toggle) {
+		
+		myCanDisplayStrokes = toggle;
 	}
 	
 	public void setColor(Color color) {
@@ -208,6 +231,7 @@ public class IShape {
 	private boolean myHasTransformed;
 	private BoundingBox myBoundingBox;
 	private List<IImage> myImages;
+	private boolean myCanDisplayStrokes;
 	
 	private static HashMap<String, BufferedImage> myImagesMap;
 	public static final String IMAGE_DIR_PATHNAME = "src/edu/tamu/srl/music/images/";

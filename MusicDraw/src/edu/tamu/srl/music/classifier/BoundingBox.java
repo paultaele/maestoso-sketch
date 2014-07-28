@@ -18,18 +18,25 @@ public class BoundingBox {
 		myMaxX = java.lang.Double.MIN_VALUE;
 		myMaxY = java.lang.Double.MIN_VALUE;
 		
-		for (Point2D.Double point : points) {
-			
-			if (point.x < myMinX)
-				myMinX = point.x;
-			else if (point.x > myMaxX)
-				myMaxX = point.x;
-			
-			if (point.y < myMinY)
-				myMinY = point.y;
-			else if (point.y > myMaxY)
-				myMaxY = point.y;
+		if (points.size() == 1) {
+			Point2D.Double point = points.get(0);
+			myMinX = myMaxX = point.x;
+			myMinY = myMaxY = point.y;
 		}
+		else {
+			for (Point2D.Double point : points) {
+				if (point.x < myMinX)
+					myMinX = point.x;
+				else if (point.x > myMaxX)
+					myMaxX = point.x;
+				
+				if (point.y < myMinY)
+					myMinY = point.y;
+				else if (point.y > myMaxY)
+					myMaxY = point.y;
+			}
+		}
+		
 		
 		myCenterX = (myMinX + myMaxX) / 2.0;
 		myCenterY = (myMinY + myMaxY) / 2.0;
@@ -91,6 +98,10 @@ public class BoundingBox {
 	public Point2D.Double right() { return new Point2D.Double(myMaxX, myCenterY); }
 	public Point2D.Double top() { return new Point2D.Double(myCenterX, myMinY); }
 	public Point2D.Double bottom() { return new Point2D.Double(myCenterX, myMaxY); }
+	public Point2D.Double topLeft() { return new Point2D.Double(myMinX, myMinY); }
+	public Point2D.Double topRight() { return new Point2D.Double(myMaxX, myMinY); }
+	public Point2D.Double bottomLeft() { return new Point2D.Double(myMinX, myMaxY); }
+	public Point2D.Double bottomRight() { return new Point2D.Double(myMaxX, myMaxY); }
 	
 	public boolean contains(Point2D.Double point) {
 		

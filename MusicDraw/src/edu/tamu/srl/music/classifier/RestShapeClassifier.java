@@ -2,6 +2,7 @@ package edu.tamu.srl.music.classifier;
 
 import java.awt.Color;
 import java.awt.geom.Point2D;
+import java.awt.geom.Point2D.Double;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -19,12 +20,21 @@ public class RestShapeClassifier extends AbstractShapeClassifier implements ISha
 		// get the staff as reference for setting the shape
 		List<IShape> shapes = cloneShapes(originals);
 		List<IShape> rawShapes = extractRawShapes(shapes);
+		StaffShape staffShape = getStaffShape(shapes);
 		
 		// filled rest test
 		List<IShape> shapesWithFilledRest = hasFilledRest(rawShapes, shapes);
 		if (shapesWithFilledRest != null) {
 			
 			myShapes = shapesWithFilledRest;
+			return true;
+		}
+		
+		// dots test
+		List<IShape> shapesWithDot = hasDot(rawShapes, shapes, staffShape);
+		if (shapesWithDot != null) {
+			
+			myShapes = shapesWithDot;
 			return true;
 		}
 		
@@ -52,7 +62,7 @@ public class RestShapeClassifier extends AbstractShapeClassifier implements ISha
 				IStroke newStroke = rawShape.getStrokes().get(0);
 				newStrokes.add(newStroke);
 			}
-			IShape newShape = new IShape(newShapeName, newStrokes);
+			IShape newShape = new RestShape(newShapeName, newStrokes);
 			
 			// check if the shape falls in any special case
 			// if the shape is a special case, then it's not that shape
@@ -66,7 +76,6 @@ public class RestShapeClassifier extends AbstractShapeClassifier implements ISha
 			if (newShape.getShapeName() != ShapeName.UPPER_BRACKET
 					&& newShape.getShapeName() != ShapeName.LOWER_BRACKET) {
 				
-//				newShape.setImageFile(IShape.getImage(newShapeName.name()));
 				setImage(newShape, shapes);
 			}
 			
@@ -145,15 +154,108 @@ public class RestShapeClassifier extends AbstractShapeClassifier implements ISha
 			shapeName = ShapeName.WHOLE_REST;
 		else if (bracket.getShapeName() == ShapeName.UPPER_BRACKET)
 			shapeName = ShapeName.HALF_REST;
-		IShape filledRest = new IShape(shapeName, strokes);
+		IShape filledRest = new RestShape(shapeName, strokes);
 		shapes.add(filledRest);
 		
-		// TODO: set location
-//		filledRest.setImageFile(IShape.getImage(filledRest.getShapeName().name()));
+		// set the image and clear the strokes
 		setImage(filledRest, shapes);
 		
 		return shapes;
 	}
+	
+	private List<IShape> hasDot(List<IShape> rawShapes, List<IShape> originalShapes, StaffShape staffShape) {
+		
+		// clone the original shapes
+		List<IShape> shapes = cloneShapes(originalShapes);
+		
+		// get the dot shape
+		IShape dotShape = rawShapes.get(0);
+		IStroke dotStroke = dotShape.getStrokes().get(0);
+		List<Point2D.Double> dotPoints = dotStroke.getPoints();
+		Point2D.Double dotPoint = dotShape.getBoundingBox().center();
+		
+		// get all eligible rest shapes
+		List<RestShape> restShapes = new ArrayList<RestShape>();
+		ShapeName shapeName = null;
+		for (IShape shape : shapes) {
+
+			// get the current shape name
+			shapeName = shape.getShapeName();
+			
+			// see if the shape name matches a rest shape
+			if (shapeName == ShapeName.WHOLE_REST || shapeName == ShapeName.HALF_REST
+					|| shapeName == ShapeName.QUARTER_REST || shapeName == shapeName.EIGHTH_REST) {
+				
+				// get the rest image's top point
+				IImage restImage = shape.getImages().get(0);
+				Point2D.Double restImagePoint = new Point2D.Double(restImage.x() + restImage.width()/2, restImage.y());
+				
+				// add the shape if the image's right-hand side is left of the dot shape
+				if (restImagePoint.x < dotPoint.x)
+					restShapes.add((RestShape)shape);
+			}
+		}
+		
+		// 1. non-zero completed rests test
+		if (restShapes.size() == 0)
+			return null;
+		
+		// 2. singleton raw shape test
+		// input should only be a single raw shape
+		if (rawShapes.size() > 1)
+			return null;
+		
+		// 3. size test
+		// see if the shape is actually a dot
+		double interval = staffShape.getLineInterval();	// diameter
+		double length = pathDistance(dotPoints);
+		if (length > NoteShapeClassifier.MAX_DOT_LENGTH || dotStroke.size() > NoteShapeClassifier.MAX_DOT_NUM_POINTS)
+			return null;
+		
+		// 4. location test
+		// see if the shape is between the second and third staff line
+		if (dotPoint.y < staffShape.getLineY(1) || staffShape.getLineY(2) < dotPoint.y)
+			return null;
+		
+		// find the corresponding rest
+		Point2D.Double closestRestImagePoint = null;					// initialize the closest rest image's position
+		RestShape closestRestShape = null;								// initialize the closest rest shape
+		double minDistance = java.lang.Double.MAX_VALUE;				// initialize the minimum distance
+		for (RestShape restShape : restShapes) {
+			
+			// get the rest image's top right corner
+			IImage restImage = restShape.getImages().get(0);
+			Point2D.Double restImagePoint = new Point2D.Double(restImage.x() + restImage.width(), restImage.y());
+			
+			// get the current distance and see if it's the closest rest shape
+			double currDistance = Math.abs(restImagePoint.x - dotPoint.x);
+			if (currDistance < minDistance) {
+				minDistance = currDistance;
+				closestRestShape = restShape;
+				closestRestImagePoint = restImagePoint;
+			}
+		}
+		
+		// 5. distance test
+		if (minDistance > interval)
+			return null;
+		
+		//
+		double dotX = closestRestImagePoint.x + interval/2;
+		double dotY = staffShape.getLineY(1) + interval/2;
+		List<Point2D.Double> cleanDotPoints = NoteShapeClassifier.getFilledNoteStroke(dotX, dotY, 10);
+		IStroke cleanDotStroke = new IStroke(cleanDotPoints, DEBUG_COLOR);
+		closestRestShape.addDot(cleanDotStroke);
+		closestRestShape.toggleDisplayStrokes(true);
+		
+		// remove and re-add rest shape so undoing removes the newly dotted shape
+		shapes.remove(closestRestShape);
+		shapes.add(closestRestShape);
+		
+		//
+		return shapes;
+	}
+	
 	
 	private void setImage(IShape shape, List<IShape> shapes) {
 		
@@ -213,16 +315,11 @@ public class RestShapeClassifier extends AbstractShapeClassifier implements ISha
 			width = originalWidth;
 		}
 		
-		//
-//		shape.setImageX((int)x);
-//		shape.setImageY((int)y);
-//		shape.setImageWidth((int)width);
-//		shape.setImageHeight((int)height);
-		
+		// set the image and clear the strokes
 		IImage image = new IImage(bufferedImage, x, y, width, height);
 		shape.addImage(image);
+		shape.clearStrokes();
 	}
-	
 	
 	private boolean isSpecialCase(IShape shape, List<IShape> shapes) {
 		
@@ -323,8 +420,6 @@ public class RestShapeClassifier extends AbstractShapeClassifier implements ISha
 		return ShapeName.RAW;
 	}
 
-	
-	
 	public static final String DATA_DIR_NAME = "rest";
 	public static final String DATA_DIR_PATHNAME = "src/edu/tamu/srl/music/data/rest/";
 	public static final double MIN_SCORE_THRESHOLD = 0.75;
