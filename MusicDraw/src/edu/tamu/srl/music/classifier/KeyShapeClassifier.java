@@ -133,12 +133,6 @@ public class KeyShapeClassifier
 		y = staffShape.getPositionY(keyShape.getPosition()) - shapeOffset;
 
 		//
-//		shape.setImageX((int)x);
-//		shape.setImageY((int)y);
-//		shape.setImageWidth((int)width);
-//		shape.setImageHeight((int)height);
-		
-		//
 		IImage image = new IImage(bufferedImage, x, y, width, height);
 		shape.addImage(image);
 	}

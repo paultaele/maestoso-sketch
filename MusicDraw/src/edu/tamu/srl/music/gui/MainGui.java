@@ -226,6 +226,7 @@ public class MainGui implements Runnable {
 		// initialize the buttons
 		JButton clearButton = new JButton("Clear");
 		JButton undoButton = new JButton("Undo");
+		JButton saveButton = new JButton("Save");
 		JButton checkButton = new JButton("Check");
 		
 		// create the clear button and add clear functionality
@@ -242,6 +243,13 @@ public class MainGui implements Runnable {
 			}
 		});
 		
+		// create the save button and add save functionality
+		saveButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				myDrawPanel.save();
+			}
+		});
+		
 		// create the check button and add check functionality
 		checkButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -252,6 +260,7 @@ public class MainGui implements Runnable {
 		// add the buttons to the panel
 		myEditPanel.add(clearButton);
 		myEditPanel.add(undoButton);
+		myEditPanel.add(saveButton);
 		myEditPanel.add(checkButton);
 	}
 	

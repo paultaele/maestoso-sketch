@@ -2,20 +2,20 @@
 <section name="Workbench">
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
 		<item value="false" key="isRegEx"/>
-		<item value="ledger" key="selection"/>
+		<item value="checkBu" key="selection"/>
 		<item value="false" key="casesensitive"/>
 		<item value="false" key="incremental"/>
 		<item value="true" key="wrap"/>
 		<item value="false" key="wholeword"/>
 		<list key="findhistory">
-			<item value="ledger"/>
-			<item value="hasDot"/>
-			<item value="raw"/>
-			<item value="debug"/>
-			<item value="top("/>
-			<item value="NoteShape.HeadType.FILLED"/>
-			<item value="HeadType"/>
-			<item value="headType"/>
+			<item value="checkBu"/>
+			<item value="check"/>
+			<item value="check()"/>
+			<item value="save"/>
+			<item value="DISPLAY_SHAPES_LIST"/>
+			<item value="xOff"/>
+			<item value="dot"/>
+			<item value="offset"/>
 		</list>
 		<list key="replacehistory">
 		</list>

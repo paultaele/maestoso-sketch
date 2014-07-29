@@ -1,13 +1,19 @@
 package edu.tamu.srl.music.classifier;
 
+import java.awt.Color;
 import java.awt.geom.Point2D;
+import java.awt.geom.Point2D.Double;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import edu.tamu.srl.music.classifier.IShape.ShapeGroup;
 import edu.tamu.srl.music.classifier.IShape.ShapeName;
+import edu.tamu.srl.music.classifier.NoteShape.AccidentalType;
 import edu.tamu.srl.music.classifier.NoteShape.HeadType;
 import edu.tamu.srl.music.classifier.NoteShape.StemType;
+import edu.tamu.srl.music.gui.SketchPanel;
 
 public class NoteShapeClassifier extends AbstractShapeClassifier implements IShapeClassifier {
 
@@ -63,12 +69,161 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 			return true;
 		}
 		
+		// 7. Accidental test.
+		newShapes = hasAccidental(rawShapes, shapes, staffShape);
+		if (newShapes != null) {
+			myShapes = newShapes;
+			return true;
+		}
+		
 		return false;
 	}
 
 	public List<IShape> getResult() {
 		
 		return myShapes;
+	}
+	
+	private List<IShape> hasAccidental(List<IShape> originalRawShapes, List<IShape> originalShapes, StaffShape staffShape) {
+		
+		// clone the original and raw shapes
+		List<IShape> shapes = cloneShapes(originalShapes);
+		List<IShape> rawShapes = cloneShapes(originalRawShapes);
+		
+		// get all notes without accidentals
+		List<NoteShape> noteShapes = new ArrayList<NoteShape>();
+		ShapeName shapeName = null;
+		for (IShape shape : shapes) {
+
+			// get the current shape name
+			shapeName = shape.getShapeName();
+			
+			// see if the shape name matches a note shape
+			NoteShape noteShape = null;
+			if (shapeName == ShapeName.NOTE) {
+				
+				noteShape = (NoteShape)shape;
+				
+				if (!noteShape.hasAccidental())
+					noteShapes.add(noteShape);
+			}
+		}
+		
+		// non-zero shapes test
+		if (noteShapes.size() == 0)
+			return null;
+		
+		// extract out the ledger lines into the raw shapes list
+		Iterator<IShape> iterator = shapes.iterator();
+		while (iterator.hasNext()) {
+			IShape currentShape = iterator.next();
+			if (currentShape.getShapeGroup() == ShapeGroup.LEDGER) {
+				iterator.remove();
+				rawShapes.add(currentShape);
+			}
+		}
+		
+		// 
+		double rawLengths = 0.0;
+		double interval = staffShape.getLineInterval();
+		for (IShape rawShape : originalRawShapes) {
+			
+			List<Point2D.Double> shapePoints = rawShape.getStrokes().get(0).getPoints();
+			rawLengths += pathDistance(shapePoints);
+		}
+		if (rawLengths < interval * ACCIDENTAL_LENGTH_MIN_RATIO)
+			return null;
+		
+		// create and run the classifier
+		Hausdorff classifier = new Hausdorff();
+		List<List<Point2D.Double>> pointsLists = getStrokes(originalRawShapes);
+		List<Template> templates = Template.getTemplates(DATA_DIR_NAME);
+		Pair result = classifier.classify(pointsLists, templates);
+		
+		// console debugging output
+		if (SketchPanel.DISPLAY_SHAPE_SCORES) {
+			System.out.println("### TESTING REST ###"); // TODO
+			System.out.println("SCORE: " + result.score());
+		}
+		
+		// visual test
+		// determines if shape is visually an accidental
+		AccidentalType accidentalType = AccidentalType.NONE;
+		if (result.score() > MIN_SCORE_THRESHOLD) {
+			
+			// see if it passes special cases
+			if (result.shape().equals("Sharp")) {					// sharp should only have 4 strokes
+				if (pointsLists.size() == 4)
+					accidentalType = AccidentalType.SHARP;
+			}
+			else if (result.shape().endsWith("Flat")) {				// flat should not have more than 2 strokes
+				if (pointsLists.size() <= 2)
+					accidentalType = AccidentalType.FLAT;
+			}
+			else if (result.shape().equals("Natural")) {
+				
+				boolean isNatural = true;
+				if (pointsLists.size() != 2)							// natural should only have 2 strokes
+					isNatural = false;
+				for (List<Point2D.Double> points : pointsLists)	{		// each stroke in natural should not be a line
+					if (isLine(points)) {
+						isNatural = false;
+						break;
+					}
+				}
+				if (isNatural)
+					accidentalType = AccidentalType.NATURAL;
+			}
+		}
+		if (accidentalType == AccidentalType.NONE)
+			return null;
+		
+		// set the placeholder accidental IShape
+		List<IStroke> strokes = new ArrayList<IStroke>();
+		for (List<Point2D.Double> points : pointsLists)
+			strokes.add(new IStroke(points, Color.black));
+		IShape accidental = new IShape(ShapeName.RAW, strokes);
+		
+		// START TEMP
+		// find the closest image
+		NoteShape randomNoteShape = noteShapes.get(0);
+		Point2D.Double accidentalPoint = accidental.getBoundingBox().right();
+		double minDistance = java.lang.Double.MAX_VALUE;				// initialize the minimum distance
+		NoteShape closestNoteShape = null;
+		Point2D.Double closestNotePoint = null;
+		for (NoteShape noteShape : noteShapes) {
+			
+			// get the current note's bounding box and edge point
+			BoundingBox noteBox = noteShape.getBoundingBox();
+			Point2D.Double notePoint = notePoint = noteBox.left();;
+			
+			// get the current distance and see if it's the closest note shape
+			double currDistance = Math.abs(notePoint.x - accidentalPoint.x);
+			if (currDistance < minDistance) {
+				minDistance = currDistance;
+				closestNoteShape = noteShape;
+				closestNotePoint = notePoint;
+			}
+		}
+		
+		// distance test
+		if (minDistance > interval)
+			return null;
+		
+		// set image
+		BufferedImage bufferedImage = IShape.getImage(accidentalType.name());
+		double originalWidth = bufferedImage.getWidth();
+		double originalHeight = bufferedImage.getHeight();
+		double height = staffShape.getLineInterval() * 2.0;
+		double width = (height*originalWidth)/originalHeight;
+		double xOffset = interval*0.5;
+		double yOffset = accidentalType == AccidentalType.FLAT ? height*0.75 : height*0.5;
+		double x = closestNotePoint.x - width - xOffset;
+		double y = closestNotePoint.y - yOffset;
+		IImage image = new IImage(bufferedImage, x, y, width, height);
+		randomNoteShape.addAccidental(accidentalType, image);
+		
+		return shapes;
 	}
 	
 	private List<IShape> hasDot(List<IShape> rawShapes, List<IShape> originalShapes, StaffShape staffShape) {
@@ -98,7 +253,6 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 				
 				if (!noteShape.hasDot())
 					allNoteShapes.add(noteShape);
-				
 			}
 		}
 		
@@ -165,7 +319,7 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 			return null;
 		
 		// find the corresponding note
-		double minDistance = java.lang.Double.MAX_VALUE;				// initialize the minimum distance
+		double minDistance = java.lang.Double.MAX_VALUE;
 		NoteShape closestNoteShape = null;
 		Point2D.Double closestNotePoint = null;
 		boolean isDotRight = false;
@@ -203,9 +357,10 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 			return null;
 		
 		//
-		double offset = isDotRight ? interval/2 : -interval/2;
-		double dotX = closestNotePoint.x + offset;
-		double dotY = closestNotePoint.y;
+		double xOffset = isDotRight ? interval/3 : -interval/3;
+		double yOffset = interval/2;
+		double dotX = closestNotePoint.x + xOffset;
+		double dotY = closestNotePoint.y + yOffset;
 		List<Point2D.Double> cleanDotPoints = NoteShapeClassifier.getFilledNoteStroke(dotX, dotY, 10);
 		IStroke cleanDotStroke = new IStroke(cleanDotPoints, DEBUG_COLOR);
 		closestNoteShape.addDot(cleanDotStroke);
@@ -279,15 +434,31 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 		if (leftNote == null || rightNote == null)
 			return null;
 
-		//
+		// beautify beam
+		double stemHeight = leftNote.getStemBox().height();
+		double leftOffset, rightOffset = 0.0;
 		Point2D.Double leftStemEndpoint = leftNote.getStemEndpoint();
 		Point2D.Double rightStemEndpoint = rightNote.getStemEndpoint();
 		List<Point2D.Double> beamPoints = new ArrayList<Point2D.Double>();
-		beamPoints.add(leftStemEndpoint);
-		beamPoints.add(rightStemEndpoint);
+		Point2D.Double left, right;
+		for (double i = 0; i < FLAG_BEAM_HEIGHT_RATIO; ++i) {
+			
+			leftOffset = rightOffset  = stemHeight * i/100.0;
+			if (leftNote.stemType() == StemType.UPWARD)
+				leftOffset *= -1;
+			if (rightNote.stemType() == StemType.UPWARD)
+				rightOffset *= -1;
+			
+			left = new Point2D.Double(leftStemEndpoint.x, leftStemEndpoint.y + leftOffset);
+			right = new Point2D.Double(rightStemEndpoint.x, rightStemEndpoint.y + rightOffset);
+			beamPoints.add(left);
+			beamPoints.add(right);
+		}
 		IStroke beamStroke = new IStroke(beamPoints, scribbleStroke.getColor());
 		leftNote.addBeam(beamStroke, null, rightNote);
 		rightNote.addBeam(beamStroke, leftNote, null);
+		
+		//
 		shapes.remove(leftNote);
 		shapes.remove(rightNote);
 		shapes.add(leftNote);
@@ -381,26 +552,45 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 		else if (note.stemType() == StemType.UPWARD && leftFlagEndpoint.y > rightFlagEndpoint.y)
 			return null;
 		
-		// create beautified stem
+		// create beautified flag
 		BoundingBox stemBox = note.getStemBox();
 		Point2D.Double flagLeftPoint = null;
 		Point2D.Double flagRightPoint = null;
 		if (note.stemType() == StemType.DOWNWARD) {
 			flagLeftPoint = new Point2D.Double(stemBox.centerX(), stemBox.maxY());
-			flagRightPoint = new Point2D.Double(stemBox.centerX()+interval/2, stemBox.maxY()-interval);
+			flagRightPoint = new Point2D.Double(stemBox.centerX()+interval*0.66, stemBox.maxY()-interval);
 		}
 		else if (note.stemType() == StemType.UPWARD) {
 			flagLeftPoint = new Point2D.Double(stemBox.centerX(), stemBox.minY());
-			flagRightPoint = new Point2D.Double(stemBox.centerX()+interval/2, stemBox.minY()+interval);
+			flagRightPoint = new Point2D.Double(stemBox.centerX()+interval*0.66, stemBox.minY()+interval);
 		}
+		
+		double offset = 0.0;
 		List<Point2D.Double> flagPoints = new ArrayList<Point2D.Double>();
-		flagPoints.add(flagLeftPoint);
-		flagPoints.add(flagRightPoint);
+//		flagPoints.add(flagLeftPoint);
+//		flagPoints.add(flagRightPoint);
+		Point2D.Double left, right = null;
+		for (int i = 0; i < FLAG_BEAM_HEIGHT_RATIO; ++i) {
+			
+			offset = note.getStemBox().height() * i/100.0;
+			if (note.stemType() == StemType.UPWARD)
+				offset *= -1;
+			
+			left = new Point2D.Double(flagLeftPoint.x, flagLeftPoint.y + offset);
+			right = new Point2D.Double(flagRightPoint.x, flagRightPoint.y + offset);
+			flagPoints.add(left);
+			flagPoints.add(right);
+		}
+		
 		IStroke flagStroke = new IStroke(flagPoints, scribbleStroke.getColor());
 		
 		//
 		note.addFlag(flagStroke);
 		flagStroke.setColor(DEBUG_COLOR);
+		
+		//
+		shapes.remove(note);
+		shapes.add(note);
 		return shapes;
 	}
 	
@@ -796,10 +986,12 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 	
 	
 	
-	public static final double NOTE_HEAD_BOX_MIN_RATIO = 0.5;
+	public static final double MIN_SCORE_THRESHOLD = 0.75;
+	public static final double NOTE_HEAD_BOX_MIN_RATIO = 0.4;
 	public static final double NOTE_HEAD_BOX_MAX_RATIO = 1.4;
 	public static final double STEM_LENGTH_MIN_RATIO = 2;
 	public static final double STEM_LENGTH_MAX_RATIO = 4;
+	public static final double ACCIDENTAL_LENGTH_MIN_RATIO = 2.5;
 	public static final double VERTICAL_ANGLE_MIN_THRESHOLD = 80.0;
 	public static final double VERTICAL_ANGLE_MAX_THRESHOLD = 100.0;
 	public static final double CLOSED_SHAPE_MIN_RATIO = 0.3;
@@ -807,8 +999,11 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 	public static final double STEM_HEAD_COINCIDENT_MAX_RATIO = 0.4;
 	public static final double STEM_FLAG_COINCIDENT_MAX_RATIO = 0.4;
 	public static final double STEM_BEAM_COINCIDENT_MAX_RATIO = 0.4;
-	public static final double STEM_LENGTH_RATIO = 2.5;
+	public static final double STEM_LENGTH_RATIO = 3;
 	public static final int NUM_LINE_POSITION_OFFSET = 2;
 	public static final int MAX_DOT_NUM_POINTS = 3;
 	public static final double MAX_DOT_LENGTH = 5.0;
+	public static final int FLAG_BEAM_HEIGHT_RATIO = 10;
+	public static final String DATA_DIR_NAME = "accidental";
+	public static final String DATA_DIR_PATHNAME = "src/edu/tamu/srl/music/data/accidental/";
 }

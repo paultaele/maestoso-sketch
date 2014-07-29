@@ -66,9 +66,9 @@ public class IShape {
 				|| shapeName == ShapeName.KEY_FLAT)
 			return ShapeGroup.KEY;
 		
-		else if (shapeName == ShapeName.SHARP
-				|| shapeName == ShapeName.FLAT)
-			return ShapeGroup.ACCIDENTAL;
+//		else if (shapeName == ShapeName.SHARP
+//				|| shapeName == ShapeName.FLAT)
+//			return ShapeGroup.ACCIDENTAL;
 		
 		else if (shapeName == ShapeName.SINGLE_BAR
 				|| shapeName == ShapeName.DOUBLE_BAR)
@@ -170,7 +170,7 @@ public class IShape {
 		KEY_SHARP, KEY_FLAT,
 		TREBLE_CLEF, BASS_CLEF,
 		TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE,
-		SHARP, FLAT, NATURAL,
+//		SHARP, FLAT, NATURAL,
 		SINGLE_BAR, DOUBLE_BAR,
 		LOWER_LINE, UPPER_LINE,
 		LOWER_BRACKET, UPPER_BRACKET, WHOLE_REST, HALF_REST, QUARTER_REST, EIGHTH_REST,
@@ -184,7 +184,7 @@ public class IShape {
 		KEY,
 		CLEF,
 		BEAT,
-		ACCIDENTAL,
+//		ACCIDENTAL,
 		BAR,
 		LEDGER,
 		REST,

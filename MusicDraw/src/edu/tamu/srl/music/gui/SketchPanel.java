@@ -107,7 +107,7 @@ public class SketchPanel extends JPanel {
 				
 				if (DISPLAY_SHAPES_LIST) {
 					
-					if (shapes != null && !	shapes.isEmpty())
+					if (shapes != null && !shapes.isEmpty())
 						for (IShape s : shapes)
 							System.out.print("(" + s.getShapeName() + "|" + s.getShapeGroup() + ") ");
 					System.out.println();
@@ -205,6 +205,21 @@ public class SketchPanel extends JPanel {
 		// repaint current list of shapes
 		repaintShapes(myShapes);
 		
+	}
+	
+	/**
+	 * Saves the drawing for recognition.
+	 */
+	public void save() {
+		
+		if (myShapes != null && !myShapes.isEmpty()) {
+			
+			for (IShape shape : myShapes) {
+				
+				System.out.print("(" + shape.getShapeName() + "|" + shape.getShapeGroup() + ") ");
+			}
+		}
+		System.out.println();
 	}
 	
 	/**

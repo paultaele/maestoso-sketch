@@ -50,6 +50,13 @@ public class NoteShape extends IShape {
 		myHasDot = true;
 	}
 	
+	public void addAccidental(AccidentalType accidentalType, IImage image) {
+		
+		addImage(image);
+		toggleDisplayStrokes(true);
+		myAccidentalType = accidentalType;
+	}
+	
 	public void addLedgerLines(List<IStroke> lines) {
 		
 		for (IStroke line : lines)
