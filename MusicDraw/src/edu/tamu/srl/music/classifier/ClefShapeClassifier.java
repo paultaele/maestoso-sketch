@@ -82,7 +82,7 @@ public class ClefShapeClassifier extends AbstractShapeClassifier implements ISha
 //			newShape.setImageFile(newImage);
 			IShape staffShape = null;
 			for (IShape shape : shapes) {
-				if (shape.getShapeName() == IShape.ShapeName.WHOLE_STAFF) {
+				if (shape.getShapeName() == IShape.ShapeName.STAFF) {
 					staffShape = shape;
 					break;
 				}
@@ -116,7 +116,7 @@ public class ClefShapeClassifier extends AbstractShapeClassifier implements ISha
 		// get the staff as reference for setting the shape
 		IShape staff = null;
 		for (IShape s : shapes) {
-			if (s.getShapeName() == IShape.ShapeName.WHOLE_STAFF) {
+			if (s.getShapeName() == IShape.ShapeName.STAFF) {
 				staff = s;
 				break;
 			}
@@ -159,16 +159,16 @@ public class ClefShapeClassifier extends AbstractShapeClassifier implements ISha
 		
 		if (shape.getShapeName() == ShapeName.TREBLE_CLEF) {
 			
-			x = IMAGE_X_POS;
-			y = staffTopY - lineInterval;
-			height = staffHeight + lineInterval*1.5;
+			x = IMAGE_X_POS - lineInterval;
+			y = staffTopY - lineInterval*2.0;
+			height = staffHeight + lineInterval*4.0;
 			width = (height*originalWidth)/originalHeight;
 		}
 		else if (shape.getShapeName() == ShapeName.BASS_CLEF) {
 			
 			x = IMAGE_X_POS;
 			y = staffTopY;
-			height = staffHeight - lineInterval*0.5;
+			height = staffHeight - lineInterval*1.0;
 			width = (height*originalWidth)/originalHeight;
 		}
 		

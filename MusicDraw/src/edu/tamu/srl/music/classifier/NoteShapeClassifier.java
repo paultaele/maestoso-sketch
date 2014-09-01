@@ -221,7 +221,7 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 		double x = closestNotePoint.x - width - xOffset;
 		double y = closestNotePoint.y - yOffset;
 		IImage image = new IImage(bufferedImage, x, y, width, height);
-		randomNoteShape.addAccidental(accidentalType, image);
+		closestNoteShape.addAccidental(accidentalType, image);
 		
 		return shapes;
 	}
@@ -358,11 +358,11 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 		
 		//
 		double xOffset = isDotRight ? interval/3 : -interval/3;
-		double yOffset = interval/2;
+		double yOffset = interval*0.25;
 		double dotX = closestNotePoint.x + xOffset;
 		double dotY = closestNotePoint.y + yOffset;
-		List<Point2D.Double> cleanDotPoints = NoteShapeClassifier.getFilledNoteStroke(dotX, dotY, 10);
-		IStroke cleanDotStroke = new IStroke(cleanDotPoints, DEBUG_COLOR);
+		List<Point2D.Double> cleanDotPoints = NoteShapeClassifier.getFilledNoteStroke(dotX, dotY, DOT_SIZE);
+		IStroke cleanDotStroke = new IStroke(cleanDotPoints, CLEAN_STROKE_DISPLAY_COLOR);
 		closestNoteShape.addDot(cleanDotStroke);
 		
 		// remove and re-add rest shape so undoing removes the newly dotted shape
@@ -463,7 +463,7 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 		shapes.remove(rightNote);
 		shapes.add(leftNote);
 		shapes.add(rightNote);
-		beamStroke.setColor(DEBUG_COLOR);
+		beamStroke.setColor(CLEAN_STROKE_DISPLAY_COLOR);
 		return shapes;
 	}
 	
@@ -586,7 +586,7 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 		
 		//
 		note.addFlag(flagStroke);
-		flagStroke.setColor(DEBUG_COLOR);
+		flagStroke.setColor(CLEAN_STROKE_DISPLAY_COLOR);
 		
 		//
 		shapes.remove(note);
@@ -719,7 +719,7 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 		//
 		NoteShape.StemType stemType = isDownwardStem ? NoteShape.StemType.DOWNWARD : NoteShape.StemType.UPWARD;
 		note.addStem(stemStroke, stemType);
-		stemStroke.setColor(DEBUG_COLOR);
+		stemStroke.setColor(CLEAN_STROKE_DISPLAY_COLOR);
 		return shapes;
 	}
 
@@ -752,7 +752,7 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 		
 		// create filled note head
 		IStroke scribbleStroke = scribble.getStrokes().get(0);
-		scribbleStroke.setColor(DEBUG_COLOR);
+		scribbleStroke.setColor(CLEAN_STROKE_DISPLAY_COLOR);
 		
 		// add the note shape to the list of shapes
 		IShape noteShape = createNoteShape(scribbleStroke, shapes, NoteShape.HeadType.FILLED, staffShape);
@@ -884,7 +884,7 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 				List<Point2D.Double> linePoints = new ArrayList<Point2D.Double>();
 				linePoints.add(leftPoint);
 				linePoints.add(rightPoint);
-				IStroke lineStroke = new IStroke(linePoints, DEBUG_COLOR);
+				IStroke lineStroke = new IStroke(linePoints, CLEAN_STROKE_DISPLAY_COLOR);
 				lineStrokes.add(lineStroke);
 				
 				// add the line strokes to the note
@@ -933,7 +933,7 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 		
 		// create empty note head
 		IStroke scribbleStroke = scribble.getStrokes().get(0);
-		scribbleStroke.setColor(DEBUG_COLOR);
+		scribbleStroke.setColor(CLEAN_STROKE_DISPLAY_COLOR);
 		
 		// add the note shape to the list of shapes
 		IShape noteShape = createNoteShape(scribbleStroke, shapes, NoteShape.HeadType.EMPTY, staffShape);
@@ -1004,6 +1004,7 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 	public static final int MAX_DOT_NUM_POINTS = 3;
 	public static final double MAX_DOT_LENGTH = 5.0;
 	public static final int FLAG_BEAM_HEIGHT_RATIO = 10;
+	public static final int DOT_SIZE = 5;
 	public static final String DATA_DIR_NAME = "accidental";
 	public static final String DATA_DIR_PATHNAME = "src/edu/tamu/srl/music/data/accidental/";
 }

@@ -7,10 +7,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import edu.tamu.srl.music.xml.XmlPoint;
-import edu.tamu.srl.music.xml.XmlSketch;
-import edu.tamu.srl.music.xml.XmlSketchParser;
-import edu.tamu.srl.music.xml.XmlStroke;
+import edu.tamu.srl.music.xml.sketch.XmlPoint;
+import edu.tamu.srl.music.xml.sketch.XmlSketch;
+import edu.tamu.srl.music.xml.sketch.XmlSketchParser;
+import edu.tamu.srl.music.xml.sketch.XmlStroke;
 
 public class Template {
 	

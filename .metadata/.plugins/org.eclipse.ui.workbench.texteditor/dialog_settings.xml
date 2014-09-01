@@ -1,21 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <section name="Workbench">
+	<section name="org.eclipse.ui.texteditor.GotoLineAction$GotoLineDialog_dialogBounds">
+		<item value="452" key="DIALOG_X_ORIGIN"/>
+		<item value="247" key="DIALOG_Y_ORIGIN"/>
+	</section>
 	<section name="org.eclipse.ui.texteditor.FindReplaceDialog">
 		<item value="false" key="isRegEx"/>
-		<item value="checkBu" key="selection"/>
+		<item value="Record C" key="selection"/>
 		<item value="false" key="casesensitive"/>
 		<item value="false" key="incremental"/>
 		<item value="true" key="wrap"/>
 		<item value="false" key="wholeword"/>
 		<list key="findhistory">
-			<item value="checkBu"/>
-			<item value="check"/>
-			<item value="check()"/>
-			<item value="save"/>
-			<item value="DISPLAY_SHAPES_LIST"/>
-			<item value="xOff"/>
-			<item value="dot"/>
-			<item value="offset"/>
+			<item value="record c"/>
+			<item value="record"/>
+			<item value="subPan"/>
+			<item value="resize"/>
+			<item value="createI"/>
+			<item value="NUM_CRITERIA_PANEL_SLOTS"/>
+			<item value="exit"/>
+			<item value="feedbackgui"/>
 		</list>
 		<list key="replacehistory">
 		</list>

@@ -13,12 +13,11 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
+import java.awt.geom.Point2D.Double;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
 import edu.tamu.srl.music.classifier.IImage;
@@ -40,7 +39,7 @@ public class SketchPanel extends JPanel {
 	 * 
 	 * @param gui The associated GUI object.
 	 */
-	public SketchPanel(MainGui gui) {
+	public SketchPanel(MusicDrawGui gui) {
 		
 		// give access of the associated GUI to the sketch panel
 		myGui = gui;
@@ -96,6 +95,14 @@ public class SketchPanel extends JPanel {
 			
 			public void mouseReleased(MouseEvent e) {
 				
+				// handle singleton strokes
+				if (myCurrStroke.size() == 1) {
+					
+					Point2D.Double point1 = myCurrStroke.get(0);
+					Point2D.Double point2 = new Point2D.Double(point1.x+1, point1.y+1);
+					myCurrStroke.add(point2);
+				}
+				
 				//
 				IShape shape = new IShape(IShape.ShapeName.RAW, myCurrStroke);
 				myShapes.add(shape);
@@ -134,7 +141,10 @@ public class SketchPanel extends JPanel {
 		if(myImage == null) {
 			
 			// create the canvas' image
-			myImage = createImage(getSize().width, getSize().height);
+			myWidth = myGui.getFrame().getSize().width;
+			myHeight = myGui.getFrame().getSize().height;
+//			myImage = createImage(getSize().width, getSize().height);
+			myImage = createImage(myWidth, myHeight);
 			
 			// set the canvas' graphic with the created image
 			myGraphics2D = (Graphics2D)myImage.getGraphics();
@@ -148,6 +158,32 @@ public class SketchPanel extends JPanel {
 			// clear the canvas
 			clear();
 		}
+		
+		if (myWidth != myGui.getFrame().getSize().width || myHeight != myGui.getFrame().getSize().height) {
+		
+			myWidth = myGui.getFrame().getSize().width;
+			myHeight = myGui.getFrame().getSize().height;
+			myImage = createImage(myWidth, myHeight);
+			
+			// set the canvas' graphic with the created image
+			myGraphics2D = (Graphics2D)myImage.getGraphics();
+			
+			// set up the canvas' rendering style
+			myGraphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+			// set up the canvas' stroke style
+			myGraphics2D.setStroke(STROKE_STYLE);
+			
+			// clear the canvas
+			List<IShape> shapes = myShapes;		// save original shapes since clear deletes them
+			clear();
+			
+			// repaint shapes
+			myShapes = shapes;
+			repaintShapes(myShapes);
+		}
+		
+		
 		
 		// draw the image onto the canvas
 		g.drawImage(myImage, 0, 0, null);
@@ -227,7 +263,7 @@ public class SketchPanel extends JPanel {
 	 */
 	public void check() {
 		
-		;
+		System.out.println("CHECK BUTTON PRESSED");
 	}
 	
 	private void repaintShapes(List<IShape> shapes) {
@@ -343,10 +379,15 @@ public class SketchPanel extends JPanel {
 		ACTIVE_COLOR = Color.green;
 		repaint();
 	}
+	
+	public List<IShape> getShapes() {
+		
+		return myShapes;
+	}
 
 	
 	
-	private MainGui myGui;
+	private MusicDrawGui myGui;
 	
 	private Image myImage;							// the image that the user will draw on
 	private Graphics2D myGraphics2D;				// the graphic that the user will draw on
@@ -359,6 +400,9 @@ public class SketchPanel extends JPanel {
 	
 	private IStroke myCurrStroke;
 	private List<IShape> myShapes;
+	
+	private int myWidth;
+	private int myHeight;
 	
 	private static final float STROKE_WIDTH = 3f;	// the pen's stroke width
 	private static final Stroke STROKE_STYLE 		// the mouse's stroke style

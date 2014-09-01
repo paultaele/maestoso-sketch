@@ -36,10 +36,8 @@ public class NoteShape extends IShape {
 	
 	public void addBeam(IStroke stroke, NoteShape leftNote, NoteShape rightNote) {
 		
-		if (myLeftNote != null)
-			myLeftNote = leftNote;
-		if (myRightNote != null)
-			myRightNote = rightNote;
+		myLeftNote = leftNote;
+		myRightNote = rightNote;
 		if (leftNote != null && rightNote == null)
 			myStrokes.add(stroke);
 	}
@@ -86,7 +84,47 @@ public class NoteShape extends IShape {
 	public NoteShape rightNote() { return myRightNote; }
 	
 	public boolean hasStem() { return myStemType != StemType.NONE; }
-	public boolean hasBeam() { return (myLeftNote != null) || (myRightNote != null); }
+	
+	public boolean hasBeam() {
+		
+		return (myLeftNote != null) || (myRightNote != null);
+	}
+	
+	public double duration() {
+		
+		if (myHeadType == HeadType.FILLED) {
+			if (hasFlag() || hasBeam()) {
+				if (myHasDot)
+					return 0.75;
+				else
+					return 0.5;
+			}
+			else {
+				if (myHasDot)
+					return 1.5;
+				else
+					return 1.0;
+			}
+		}
+		else if (myHeadType == HeadType.EMPTY) {
+			if (myStemType == StemType.NONE) {
+				if (myHasDot)
+					return 6.0;
+				else
+					return 4.0;
+			}
+			else {
+				if (myHasDot)
+					return 3.0;
+				else
+					return 2.0;
+			}
+		}
+		
+		return 0.0;
+	}
+	
+	
 	public boolean hasAccidental() { return myAccidentalType != AccidentalType.NONE; }
 	public boolean hasDot() { return myHasDot; }
 	public boolean hasFlag() { return myHasFlag; }

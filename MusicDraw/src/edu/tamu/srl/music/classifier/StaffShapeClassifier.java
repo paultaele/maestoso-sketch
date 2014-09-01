@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.tamu.srl.music.classifier.IShape.ShapeName;
-import edu.tamu.srl.music.gui.MainGui;
+import edu.tamu.srl.music.gui.MusicDrawGui;
 
 public class StaffShapeClassifier implements IShapeClassifier {
 
@@ -57,7 +57,7 @@ public class StaffShapeClassifier implements IShapeClassifier {
 			IShape priorStaff = null;
 			boolean hasStaff = false;
 			for (IShape shape : shapes) {
-				if (shape.getShapeName().equals(ShapeName.WHOLE_STAFF)) {
+				if (shape.getShapeName().equals(ShapeName.STAFF)) {
 					hasStaff = true;
 					priorStaff = shape;
 				}
@@ -98,17 +98,18 @@ public class StaffShapeClassifier implements IShapeClassifier {
 				// set up the current beautified staff line
 				Color strokeColor = staffLines.get(i).getStrokes().get(0).getColor();
 				IStroke beautifiedStaffLineStroke = new IStroke(strokeColor);
-				Point2D.Double p1 = new Point2D.Double(0, topY + lineInterval*i);
-				Point2D.Double p2 = new Point2D.Double(MainGui.FRAME_WIDTH, topY + lineInterval*i);
-				beautifiedStaffLineStroke.add(p1);
-				beautifiedStaffLineStroke.add(p2);
+				Point2D.Double leftPoint = new Point2D.Double(0, topY + lineInterval*i);
+//				Point2D.Double p2 = new Point2D.Double(MusicDrawGui.getWidth(), topY + lineInterval*i);
+				Point2D.Double rightPoint = new Point2D.Double(StaffLineShapeClassifier.HORIZONTAL_DISTANCE, topY + lineInterval*i);
+				beautifiedStaffLineStroke.add(leftPoint);
+				beautifiedStaffLineStroke.add(rightPoint);
 				
 				// add beautified staff line to list of beautified staff lines
 				beautifiedStaffLineStrokes.add(beautifiedStaffLineStroke);
 			}
 			
 			// add staff to list of shapes
-			IShape staff = new StaffShape(beautifiedStaffLineStrokes, IShape.ShapeName.WHOLE_STAFF, topY, lineInterval);
+			IShape staff = new StaffShape(beautifiedStaffLineStrokes, IShape.ShapeName.STAFF, topY, lineInterval);
 			shapes.add(staff);
 			
 			//

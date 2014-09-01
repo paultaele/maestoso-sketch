@@ -8,10 +8,10 @@ import java.util.Iterator;
 import java.util.List;
 
 import edu.tamu.srl.music.classifier.IShape.ShapeName;
-import edu.tamu.srl.music.xml.XmlPoint;
-import edu.tamu.srl.music.xml.XmlSketch;
-import edu.tamu.srl.music.xml.XmlSketchParser;
-import edu.tamu.srl.music.xml.XmlStroke;
+import edu.tamu.srl.music.xml.sketch.XmlPoint;
+import edu.tamu.srl.music.xml.sketch.XmlSketch;
+import edu.tamu.srl.music.xml.sketch.XmlSketchParser;
+import edu.tamu.srl.music.xml.sketch.XmlStroke;
 
 public abstract class AbstractShapeClassifier implements IShapeClassifier {
 
@@ -92,7 +92,7 @@ public abstract class AbstractShapeClassifier implements IShapeClassifier {
 	protected StaffShape getStaffShape(List<IShape> shapes) {
 		IShape staff = null;
 		for (IShape s : shapes) {
-			if (s.getShapeName() == IShape.ShapeName.WHOLE_STAFF) {
+			if (s.getShapeName() == IShape.ShapeName.STAFF) {
 				staff = s;
 				break;
 			}
@@ -107,5 +107,7 @@ public abstract class AbstractShapeClassifier implements IShapeClassifier {
 	
 	public static final double LINE_RATIO_FLOOR = 0.90;
 	public static final double LINE_RATIO_CEILING = 1.10;
-	public static final Color DEBUG_COLOR = new Color(128, 0, 128);
+//	public static final Color DEBUG_COLOR = new Color(128, 0, 128);
+	public static final Color CLEAN_STROKE_DISPLAY_COLOR = Color.black;
+	public static final Color TRANSITION_STROKE_DISPLAY_COLOR = Color.orange;
 }

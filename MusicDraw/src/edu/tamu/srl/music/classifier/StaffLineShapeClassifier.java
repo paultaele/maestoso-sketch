@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.tamu.srl.music.classifier.IShape.ShapeName;
-import edu.tamu.srl.music.gui.MainGui;
+import edu.tamu.srl.music.gui.MusicDrawGui;
 
 public class StaffLineShapeClassifier extends AbstractShapeClassifier implements IShapeClassifier {
 
@@ -62,7 +62,8 @@ public class StaffLineShapeClassifier extends AbstractShapeClassifier implements
 		double pathDistance = pathDistance(points);
 
 		// check if staff line matches entire width of draw application
-		double distanceRatio = distance / MainGui.FRAME_WIDTH;
+//		double distanceRatio = distance / MainGui.DEFAULT_FRAME_WIDTH;
+		double distanceRatio = distance / MusicDrawGui.getWidth();
 		if ( distanceRatio < DISTANCE_RATIO_FLOOR ||  distanceRatio > DISTANCE_RATIO_CEILING )
 			return false;
 			
@@ -105,7 +106,9 @@ public class StaffLineShapeClassifier extends AbstractShapeClassifier implements
 		
 		//
 		Point2D.Double left = new Point2D.Double(0, midY);
-		Point2D.Double right = new Point2D.Double(MainGui.FRAME_WIDTH - 1, midY);
+//		Point2D.Double right = new Point2D.Double(MainGui.DEFAULT_FRAME_WIDTH - 1, midY);
+//		Point2D.Double right = new Point2D.Double(MusicDrawGui.getWidth() - 1, midY);
+		Point2D.Double right = new Point2D.Double(HORIZONTAL_DISTANCE, midY);
 		
 		//
 		List<Point2D.Double> line = new ArrayList<Point2D.Double>();
@@ -123,4 +126,5 @@ public class StaffLineShapeClassifier extends AbstractShapeClassifier implements
 	public static final double DISTANCE_RATIO_CEILING = 1.1;
 	public static final double HORIZONTAL_ANGLE_MIN_THRESHOLD = -5.0;
 	public static final double HORIZONTAL_ANGLE_MAX_THRESHOLD = 5.0;
+	public static final int HORIZONTAL_DISTANCE = 3000;
 }

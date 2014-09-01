@@ -10,7 +10,7 @@ public class ShapeClassifier {
 	public List<IShape> classify(List<IShape> shapes) {
 
 		// 
-		boolean containsWholeStaff = contains(shapes, ShapeName.WHOLE_STAFF);
+		boolean containsWholeStaff = contains(shapes, ShapeName.STAFF);
 		boolean containsClef = contains(shapes, ShapeGroup.CLEF);
 		boolean containsBeat = contains(shapes, ShapeGroup.BEAT);
 		boolean containsTimeSignature = contains(shapes, ShapeGroup.BEAT, 2);
@@ -62,7 +62,7 @@ public class ShapeClassifier {
 			}
 			
 			// test for beats
-			classifier = new BeatShapeClassifier();
+			classifier = new TimeShapeClassifier();
 			isClassified = classifier.classify(shapes);
 			if (isClassified)
 				return classifier.getResult();

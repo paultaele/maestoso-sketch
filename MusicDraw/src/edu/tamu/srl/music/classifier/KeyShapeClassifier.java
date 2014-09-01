@@ -63,7 +63,7 @@ public class KeyShapeClassifier
 			// get the staff position
 			IShape staff = null;
 			for (IShape s : shapes) {
-				if (s.getShapeName() == IShape.ShapeName.WHOLE_STAFF) {
+				if (s.getShapeName() == IShape.ShapeName.STAFF) {
 					staff = s;
 					break;
 				}
@@ -107,7 +107,7 @@ public class KeyShapeClassifier
 		// get the staff as reference for setting the shape
 		IShape staff = null;
 		for (IShape s : shapes) {
-			if (s.getShapeName() == IShape.ShapeName.WHOLE_STAFF) {
+			if (s.getShapeName() == IShape.ShapeName.STAFF) {
 				staff = s;
 				break;
 			}

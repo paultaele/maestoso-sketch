@@ -38,8 +38,10 @@ public class LedgerShapeClassifier extends AbstractShapeClassifier implements IS
 		
 		// singleton raw shape test
 		// input should only be a single raw shape (stroke), which is the filled note head shape
-		if (rawShapes.size() > 1)
+		if (rawShapes.size() > 1) {
+//			System.out.println("> FAILED 1");
 			return null;
+		}
 		
 		// get raw stroke
 		IShape rawShape = rawShapes.get(0);
@@ -47,8 +49,10 @@ public class LedgerShapeClassifier extends AbstractShapeClassifier implements IS
 		List<Point2D.Double> rawPoints = rawStroke.getPoints();
 		
 		// line test
-		if (!isLine(rawPoints))
+		if (!isLine(rawPoints)) {
+//			System.out.println("> FAILED 2");
 			return null;
+		}
 		
 		// horizontal test
 		Point2D.Double firstPoint = rawPoints.get(0);
@@ -57,8 +61,10 @@ public class LedgerShapeClassifier extends AbstractShapeClassifier implements IS
 		double yDiff = firstPoint.y - lastPoint.y;
 		double angle = Math.abs(Math.toDegrees(Math.atan2(yDiff, xDiff)));
 		if (Math.abs(180 - angle) > HORIZONTAL_ANGLE_MAX_RATIO_THRESHOLD 
-				&& Math.abs(angle ) > HORIZONTAL_ANGLE_MAX_RATIO_THRESHOLD)
+				&& Math.abs(angle ) > HORIZONTAL_ANGLE_MAX_RATIO_THRESHOLD) {
+//			System.out.println("> FAILED 3");
 			return null;
+		}
 		
 		// create a temporary beautified line
 		double midY = Math.abs(firstPoint.y + lastPoint.y) / 2;
@@ -67,23 +73,26 @@ public class LedgerShapeClassifier extends AbstractShapeClassifier implements IS
 		List<Point2D.Double> cleanPoints = new ArrayList<Point2D.Double>();
 		cleanPoints.add(firstPoint);
 		cleanPoints.add(lastPoint);
-		IStroke cleanStroke = new IStroke(cleanPoints, rawStroke.getColor());
 		
 		// external staff test
 		double topY = staffShape.getLineY(0);
-		double bottomY = staffShape.getLineY(staffShape.NUM_LINES-1);
-		if (topY < midY && midY < bottomY)
+		double bottomY = staffShape.getLineY(StaffShape.NUM_LINES-1);
+		if (topY < midY && midY < bottomY) {
+//			System.out.println("> FAILED 4");
 			return null;
+		}
 		
 		// length test
 		double interval = staffShape.getLineInterval();	// diameter
 		double length = pathDistance(cleanPoints);
 		if (length < interval * LEDGER_LINE_LENGTH_MIN_RATIO
-				|| interval * LEDGER_LINE_LENGTH_MAX_RATIO < length)
+				|| interval * LEDGER_LINE_LENGTH_MAX_RATIO < length) {
+//			System.out.println("> FAILED 5");
 			return null;
+		}
 		
 		//
-		rawStroke.setColor(DEBUG_COLOR);
+		rawStroke.setColor(TRANSITION_STROKE_DISPLAY_COLOR);
 		IShape ledgerShape = null;
 		if (midY < topY)
 			ledgerShape = new IShape(ShapeName.UPPER_LINE, rawStroke);
@@ -91,6 +100,7 @@ public class LedgerShapeClassifier extends AbstractShapeClassifier implements IS
 			ledgerShape = new IShape(ShapeName.LOWER_LINE, rawStroke);
 		List<IShape> shapes = cloneShapes(originals);
 		shapes.add(ledgerShape);
+		
 		return shapes;
 	}
 

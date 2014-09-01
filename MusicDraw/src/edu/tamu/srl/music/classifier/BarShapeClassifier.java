@@ -32,7 +32,7 @@ public class BarShapeClassifier extends AbstractShapeClassifier implements IShap
 		// get the staff as reference for setting the shape
 		IShape staff = null;
 		for (IShape s : shapes) {
-			if (s.getShapeName() == IShape.ShapeName.WHOLE_STAFF) {
+			if (s.getShapeName() == IShape.ShapeName.STAFF) {
 				staff = s;
 				break;
 			}

@@ -70,7 +70,7 @@ public class RestShapeClassifier extends AbstractShapeClassifier implements ISha
 			if (isSpecialCase)
 				return false;
 			else
-				newShape.setColor(Color.orange); // TEMP
+				newShape.setColor(TRANSITION_STROKE_DISPLAY_COLOR); // TEMP
 			
 			// set the shape's image
 			if (newShape.getShapeName() != ShapeName.UPPER_BRACKET
@@ -244,7 +244,7 @@ public class RestShapeClassifier extends AbstractShapeClassifier implements ISha
 		double dotX = closestRestImagePoint.x + interval/2;
 		double dotY = staffShape.getLineY(1) + interval/2;
 		List<Point2D.Double> cleanDotPoints = NoteShapeClassifier.getFilledNoteStroke(dotX, dotY, 10);
-		IStroke cleanDotStroke = new IStroke(cleanDotPoints, DEBUG_COLOR);
+		IStroke cleanDotStroke = new IStroke(cleanDotPoints, CLEAN_STROKE_DISPLAY_COLOR);
 		closestRestShape.addDot(cleanDotStroke);
 		closestRestShape.toggleDisplayStrokes(true);
 		
@@ -262,7 +262,7 @@ public class RestShapeClassifier extends AbstractShapeClassifier implements ISha
 		// get the staff as reference for setting the shape
 		IShape staff = null;
 		for (IShape s : shapes) {
-			if (s.getShapeName() == IShape.ShapeName.WHOLE_STAFF) {
+			if (s.getShapeName() == IShape.ShapeName.STAFF) {
 				staff = s;
 				break;
 			}
@@ -326,7 +326,7 @@ public class RestShapeClassifier extends AbstractShapeClassifier implements ISha
 		// get the staff as reference for setting the shape
 		IShape staff = null;
 		for (IShape s : shapes) {
-			if (s.getShapeName() == IShape.ShapeName.WHOLE_STAFF) {
+			if (s.getShapeName() == IShape.ShapeName.STAFF) {
 				staff = s;
 				break;
 			}

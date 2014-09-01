@@ -45,7 +45,7 @@ public class IShape {
 	private ShapeGroup myShapeGroup(ShapeName shapeName) {
 		
 		if (shapeName == ShapeName.STAFF_LINE
-				|| shapeName == ShapeName.WHOLE_STAFF)
+				|| shapeName == ShapeName.STAFF)
 			return ShapeGroup.STAFF;
 		
 		else if (shapeName == ShapeName.TREBLE_CLEF
@@ -166,11 +166,10 @@ public class IShape {
 	public enum ShapeName {
 		
 		RAW,
-		STAFF_LINE, WHOLE_STAFF,
+		STAFF_LINE, STAFF,
 		KEY_SHARP, KEY_FLAT,
 		TREBLE_CLEF, BASS_CLEF,
 		TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE,
-//		SHARP, FLAT, NATURAL,
 		SINGLE_BAR, DOUBLE_BAR,
 		LOWER_LINE, UPPER_LINE,
 		LOWER_BRACKET, UPPER_BRACKET, WHOLE_REST, HALF_REST, QUARTER_REST, EIGHTH_REST,
@@ -184,7 +183,6 @@ public class IShape {
 		KEY,
 		CLEF,
 		BEAT,
-//		ACCIDENTAL,
 		BAR,
 		LEDGER,
 		REST,
