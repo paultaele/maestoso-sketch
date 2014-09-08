@@ -1230,18 +1230,19 @@ public class MaestosoSketchGui implements Runnable {
 	private int[] myResponses;
 	private static boolean myCanDisplayOriginal;
 	
-	public static final String USER_DIR = "C:/Users/paultaele/Dropbox/School/code/Java/maestoso-sketch/MusicDraw/";
+//	public static final String USER_DIR = "C:/Users/paultaele/Dropbox/School/code/Java/maestoso-sketch/MusicDraw/";
+	public static final String USER_DIR = "./";
 	public static int DEFAULT_FRAME_WIDTH;
 	public static int DEFAULT_FRAME_HEIGHT;
 	public static final double FRAME_RATIO = 0.8;
 	public static final
-		String IMAGES_DIR_PATHNAME = USER_DIR + "/src/edu/tamu/srl/music/images/";
+		String IMAGES_DIR_PATHNAME = USER_DIR + "src/edu/tamu/srl/music/images/";
 	public static final
 		String EMPTY_IMAGE_PATHNAME = IMAGES_DIR_PATHNAME + "clear.gif";
 	public static final
 		String APPLICATION_TITLE = "Maestoso Sketch";
 	public static final
-		String LEARNING_DIR = USER_DIR + "/src/edu/tamu/srl/music/learning/";
+		String LEARNING_DIR = USER_DIR + "src/edu/tamu/srl/music/learning/";
 	public static final int LESSON_TITLE_QUESTION_TEXT_LENGTH = 600;
 	public static final int PREVIEW_IMAGE_WIDTH_SMALL = 330;
 	public static final int PREVIEW_IMAGE_HEIGHT_SMALL = 120;

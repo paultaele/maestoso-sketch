@@ -1,0 +1,337 @@
+package gui;
+
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFormattedTextField;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
+
+public class MainGui implements Runnable {
+
+	/**
+	 * The main method for running the application.
+	 * @param args The console arguments.
+	 */
+	public static void main(String[] args) {
+		
+		SwingUtilities.invokeLater(new MainGui());
+	}
+	
+	/**
+	 * Runs the methods to create the main frame.
+	 */
+	public void run() {
+    	
+        createFrame();
+    }
+	
+	/**
+	 * Creates the main frame.
+	 */	
+	private void createFrame() {
+		
+		// set the dimensions of the main frame relative to a set ratio of
+		// the screen's size
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		FRAME_WIDTH = (int)(screenSize.width * FRAME_RATIO);
+		FRAME_HEIGHT = (int)(screenSize.height * FRAME_RATIO);
+		
+		// initialize the main frame
+        myFrame = new JFrame();
+        
+        // create the menu bar and add it to the main frame
+        createMenuBar();
+        myFrame.setJMenuBar(myMenuBar);
+        
+        // create the main panel and add it to the main frame
+        createMainPanel();
+		myFrame.add(myMainPanel);
+		
+		// handle the main frame's actions
+		myFrame.setSize(FRAME_WIDTH, FRAME_HEIGHT);						// set the size of the frame
+		myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);			// enable closing
+		myFrame.setVisible(true);										// enable visibility
+		myFrame.setLocationRelativeTo(null);							// enable centering of screen
+		myFrame.setResizable(false);									// disable resizing
+		myFrame.setTitle(APPLICATION_TITLE);							// set application title
+        myFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);	// do nothing on closing
+        myFrame.addWindowListener(new WindowAdapter() {					// handle post-closing actions
+            public void windowClosing(WindowEvent event) {
+                exitProcedure();
+            }
+        });
+	}
+
+	/**
+	 * Creates the main panel.
+	 */
+	private void createMainPanel() {
+		
+		// initialize and set up the main panel's layout
+        myMainPanel = new JPanel();
+        myMainPanel.setLayout(new BorderLayout());
+        
+        // create blank questions
+        createQuestionsPanel();
+        JScrollPane scroller = new JScrollPane(myQuestionsPanel);
+        myMainPanel.add(scroller, BorderLayout.CENTER);
+        
+        // create edit buttons
+        createInteractionPanel();
+        myMainPanel.add(myInteractionPanel, BorderLayout.SOUTH);
+	}
+	
+	private void createQuestionsPanel() {
+		
+		//
+		myQuestionPanels = new ArrayList<JPanel>();
+		JPanel emptyQuestionPanel = createQuestionPanel();
+		getNumberTextField(emptyQuestionPanel).setText("" + (myQuestionPanels.size() + 1));
+		myQuestionPanels.add(emptyQuestionPanel);
+		
+		//
+		myQuestionsPanel = new JPanel();
+		myQuestionsPanel.setLayout(new BoxLayout(myQuestionsPanel, BoxLayout.Y_AXIS));
+		for (JPanel questionPanel : myQuestionPanels)
+			myQuestionsPanel.add(questionPanel);
+		
+		// ############################## DEBUG
+//		JPanel debugPanel = myQuestionPanels.get(0);
+//		JCheckBox debugSelect = (JCheckBox)((JPanel)debugPanel.getComponent(SELECT_CHECKBOX_POSITION)).getComponent(0);
+//		JFormattedTextField debugNumber = (JFormattedTextField)((JPanel)debugPanel.getComponent(NUMBER_TEXTFIELD_POSITION)).getComponent(0);
+//		JTextArea debugQuestion = (JTextArea)((JPanel)debugPanel.getComponent(QUESTION_TEXTAREA_POSITION)).getComponent(0);
+//		
+//		System.out.println("Selected? " + debugSelect.isSelected());
+//		System.out.println("Number? " + debugNumber.getValue());
+//		System.out.println("Question? " + debugQuestion.getText());
+//		System.out.println(" ******************** ");
+	}
+	
+	private void createInteractionPanel() {
+		
+		//
+		myInteractionPanel = new JPanel();
+		
+		//
+		myAddQuestionButton = new JButton("Add Question");
+		myDeleteQuestionsButton = new JButton("Delete Question(s)");
+		
+		// set the action listener for the add question button
+		myAddQuestionButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				addQuestion();
+			}
+		});
+		
+		// set the action listener for the delete question(s) button
+		myDeleteQuestionsButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				deleteQuestions();
+			}
+		});
+		
+		// set the action listener for the delete questions button
+		
+		
+		//
+		myInteractionPanel.add(myAddQuestionButton);
+		myInteractionPanel.add(myDeleteQuestionsButton);
+	}
+	
+	private JPanel createQuestionPanel() {
+		
+		//
+		JPanel questionPanel = new JPanel();
+		
+		// select checkbox
+		JPanel selectCheckBoxPanel = new JPanel();
+		JCheckBox selectCheckBox = new JCheckBox();
+		selectCheckBoxPanel.add(selectCheckBox);
+		questionPanel.add(selectCheckBoxPanel);
+		
+		// number text field
+		JPanel numberTextFieldPanel = new JPanel();
+		JFormattedTextField numberTextField = new JFormattedTextField();
+		numberTextField.setValue(0);
+		numberTextField.setColumns(2);
+		numberTextFieldPanel.add(numberTextField);
+		questionPanel.add(numberTextFieldPanel);
+		
+		// question text field
+		JPanel questionTextAreaPanel = new JPanel();
+		JTextArea questionTextArea = new JTextArea(5, 50);
+		questionTextArea.setLineWrap(true);
+		questionTextArea.setWrapStyleWord(true);
+		JScrollPane questionTextAreaScroller = new JScrollPane(questionTextArea);
+		questionTextAreaPanel.add(questionTextAreaScroller);
+		questionPanel.add(questionTextAreaPanel);
+		
+		// load answer button
+		JPanel loadAnswerButtonPanel = new JPanel();
+		loadAnswerButtonPanel.setLayout(new BoxLayout(loadAnswerButtonPanel, BoxLayout.Y_AXIS));
+		JButton loadAnswerButton = new JButton("Load Answer");
+		JLabel loadAnswerLabel = new JLabel("none");
+		loadAnswerButtonPanel.add(loadAnswerButton);
+		loadAnswerButtonPanel.add(loadAnswerLabel);
+		questionPanel.add(loadAnswerButtonPanel);
+		
+		// load image button
+		JPanel loadImageButtonPanel = new JPanel();
+		loadImageButtonPanel.setLayout(new BoxLayout(loadImageButtonPanel, BoxLayout.Y_AXIS));
+		JButton loadImageButton = new JButton("Load Image");
+		JLabel loadAnswerLabel = new JLabel("none");
+		loadImageButtonPanel.add(loadImageButton);
+		questionPanel.add(loadImageButtonPanel);
+		
+		return questionPanel;
+	}
+	
+	private void updateQuestionsPanel() {
+		
+		//
+		myQuestionsPanel.removeAll();
+		
+		//
+		myQuestionsPanel.setLayout(new BoxLayout(myQuestionsPanel, BoxLayout.Y_AXIS));
+		for (JPanel questionPanel : myQuestionPanels)
+			myQuestionsPanel.add(questionPanel);
+		System.out.println(myQuestionsPanel.getComponentCount());
+		
+		//
+		myFrame.repaint();
+		myFrame.revalidate();
+	}
+	
+	private void addQuestion() {
+	
+		// add new question panel to list of question panels
+		JPanel newQuestionPanel = createQuestionPanel();
+		getNumberTextField(newQuestionPanel).setText("" + (myQuestionPanels.size() + 1));
+		myQuestionPanels.add(newQuestionPanel);
+		
+		// update questions panel
+		updateQuestionsPanel();
+	}
+	
+	private void deleteQuestions() {
+		
+		// iterate through each question
+		Iterator<JPanel> iterator = myQuestionPanels.iterator();
+		while (iterator.hasNext()) {
+			
+			// get the current question panel
+			JPanel currentQuestionPanel = iterator.next();
+			
+			// remove checked question panels
+			if (getSelectCheckBox(currentQuestionPanel).isSelected()) {
+				
+				//
+				int deleteNumber = Integer.parseInt(getNumberTextField(currentQuestionPanel).getText());
+				
+				//
+				for (JPanel questionPanel : myQuestionPanels) {
+					
+					int number = Integer.parseInt(getNumberTextField(questionPanel).getText());
+					if (number > deleteNumber)
+						getNumberTextField(questionPanel).setText("" + --number);
+				}
+				
+				// remove the current question panel from the list of question panels
+				iterator.remove();
+			}
+		}
+		
+		// update the question panel
+		updateQuestionsPanel();
+	}
+	
+	// http://alvinalexander.com/java/java-menubar-example-jmenubar-jframe
+	private void createMenuBar() {
+		
+		// create the menu bar
+		myMenuBar = new JMenuBar();
+		
+		// build the file menu
+		myFileMenu = new JMenu("File");
+		myLoadTextFile = new JMenuItem("Load Text");
+		myFileMenu.add(myLoadTextFile);
+		myLoadQuizMenu = new JMenuItem("Load Quiz");
+		myFileMenu.add(myLoadQuizMenu);
+		mySaveQuizMenu = new JMenuItem("Save Quiz");
+		myFileMenu.add(mySaveQuizMenu);
+		myFileMenu.addSeparator();
+		myExitMenu = new JMenuItem("Exit");
+		myFileMenu.add(myExitMenu);
+		
+		// add the file menu to the menu bar
+		myMenuBar.add(myFileMenu);
+	}
+	
+	/**
+	 * Handles application after user closes the main frame.
+	 */
+	public void exitProcedure() {
+		
+        myFrame.dispose();
+        System.exit(0);
+    }
+	
+	private JCheckBox getSelectCheckBox(JPanel panel) {
+		
+		return (JCheckBox)((JPanel)panel.getComponent(SELECT_CHECKBOX_POSITION)).getComponent(0);
+	}
+	
+	private JFormattedTextField getNumberTextField(JPanel panel) {
+		
+		return (JFormattedTextField)((JPanel)panel.getComponent(NUMBER_TEXTFIELD_POSITION)).getComponent(0);
+	}
+	
+	private JTextArea getQuestionTextArea(JPanel panel) {
+		
+		return (JTextArea)((JPanel)panel.getComponent(QUESTION_TEXTAREA_POSITION)).getComponent(0);
+	}
+
+	
+	private JFrame myFrame;
+	private JPanel myMainPanel;
+	private JMenuBar myMenuBar;
+	private JMenu myFileMenu;
+	private JMenuItem myLoadTextFile;
+	private JMenuItem myLoadQuizMenu;
+	private JMenuItem mySaveQuizMenu;
+	private JMenuItem myExitMenu;
+	private JPanel myQuestionsPanel;
+	private JPanel myInteractionPanel;
+	private List<JPanel> myQuestionPanels;
+	private JButton myAddQuestionButton;
+	private JButton myDeleteQuestionsButton;
+	
+	public static final String APPLICATION_TITLE = "Music Quiz Creator";
+	public static int FRAME_WIDTH;
+	public static int FRAME_HEIGHT;
+	public static final double FRAME_RATIO = 0.8;
+	public static final int SELECT_CHECKBOX_POSITION = 0;
+	public static final int NUMBER_TEXTFIELD_POSITION = 1;
+	public static final int QUESTION_TEXTAREA_POSITION = 2;
+	public static final int LOADANSWER_BUTTON_POSITION = 3;
+	public static final int LOADIMAGE_BUTTON_POSITION = 4;
+}

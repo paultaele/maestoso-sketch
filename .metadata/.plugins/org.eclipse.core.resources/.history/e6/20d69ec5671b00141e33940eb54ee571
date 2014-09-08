@@ -1,0 +1,146 @@
+package gui;
+
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.List;
+
+import javax.swing.JFrame;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+
+public class MainGui implements Runnable {
+
+	/**
+	 * The main method for running the application.
+	 * @param args The console arguments.
+	 */
+	public static void main(String[] args) {
+		
+		SwingUtilities.invokeLater(new MainGui());
+	}
+	
+	/**
+	 * Runs the methods to create the main frame.
+	 */
+	public void run() {
+    	
+        createFrame();
+    }
+	
+	/**
+	 * Creates the main frame.
+	 */	
+	private void createFrame() {
+		
+		// set the dimensions of the main frame relative to a set ratio of
+		// the screen's size
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		FRAME_WIDTH = (int)(screenSize.width * FRAME_RATIO);
+		FRAME_HEIGHT = (int)(screenSize.height * FRAME_RATIO);
+		
+		// initialize the main frame
+        myFrame = new JFrame();
+        
+        // create the menu bar and add it to the main frame
+        createMenuBar();
+        myFrame.setJMenuBar(myMenuBar);
+        
+        // create the main panel and add it to the main frame
+        createMainPanel();
+		myFrame.add(myMainPanel);
+		
+		// handle the main frame's actions
+		myFrame.setSize(FRAME_WIDTH, FRAME_HEIGHT);						// set the size of the frame
+		myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);			// enable closing
+		myFrame.setVisible(true);										// enable visibility
+		myFrame.setLocationRelativeTo(null);							// enable centering of screen
+		myFrame.setResizable(false);									// disable resizing
+		myFrame.setTitle(APPLICATION_TITLE);							// set application title
+        myFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);	// do nothing on closing
+        myFrame.addWindowListener(new WindowAdapter() {					// handle post-closing actions
+            public void windowClosing(WindowEvent event) {
+                exitProcedure();
+            }
+        });
+	}
+
+	/**
+	 * Creates the main panel.
+	 */
+	private void createMainPanel() {
+		
+		// initialize and set up the main panel's layout
+        myMainPanel = new JPanel();
+        myMainPanel.setLayout(new BorderLayout());
+        
+        // create blank questions
+      createQuestionsPanel();
+      myMainPanel.add(myQuestionsPanel);
+        
+        // create edit buttons
+        
+	}
+	
+	private void createQuestionsPanel() {
+		
+		//
+		myQuestionPanels = new ArrayList<JPanel>();
+		
+		
+	}
+	
+	// http://alvinalexander.com/java/java-menubar-example-jmenubar-jframe
+	private void createMenuBar() {
+		
+		// create the menu bar
+		myMenuBar = new JMenuBar();
+		
+		// build the file menu
+		myFileMenu = new JMenu("File");
+		myLoadTextFile = new JMenuItem("Load Text");
+		myFileMenu.add(myLoadTextFile);
+		myLoadQuizMenu = new JMenuItem("Load Quiz");
+		myFileMenu.add(myLoadQuizMenu);
+		mySaveQuizMenu = new JMenuItem("Save Quiz");
+		myFileMenu.add(mySaveQuizMenu);
+		myFileMenu.addSeparator();
+		myExitMenu = new JMenuItem("Exit");
+		myFileMenu.add(myExitMenu);
+		
+		// add the file menu to the menu bar
+		myMenuBar.add(myFileMenu);
+	}
+	
+	/**
+	 * Handles application after user closes the main frame.
+	 */
+	public void exitProcedure() {
+		
+        myFrame.dispose();
+        System.exit(0);
+    }
+	
+	
+
+	private JFrame myFrame;
+	private JPanel myMainPanel;
+	private JMenuBar myMenuBar;
+	private JMenu myFileMenu;
+	private JMenuItem myLoadTextFile;
+	private JMenuItem myLoadQuizMenu;
+	private JMenuItem mySaveQuizMenu;
+	private JMenuItem myExitMenu;
+	private JPanel myQuestionsPanel;
+	private List<JPanel> myQuestionPanels;
+	
+	public static final String APPLICATION_TITLE = "Music Quiz Creator";
+	public static int FRAME_WIDTH;
+	public static int FRAME_HEIGHT;
+	public static final double FRAME_RATIO = 0.8;
+}

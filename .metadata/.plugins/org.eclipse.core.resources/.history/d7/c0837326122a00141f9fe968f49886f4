@@ -1,0 +1,588 @@
+package edu.tamu.srl.music.gui;
+
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+import com.sun.org.apache.xerces.internal.xni.parser.XMLComponent;
+
+import edu.tamu.srl.music.xml.lesson.XmlQuestion;
+import edu.tamu.srl.music.xml.music.XmlAnswer;
+import edu.tamu.srl.music.xml.music.XmlClef;
+import edu.tamu.srl.music.xml.music.XmlKey;
+import edu.tamu.srl.music.xml.music.XmlTime;
+import edu.tamu.srl.music.xml.music.XmlComponent;
+import edu.tamu.srl.music.xml.music.XmlStaff;
+
+public class FeedbackGui implements Runnable {
+
+	public FeedbackGui(XmlAnswer submittedAnswer, XmlAnswer modelAnswer, XmlQuestion question) {
+		
+		mySubmittedAnswer = submittedAnswer;
+		myModelAnswer = modelAnswer;
+		myQuestion = question;
+	}
+	
+	public void run() {
+		
+		// initialize the main frame
+        myFrame = new JFrame();
+        myFrame.setLayout(new FlowLayout());
+        myFrame.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+        
+        
+        
+        //
+        test();
+        
+        
+
+		// handle the main frame's actions
+		myFrame.setVisible(true);										// enable visibility
+		myFrame.setLocationRelativeTo(null);							// enable centering of screen
+		myFrame.setResizable(true);										// enable resizing
+		myFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);			// do nothing on closing
+        myFrame.toFront();
+        myFrame.repaint();
+	}
+	
+	public JFrame getFrame() {
+		
+		return myFrame;
+	}
+
+	private void test() {
+		
+		// debug
+		File submittedFile = new File("C:/Users/paultaele/Desktop/submittedAnswer.xml");
+		File modelFile = new File("C:/Users/paultaele/Desktop/modelAnswer.xml");
+		MusicDrawGui.writeAnswerToXml(mySubmittedAnswer, submittedFile);
+		MusicDrawGui.writeAnswerToXml(myModelAnswer, modelFile);
+		
+		// end debug
+
+		System.out.println("*** QUESTION #: " + myQuestion.getQuestionNumber() + " ***");
+		System.out.println(" * Grade clef?     " + myQuestion.canGradeClef());
+		System.out.println(" * Grade key?      " + myQuestion.canGradeKey());
+		System.out.println(" * Grade time?     " + myQuestion.canGradeTime());
+		System.out.println(" * Grade notes?    " + myQuestion.canGradeNotes());
+		System.out.println(" * Grade duration? " + myQuestion.canGradeDurations());
+		System.out.println(" * Grade measure?  " + myQuestion.canGradeMeasures());
+		
+		
+		// grade staff
+		if (myQuestion.canGradeStaff()) {
+			JPanel staffPanel = gradeStaff(mySubmittedAnswer, myModelAnswer);
+			myFrame.add(staffPanel);
+		}
+		
+		// grade clef
+		if (myQuestion.canGradeClef()) {
+			JPanel clefPanel = gradeClef(mySubmittedAnswer, myModelAnswer);
+			myFrame.add(clefPanel);
+		}
+		
+		// grade key signature
+		if (myQuestion.canGradeKey()) {
+			JPanel keysPanel = gradeKeySignature(mySubmittedAnswer, myModelAnswer);
+			myFrame.add(keysPanel);
+		}
+		
+		// grade time signature
+		if (myQuestion.canGradeTime()) {
+			JPanel timesPanel = gradeTimeSignature(mySubmittedAnswer, myModelAnswer);
+			myFrame.add(timesPanel);
+		}
+		
+		// grade notes
+		if (myQuestion.canGradeNotes()) {
+			JPanel notesPanel = gradeNotes(mySubmittedAnswer, myModelAnswer);
+			myFrame.add(notesPanel);
+		}
+		
+		// grade durations
+		if (myQuestion.canGradeDurations()) {
+			JPanel durationPanel = gradeDurations(mySubmittedAnswer, myModelAnswer);
+			myFrame.add(durationPanel);
+		}
+		
+		// grade measures
+		if (myQuestion.canGradeMeasures()) {
+			
+			gradeMeasures(mySubmittedAnswer);
+			//
+		}
+	}
+	
+	private JPanel gradeStaff(XmlAnswer submittedAnswer, XmlAnswer modelAnswer) {
+
+		// initially set the match boolean flag
+		boolean match = true; // set initially set the match boolean flag to true
+		
+		// sub-criteria check #1: staff list equality
+		// check if the submitted and model answers have the same number of staves
+		List<XmlStaff> submittedStaffList = submittedAnswer.getStaffList();
+		List<XmlStaff> modelStaffList = modelAnswer.getStaffList();
+		if (submittedStaffList.size() != modelStaffList.size()) {
+			match = false;
+		}
+		
+		// create output to panel
+		String output = "Has staff? " + match;
+		System.out.println("Has staff? " + match);
+		JLabel label = new JLabel();
+		label.setText(PRE_TEXT + output + POST_TEXT);
+		label.setFont(OUTPUT_FONT);
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		panel.add(label, BorderLayout.LINE_START);
+		
+		return panel;
+	}
+	
+	private JPanel gradeClef(XmlAnswer submittedAnswer, XmlAnswer modelAnswer) {
+
+		// initially set the match boolean flag
+		boolean match = true;
+		
+		// sub-criteria check #1: staff list equality
+		// check if the submitted and model answers have the same number of staves
+		List<XmlStaff> submittedStaffList = submittedAnswer.getStaffList();
+		List<XmlStaff> modelStaffList = modelAnswer.getStaffList();
+		if (submittedStaffList.size() != modelStaffList.size()) {
+			match = false;
+		}
+		
+		// sub-criteria check #2: clef match
+		// check if the clefs match
+		if (match) {
+			
+			// iterate through each staff
+			XmlClef submittedClef, modelClef;
+			for (int i = 0; i < submittedStaffList.size(); ++i) {
+				
+				// get the submitted and model clefs
+				submittedClef = submittedStaffList.get(i).getClef();
+				modelClef = modelStaffList.get(i).getClef();
+				
+				// case: at least one of the staves lack a clef
+				if (submittedClef == null || modelClef == null) {
+					match = false;
+					break;
+				}
+				
+				// class: the clefs don't match
+				if (match && submittedClef.getType() != modelClef.getType()) {
+					match = false;
+					break;
+				}
+			}
+		}
+		
+		// create output to panel
+		String output = "Correct clef? " + match;
+		System.out.println("Correct clef? " + match);
+		JLabel label = new JLabel();
+		label.setText(PRE_TEXT + output + POST_TEXT);
+		label.setFont(OUTPUT_FONT);
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		panel.add(label, BorderLayout.LINE_START);
+		
+		return panel;
+	}
+	
+	private JPanel gradeKeySignature(XmlAnswer submittedAnswer, XmlAnswer modelAnswer) {
+
+		// initially set the match boolean flag
+		boolean match = true;
+		
+		// sub-criteria check #1: staff list equality
+		// check if the submitted and model answers have the same number of staves
+		List<XmlStaff> submittedStaffList = submittedAnswer.getStaffList();
+		List<XmlStaff> modelStaffList = modelAnswer.getStaffList();
+		if (submittedStaffList.size() != modelStaffList.size()) {
+			match = false;
+		}
+		
+		// sub-criteria check #2: key signature equality
+		// check if the key signature matches
+		if (match) {
+			
+			// iterate through each staff
+			List<XmlKey> submittedKeys = new ArrayList<XmlKey>();
+			List<XmlKey> modelKeys = new ArrayList<XmlKey>();
+			for (int i = 0; i < submittedAnswer.getStaffList().size(); ++i) {
+				
+				// get the submitted and model key signatures
+				submittedKeys = submittedStaffList.get(i).getKeySignature();
+				modelKeys = modelStaffList.get(i).getKeySignature();
+				
+				// case: the key signatures aren't the same size
+				if (submittedKeys.size() != modelKeys.size()) {
+					match = false;
+					break;
+				}
+				
+				// iterate through each key
+				for (int j = 0; j < submittedKeys.size(); ++j) {
+					
+					// class: the keys don't match
+					if (match && submittedKeys.get(j).getPosition() != modelKeys.get(j).getPosition()) {
+						match = false;
+						break;
+					}
+				}
+				
+				if (!match)
+					break;
+			}
+		}
+		
+		// create output to panel
+		String output = "Correct key signature? " + match;
+		System.out.println("Correct key signature? " + match);
+		JLabel label = new JLabel();
+		label.setText(PRE_TEXT + output + POST_TEXT);
+		label.setFont(OUTPUT_FONT);
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		panel.add(label, BorderLayout.LINE_START);
+		
+		return panel;
+	}
+	
+	private JPanel gradeTimeSignature(XmlAnswer submittedAnswer, XmlAnswer modelAnswer) {
+
+		// initially set the match boolean flag
+		boolean match = true;
+		
+		// sub-criteria check #1: staff list equality
+		// check if the submitted and model answers have the same number of staves
+		List<XmlStaff> submittedStaffList = submittedAnswer.getStaffList();
+		List<XmlStaff> modelStaffList = modelAnswer.getStaffList();
+		if (submittedStaffList.size() != modelStaffList.size()) {
+			match = false;
+		}
+		
+		// sub-criteria check #2: time signature equality
+		// check if the time signature matches
+		if (match) {
+			
+			// iterate through each staff
+			List<XmlTime> submittedTimes = new ArrayList<XmlTime>();
+			List<XmlTime> modelTimes = new ArrayList<XmlTime>();
+			for (int i = 0; i < submittedAnswer.getStaffList().size(); ++i) {
+				
+				// get the submitted and model time signatures
+				submittedTimes = submittedStaffList.get(i).getTimeSignature();
+				modelTimes = modelStaffList.get(i).getTimeSignature();
+				
+				// case: the key signatures aren't the same size
+				if (submittedTimes.size() != modelTimes.size()) {
+					match = false;
+					break;
+				}
+				
+				// iterate through each time
+				for (int j = 0; j < submittedTimes.size(); ++j) {
+					
+					// class: the keys don't match
+					if (match && submittedTimes.get(j).getValue() != modelTimes.get(j).getValue()) {
+						match = false;
+						break;
+					}
+				}
+				
+				if (!match)
+					break;
+			}
+		}
+		
+		// create output to panel
+		String output = "Correct time signature? " + match;
+		System.out.println("Correct time signature? " + match);
+		JLabel label = new JLabel();
+		label.setText(PRE_TEXT + output + POST_TEXT);
+		label.setFont(OUTPUT_FONT);
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		panel.add(label, BorderLayout.LINE_START);
+		
+		return panel;
+	}
+	
+	private JPanel gradeNotes(XmlAnswer submittedAnswer, XmlAnswer modelAnswer) {
+		
+		// initially set the match boolean flag
+		boolean match = true;
+
+		// sub-criteria check #1: staff list equality
+		// check if the submitted and model answers have the same number of staves
+		List<XmlStaff> submittedStaffList = submittedAnswer.getStaffList();
+		List<XmlStaff> modelStaffList = modelAnswer.getStaffList();
+		if (submittedStaffList.size() != modelStaffList.size()) {
+			match = false;
+		}
+		
+		// sub-criteria check #2: notes equality
+		// check if the notes match
+		if (match) {
+
+			// iterate through each staff
+			List<XmlComponent> submittedComponents = new ArrayList<XmlComponent>();
+			List<XmlComponent> modelComponents = new ArrayList<XmlComponent>();
+			for (int i = 0; i < submittedAnswer.getStaffList().size(); ++i) {
+				
+				// get the submitted notes and rests
+				submittedComponents = new ArrayList<XmlComponent>();
+				for (XmlComponent component : submittedStaffList.get(i).getComponents()) {
+					if (component.getType() != XmlComponent.Type.BAR)
+						submittedComponents.add(component);
+				}
+				
+				// get the model notes and rests
+				modelComponents = new ArrayList<XmlComponent>();
+				for (XmlComponent component : modelStaffList.get(i).getComponents()) {
+					if (component.getType() != XmlComponent.Type.BAR)
+						modelComponents.add(component);
+				}
+				
+				// case: the components aren't the same size
+				if (submittedComponents.size() != modelComponents.size()) {
+					match = false;
+					break;
+				}
+				
+				// iterate through each components
+				for (int j = 0; j < submittedComponents.size(); ++j) {
+					
+					XmlComponent submittedComponent = submittedComponents.get(j);
+					XmlComponent modelComponent = modelComponents.get(j);
+
+					if (submittedComponent.getType() != modelComponent.getType()) {
+						match = false;
+						break;
+					}
+					
+					if (submittedComponent.getDuration() != modelComponent.getDuration()) {
+						match = false;
+						break;
+					}
+					
+					if (submittedComponent.getType() == XmlComponent.Type.NOTE) {
+						if (submittedComponent.getPosition() != modelComponent.getPosition()) {
+							match = false;
+							break;
+						}
+					}
+				}
+				
+				if (!match)
+					break;
+			}
+		}
+		
+		// create output to panel
+		String output = "Correct notes? " + match;
+		System.out.println("Correct notes? " + match);
+		JLabel label = new JLabel();
+		label.setText(PRE_TEXT + output + POST_TEXT);
+		label.setFont(OUTPUT_FONT);
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		panel.add(label, BorderLayout.LINE_START);
+		
+		return panel;
+	}
+	
+	private JPanel gradeDurations(XmlAnswer submittedAnswer, XmlAnswer modelAnswer) {
+		
+		// initially set the match boolean flag
+		boolean match = true;
+
+		// sub-criteria check #1: staff list equality
+		// check if the submitted and model answers have the same number of staves
+		List<XmlStaff> submittedStaffList = submittedAnswer.getStaffList();
+		List<XmlStaff> modelStaffList = modelAnswer.getStaffList();
+		if (submittedStaffList.size() != modelStaffList.size()) {
+			match = false;
+		}
+		
+		// sub-criteria check #2: durations equality
+		// check if the durations match
+		if (match) {
+
+			// iterate through each staff
+			List<XmlComponent> submittedComponents = new ArrayList<XmlComponent>();
+			List<XmlComponent> modelComponents = new ArrayList<XmlComponent>();
+			for (int i = 0; i < submittedStaffList.size(); ++i) {
+				
+				// get the submitted notes and rests
+				submittedComponents = new ArrayList<XmlComponent>();
+				for (XmlComponent component : submittedStaffList.get(i).getComponents()) {
+					if (component.getType() != XmlComponent.Type.BAR)
+						submittedComponents.add(component);
+				}
+				
+				// get the model notes and rests
+				modelComponents = new ArrayList<XmlComponent>();
+				for (XmlComponent component : modelStaffList.get(i).getComponents()) {
+					if (component.getType() != XmlComponent.Type.BAR)
+						modelComponents.add(component);
+				}
+				
+				// case: the components aren't the same size
+				if (submittedComponents.size() != modelComponents.size()) {
+					match = false;
+					break;
+				}
+				
+				// iterate through each components
+				for (int j = 0; j < submittedComponents.size(); ++j) {
+					
+					XmlComponent submittedComponent = submittedComponents.get(j);
+					XmlComponent modelComponent = modelComponents.get(j);
+
+					if (submittedComponent.getType() != modelComponent.getType()) {
+						match = false;
+						break;
+					}
+					
+					if (submittedComponent.getDuration() != modelComponent.getDuration()) {
+						match = false;
+						break;
+					}
+				}
+				
+				if (!match)
+					break;
+			}
+		}
+		
+		// create output to panel
+		String output = "Correct durations? " + match;
+		System.out.println("Correct durations? " + match);
+		JLabel label = new JLabel();
+		label.setText(PRE_TEXT + output + POST_TEXT);
+		label.setFont(OUTPUT_FONT);
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		panel.add(label, BorderLayout.LINE_START);
+		
+		return panel;
+	}
+	
+	private JPanel gradeMeasures(XmlAnswer submittedAnswer) {
+		
+		//
+		boolean pass = true;
+		
+		// get the staff list
+		List<XmlStaff> staffList = submittedAnswer.getStaffList();
+		
+		// case: the staff list is empty
+		if (staffList.isEmpty()) {
+			pass = false;
+		}
+		
+		// iterate through each staff
+		List<List<XmlComponent>> measures = null;
+		if (pass) {
+			for (int i = 0; i < staffList.size(); ++i) {
+				
+				// get the current staff
+				XmlStaff staff = staffList.get(i);
+				
+				// case: the time signature lacks the two beat
+				if (staff.getTimeSignature().size() != 2) {
+					pass = false;
+					break;
+				}
+				
+				// get the time signature's beats
+				int topBeat = staff.getTimeSignature().get(0).getValue();
+				int bottomBeat = staff.getTimeSignature().get(1).getValue();
+				
+				// get the components
+				List<XmlComponent> components = staff.getComponents();
+				
+				// get the measures
+				measures = new ArrayList<List<XmlComponent>>();
+				List<XmlComponent> measure = new ArrayList<XmlComponent>();
+				for (XmlComponent component : components) {
+					
+					// add component to measure
+					measure.add(component);
+					
+					// case: component is a bar
+					if (component.getType() == XmlComponent.Type.BAR) {
+						
+						// add measure to list
+						measures.add(measure);
+						
+						// initialize new measure
+						measure = new ArrayList<XmlComponent>();
+					}
+				}
+				
+				// case: last measure is not empty (i.e., there is a lingering measure)
+				if (measure.size() > 0) {
+					pass = false;
+					break;
+				}
+			}
+		}
+		
+		// ???
+		if (pass) {
+			
+			for (List<XmlComponent> measure : measures) {
+				
+				double duration = 0.0;
+				for(XmlComponent component : measure) {
+					
+					duration += component.getDuration();
+					System.out.print(component.getType()+ " | ");
+					
+				}
+				System.out.println(">>> duration = " + duration);
+			}
+		}
+		
+//		// create output to panel
+//		String output = "Correct durations? " + match;
+//		System.out.println("Correct durations? " + match);
+//		JLabel label = new JLabel();
+//		label.setText(PRE_TEXT + output + POST_TEXT);
+//		label.setFont(OUTPUT_FONT);
+//		JPanel panel = new JPanel();
+//		panel.setLayout(new BorderLayout());
+//		panel.add(label, BorderLayout.LINE_START);
+//		
+//		return panel;
+		return null;
+	}
+	
+	private JFrame myFrame;
+	private XmlAnswer mySubmittedAnswer;
+	private XmlAnswer myModelAnswer;
+	private XmlQuestion myQuestion;
+	
+	public Font OUTPUT_FONT = new Font("Serif", Font.PLAIN, 36);
+	public String PRE_TEXT = "<html>";
+	public String POST_TEXT = "<br></html>";
+	public static final int WINDOW_WIDTH = 640;
+	public static final int WINDOW_HEIGHT = 480;
+	public static final double BEAT_RATIO = 1/4;
+}

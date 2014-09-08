@@ -1,0 +1,99 @@
+package edu.tamu.srl.music.gui;
+
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+
+import edu.tamu.srl.music.xml.lesson.XmlQuestion;
+import edu.tamu.srl.music.xml.music.XmlAnswer;
+import edu.tamu.srl.music.xml.music.XmlClef;
+
+public class FeedbackGui implements Runnable {
+
+	public FeedbackGui(XmlAnswer submittedAnswer, XmlAnswer modelAnswer, XmlQuestion question) {
+		
+		mySubmittedAnswer = submittedAnswer;
+		myModelAnswer = modelAnswer;
+		myQuestion = question;
+	}
+	
+	public void run() {
+		
+		// initialize the main frame
+        myFrame = new JFrame();
+        
+        
+        
+        //
+        test();
+        
+        
+
+		// handle the main frame's actions
+		myFrame.setVisible(true);										// enable visibility
+		myFrame.setLocationRelativeTo(null);							// enable centering of screen
+		myFrame.setResizable(true);										// enable resizing
+		myFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);			// do nothing on closing
+        myFrame.toFront();
+        myFrame.repaint();
+	}
+	
+	public JFrame getFrame() {
+		
+		return myFrame;
+	}
+
+	private void test() {
+		
+		// debug
+		File submittedFile = new File("C:/Users/paultaele/Desktop/submittedAnswer.xml");
+		File modelFile = new File("C:/Users/paultaele/Desktop/modelAnswer.xml");
+		MusicDrawGui.writeAnswerToXml(mySubmittedAnswer, submittedFile);
+		MusicDrawGui.writeAnswerToXml(myModelAnswer, modelFile);
+		
+		// end debug
+
+		System.out.println("QUESTION #: " + myQuestion.getQuestionNumber());
+		System.out.println(" * Grade clef? " + myQuestion.canGradeClef());
+		System.out.println(" * Grade key? " + myQuestion.canGradeKey());
+		System.out.println(" * Grade time? " + myQuestion.canGradeTime());
+		System.out.println(" * Grade notes? " + myQuestion.canGradeNotes());
+		// grade clef
+		
+		
+		if (myQuestion.canGradeClef()) {
+			gradeClef(mySubmittedAnswer, myModelAnswer);
+		}
+	}
+	
+	private void gradeClef(XmlAnswer submittedAnswer, XmlAnswer modelAnswer) {
+
+		XmlClef submittedClef, modelClef;
+		boolean match = true;
+		for (int i = 0; i < submittedAnswer.getStaffList().size(); ++i) {
+			
+			submittedClef = submittedAnswer.getStaffList().get(i).getClef();
+			modelClef = modelAnswer.getStaffList().get(i).getClef();
+			
+			if (submittedClef == null || modelClef == null) {
+				match = false;
+				break;
+			}
+			
+			if (submittedClef.getType() != modelClef.getType()) {
+				match = false;
+				break;
+			}
+		}
+		
+		System.out.println("Correct clef? " + match);
+	}
+	
+	private JFrame myFrame;
+	private XmlAnswer mySubmittedAnswer;
+	private XmlAnswer myModelAnswer;
+	private XmlQuestion myQuestion;
+}

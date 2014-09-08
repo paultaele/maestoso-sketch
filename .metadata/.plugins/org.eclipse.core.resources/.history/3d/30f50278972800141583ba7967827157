@@ -1,0 +1,157 @@
+package edu.tamu.srl.music.gui;
+
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+import edu.tamu.srl.music.xml.lesson.XmlQuestion;
+import edu.tamu.srl.music.xml.music.XmlAnswer;
+import edu.tamu.srl.music.xml.music.XmlClef;
+import edu.tamu.srl.music.xml.music.XmlComponent;
+
+public class FeedbackGui implements Runnable {
+
+	public FeedbackGui(XmlAnswer submittedAnswer, XmlAnswer modelAnswer, XmlQuestion question) {
+		
+		mySubmittedAnswer = submittedAnswer;
+		myModelAnswer = modelAnswer;
+		myQuestion = question;
+	}
+	
+	public void run() {
+		
+		// initialize the main frame
+        myFrame = new JFrame();
+        myFrame.setLayout(new FlowLayout());
+        myFrame.setSize(320, 240);
+        
+        
+        
+        //
+        test();
+        
+        
+
+		// handle the main frame's actions
+		myFrame.setVisible(true);										// enable visibility
+		myFrame.setLocationRelativeTo(null);							// enable centering of screen
+		myFrame.setResizable(true);										// enable resizing
+		myFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);			// do nothing on closing
+        myFrame.toFront();
+        myFrame.repaint();
+	}
+	
+	public JFrame getFrame() {
+		
+		return myFrame;
+	}
+
+	private void test() {
+		
+		// debug
+		File submittedFile = new File("C:/Users/paultaele/Desktop/submittedAnswer.xml");
+		File modelFile = new File("C:/Users/paultaele/Desktop/modelAnswer.xml");
+		MusicDrawGui.writeAnswerToXml(mySubmittedAnswer, submittedFile);
+		MusicDrawGui.writeAnswerToXml(myModelAnswer, modelFile);
+		
+		// end debug
+
+		System.out.println("*** QUESTION #: " + myQuestion.getQuestionNumber() + " ***");
+		System.out.println(" * Grade clef?     " + myQuestion.canGradeClef());
+		System.out.println(" * Grade key?      " + myQuestion.canGradeKey());
+		System.out.println(" * Grade time?     " + myQuestion.canGradeTime());
+		System.out.println(" * Grade notes?    " + myQuestion.canGradeNotes());
+		System.out.println(" * Grade duration? " + myQuestion.canGradeDuration());
+		System.out.println(" * Grade measure?  " + myQuestion.canGradeMeasure());
+		
+		// grade clef
+		if (myQuestion.canGradeClef()) {
+			JPanel clefPanel = gradeClef(mySubmittedAnswer, myModelAnswer);
+			myFrame.add(clefPanel);
+		}
+		
+		// grade duration
+		if (myQuestion.canGradeDuration()) {
+			JPanel durationPanel = gradeDuration(mySubmittedAnswer, myModelAnswer);
+			myFrame.add(durationPanel);
+		}
+	}
+	
+	private JPanel gradeClef(XmlAnswer submittedAnswer, XmlAnswer modelAnswer) {
+
+		XmlClef submittedClef, modelClef;
+		boolean match = true;
+		for (int i = 0; i < submittedAnswer.getStaffList().size(); ++i) {
+			
+			submittedClef = submittedAnswer.getStaffList().get(i).getClef();
+			modelClef = modelAnswer.getStaffList().get(i).getClef();
+			
+			if (submittedClef == null || modelClef == null) {
+				match = false;
+				break;
+			}
+			
+			if (submittedClef.getType() != modelClef.getType()) {
+				match = false;
+				break;
+			}
+		}
+		
+		String output = "Correct clef? " + match;
+		System.out.println("Correct clef? " + match);
+		JLabel label = new JLabel();
+		label.setText(output);
+		label.setFont(new Font("Serif", Font.PLAIN, 20));
+		JPanel panel = new JPanel();
+		panel.setLayout(new BorderLayout());
+		panel.add(label, BorderLayout.LINE_START);
+		
+		return panel;
+	}
+	
+	private JPanel gradeDuration(XmlAnswer submittedAnswer, XmlAnswer modelAnswer) {
+		
+		boolean match = true;
+		List<XmlComponent> submittedComponents, modelComponents;
+		for (int i = 0; i < submittedAnswer.getStaffList().size(); ++i) {
+			
+			submittedComponents = new ArrayList<XmlComponent>();
+			for (XmlComponent component : submittedAnswer.getStaffList().get(i).getComponents()) {
+				if (component.getType() != XmlComponent.Type.BAR)
+					submittedComponents.add(component);
+			}
+			modelComponents = modelAnswer.getStaffList().get(i).getComponents();
+			for (XmlComponent component : modelAnswer.getStaffList().get(i).getComponents()) {
+				if (component.getType() != XmlComponent.Type.BAR)
+					modelComponents.add(component);
+			}
+			
+			if (submittedClef == null || modelClef == null) {
+				match = false;
+				break;
+			}
+			
+			if (submittedClef.getType() != modelClef.getType()) {
+				match = false;
+				break;
+			}
+		}
+		
+		return null;
+	}
+	
+	private JFrame myFrame;
+	private XmlAnswer mySubmittedAnswer;
+	private XmlAnswer myModelAnswer;
+	private XmlQuestion myQuestion;
+}

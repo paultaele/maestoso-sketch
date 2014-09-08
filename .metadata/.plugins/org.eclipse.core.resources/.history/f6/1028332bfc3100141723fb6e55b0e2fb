@@ -1,0 +1,976 @@
+package edu.tamu.srl.music.gui;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.imageio.ImageIO;
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.border.Border;
+
+import edu.tamu.srl.music.xml.lesson.XmlQuestion;
+import edu.tamu.srl.music.xml.music.XmlAnswer;
+import edu.tamu.srl.music.xml.music.XmlClef;
+import edu.tamu.srl.music.xml.music.XmlComponent.Type;
+import edu.tamu.srl.music.xml.music.XmlKey;
+import edu.tamu.srl.music.xml.music.XmlTime;
+import edu.tamu.srl.music.xml.music.XmlComponent;
+import edu.tamu.srl.music.xml.music.XmlStaff;
+
+public class FeedbackGui implements Runnable {
+
+	public FeedbackGui(XmlAnswer submittedAnswer, XmlAnswer modelAnswer, List<XmlQuestion> questions, int questionIndex, int[] responses) {
+		
+		mySubmittedAnswer = submittedAnswer;
+		myModelAnswer = modelAnswer;
+		myQuestion = questions.get(questionIndex);
+		myQuestions = questions;
+		myResponses = responses;
+	}
+	
+	public void run() {
+		
+		// initialize the main frame
+        myFrame = new JFrame();
+        myFrame.setLayout(new BorderLayout());
+        myFrame.setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+        myFrame.getContentPane().setBackground(Color.white);
+        
+        // generate the frame
+        generateFrame();
+
+		// handle the main frame's actions
+		myFrame.setVisible(true);										// enable visibility
+		myFrame.setLocationRelativeTo(null);							// enable centering of screen
+		myFrame.setResizable(true);										// enable resizing
+		myFrame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);			// do nothing on closing
+        myFrame.toFront();
+        myFrame.repaint();
+        myFrame.addWindowListener(new WindowAdapter() {
+        	public void windowClosing(WindowEvent windowEvent) {
+        		
+        		if (!MusicDrawGui.isPractice() && myQuestion.getQuestionNumber() == myResponses.length) {
+        			ReportGui reportGui = new ReportGui(myQuestions, myResponses);
+        			EventQueue.invokeLater(reportGui);
+        		}
+        	}
+        });
+	}
+	
+	public JFrame getFrame() {
+		
+		return myFrame;
+	}
+
+	private void generateFrame() {
+
+		//
+		Pair pair = createOutputPanel();
+		boolean flag = pair.getFlag();
+		
+		// add the title panel to the frame
+		JPanel topPanel = new JPanel();
+		topPanel.setBorder(BLACK_BORDER);
+		topPanel.setBackground(Color.white);
+		topPanel.setLayout(new BorderLayout());
+		topPanel.add(createSingleResponsePanel(myQuestion.getQuestionNumber(), flag), BorderLayout.NORTH);
+		topPanel.add(createImagePanel(), BorderLayout.SOUTH);
+		myFrame.add(topPanel, BorderLayout.NORTH);
+		
+		// add the output panel to the frame
+		JPanel midPanel = new JPanel();
+		midPanel.setBorder(BLACK_BORDER);
+		midPanel.setBackground(Color.white);
+		midPanel.setLayout(new BorderLayout());
+		midPanel.add(pair.getPanel(), BorderLayout.NORTH);
+		midPanel.add(createBlankPanel(), BorderLayout.SOUTH); // dummy blank panel to force output panel to top align
+		myFrame.add(midPanel, BorderLayout.CENTER);
+
+		// set current response
+		myResponses[myQuestion.getQuestionNumber()-1] = flag ? 1 : -1;
+		
+		// add the results panel to the frame (if in quiz mode)
+		JPanel bottomPanel = new JPanel();
+		bottomPanel.setBorder(BLACK_BORDER);
+		bottomPanel.setBackground(Color.white);
+		bottomPanel.setLayout(new BorderLayout());
+		bottomPanel.add(createNumCorrectPanel(myResponses), BorderLayout.NORTH);
+		bottomPanel.add(createAllResponsesPanel(myResponses), BorderLayout.SOUTH);
+		myFrame.add(bottomPanel, BorderLayout.SOUTH);
+	}
+	
+	private JPanel createBlankPanel() {
+		
+		JPanel panel = new JPanel();
+		panel.setBackground(Color.white);
+		return panel;
+	}
+	
+	private JPanel createNumCorrectPanel(int[] responses) {
+		
+		int num = 0;
+		for (int response : responses) {
+			if (response > 0)
+				++num;
+		}
+		
+		JPanel panel = new JPanel();
+		panel.setBackground(Color.white);
+		
+		JLabel label = new JLabel();
+		label.setBackground(Color.white);
+		String response = "You have answered " + num + " out of " + responses.length + " correctly.";
+		label.setText(response);
+		label.setFont(TOP_RESPONSE_FONT);
+		
+		panel.add(label);
+		return panel;
+	}
+	
+	private JPanel createSingleResponsePanel(int number, boolean isCorrect) {
+		
+		JPanel panel = new JPanel();
+		panel.setBackground(Color.white);
+		
+		JLabel label = new JLabel();
+		label.setBackground(Color.white);
+		String response = isCorrect ? "correct" : "incorrect";
+		label.setText("Problem #" + number + " is " + response);
+		label.setFont(BOTTOM_RESPONSE_FONT);
+		if (isCorrect)
+			label.setForeground(Color.blue);
+		else
+			label.setForeground(Color.red);
+		
+		panel.add(label);
+		return panel;
+	}
+	
+	private JPanel createAllResponsesPanel(int[] myResponses) {
+		
+		JPanel panel = new JPanel();
+		panel.setBackground(Color.white);
+		panel.setLayout(new GridBagLayout());
+		
+		GridBagConstraints gbc = new GridBagConstraints();
+		
+		//
+		int gridx = 0;
+		for (int i = 0; i < myResponses.length; ++i) {
+			
+			JLabel numberLabel = new JLabel();
+			numberLabel.setBackground(Color.white);
+			numberLabel.setText("" + (i+1));
+			numberLabel.setFont(BOTTOM_RESPONSE_FONT);
+			
+			String correctText = "";
+			int response = myResponses[i];
+			if (response < 0)
+				correctText = INCORRECT_BOX;
+			else if (response > 0)
+				correctText = CORRECT_BOX;
+			else
+				correctText = EMPTY_BOX;	
+			JLabel correctLabel = new JLabel();
+			correctLabel.setBackground(Color.white);
+			correctLabel.setText(PRE_HTML + "<b>" + correctText + "</b>" + POST_HTML);
+			correctLabel.setFont(BOTTOM_RESPONSE_FONT);
+			
+			gbc.gridx = gridx++;
+			gbc.gridy = 0;
+			panel.add(numberLabel, gbc);
+			gbc.gridy = 1;
+			panel.add(correctLabel, gbc);
+		}
+		
+		return panel;
+	}
+	
+	private JPanel createImagePanel() {
+		
+		String imagePath = myQuestion.getImageFile().getAbsolutePath();
+		ImageIcon imageIcon = new ImageIcon(resizeImage(imagePath, MusicDrawGui.PREVIEW_IMAGE_WIDTH_MEDIUM, MusicDrawGui.PREVIEW_IMAGE_HEIGHT_MEDIUM));
+		JLabel imageLabel = new JLabel(imageIcon);
+		imageLabel.setBackground(Color.white);
+		JPanel imagePanel = new JPanel();
+		imagePanel.setBackground(Color.white);
+		imagePanel.add(imageLabel);
+		
+		return imagePanel;
+	}
+	
+	private Pair createOutputPanel() {
+		
+		JPanel outputPanel = new JPanel();
+		outputPanel.setBackground(Color.white);
+		outputPanel.setForeground(Color.white);
+		outputPanel.setLayout(new GridBagLayout());
+		
+//		// debug
+//		File submittedFile = new File("C:/Users/paultaele/Desktop/submittedAnswer.xml");
+//		File modelFile = new File("C:/Users/paultaele/Desktop/modelAnswer.xml");
+//		MusicDrawGui.writeAnswerToXml(mySubmittedAnswer, submittedFile);
+//		MusicDrawGui.writeAnswerToXml(myModelAnswer, modelFile);
+//
+//		System.out.println("*** QUESTION #: " + myQuestion.getQuestionNumber() + " ***");
+//		System.out.println(" * Grade clef?     " + myQuestion.canGradeClef());
+//		System.out.println(" * Grade key?      " + myQuestion.canGradeKey());
+//		System.out.println(" * Grade time?     " + myQuestion.canGradeTime());
+//		System.out.println(" * Grade notes?    " + myQuestion.canGradeNotes());
+//		System.out.println(" * Grade duration? " + myQuestion.canGradeDurations());
+//		System.out.println(" * Grade measure?  " + myQuestion.canGradeMeasures());
+//		// end debug
+		
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.anchor = GridBagConstraints.WEST;
+		int gridY = 0;
+		Pair pair = null;
+		boolean flag = true;
+		
+		// grade staff
+		JPanel staffPanel = null;
+		if (myQuestion.canGradeStaff()) {
+			pair = gradeStaff(mySubmittedAnswer, myModelAnswer);
+			staffPanel = pair.getPanel();
+			flag = flag && pair.getFlag();
+			gbc.gridy = gridY++;
+			outputPanel.add(staffPanel, gbc);
+		}
+		
+		// grade clef	
+		JPanel clefPanel = null;
+		if (myQuestion.canGradeClef()) {
+			pair = gradeClef(mySubmittedAnswer, myModelAnswer);
+			clefPanel = pair.getPanel();
+			flag = flag && pair.getFlag();
+			gbc.gridy = gridY++;
+			outputPanel.add(clefPanel, gbc);
+		}
+		
+		// grade key signature
+		JPanel keysPanel = null;
+		if (myQuestion.canGradeKey()) {
+			pair = gradeKeySignature(mySubmittedAnswer, myModelAnswer);
+			keysPanel = pair.getPanel();
+			flag = flag &&  pair.getFlag();
+			gbc.gridy = gridY++;
+			outputPanel.add(keysPanel, gbc);
+		}
+		
+		// grade time signature
+		JPanel timesPanel = null;
+		if (myQuestion.canGradeTime()) {
+			pair = gradeTimeSignature(mySubmittedAnswer, myModelAnswer);
+			timesPanel = pair.getPanel();
+			flag = flag && pair.getFlag();
+			gbc.gridy = gridY++;
+			outputPanel.add(timesPanel, gbc);
+		}
+		
+		// grade notes
+		JPanel notesPanel = null;
+		if (myQuestion.canGradeNotes()) {
+			pair = gradeNotes(mySubmittedAnswer, myModelAnswer);
+			notesPanel = pair.getPanel();
+			flag = flag && pair.getFlag();
+			gbc.gridy = gridY++;
+			outputPanel.add(notesPanel, gbc);
+		}
+		
+		// grade durations
+		JPanel durationsPanel = null;
+		if (myQuestion.canGradeDurations()) {
+			pair = gradeDurations(mySubmittedAnswer, myModelAnswer);
+			durationsPanel = pair.getPanel();
+			flag = flag && pair.getFlag();
+			gbc.gridy = gridY++;
+			outputPanel.add(durationsPanel, gbc);
+		}
+		
+		// grade measures
+		JPanel measuresPanel = null;
+		if (myQuestion.canGradeMeasures()) {
+			pair = gradeMeasures(mySubmittedAnswer);
+			measuresPanel = pair.getPanel();
+			flag = flag && pair.getFlag();
+			gbc.gridy = gridY++;
+			outputPanel.add(measuresPanel, gbc);
+		}
+		
+		// fill remaining panel with empty criteria panel
+		// needed to remove lingering line that appears when panel has empty space
+		// possibly due to GridBagLayout
+		while(gridY < NUM_CRITERIA_PANEL_SLOTS) {
+			gbc.gridy = gridY++;
+			outputPanel.add(createCriteriaPanel(true, "", ""), gbc);
+		}
+		
+//		return outputPanel;
+		return new Pair(outputPanel, flag);
+	}
+	
+	private Pair gradeStaff(XmlAnswer submittedAnswer, XmlAnswer modelAnswer) {
+
+		// initially set variables
+		boolean match = true; // set initially set the match boolean flag to true
+		String mainFeedback = "";
+		String subFeedback = "You have correctly included the staff.";
+		
+		// sub-criteria check #1: staff list equality
+		// check if the submitted and model answers have the same number of staves
+		List<XmlStaff> submittedStaffList = submittedAnswer.getStaffList();
+		List<XmlStaff> modelStaffList = modelAnswer.getStaffList();
+		if (submittedStaffList.size() != modelStaffList.size()) {
+			match = false;
+			subFeedback = "You have drawn a missing or incomplete staff.";
+		}
+		
+		// create criteria panel
+		mainFeedback += "Staff Check: ";
+		if (match)
+			mainFeedback += "Valid";
+		else
+			mainFeedback += "Invalid";
+		JPanel panel = createCriteriaPanel(match, mainFeedback, subFeedback);
+		
+//		return panel;
+		return new Pair(panel, match);
+	}
+	
+	private Pair gradeClef(XmlAnswer submittedAnswer, XmlAnswer modelAnswer) {
+
+		// initially set variables
+		boolean match = true;
+		String mainFeedback = "";
+		String subFeedback = "You have correctly included the clef.";
+		
+		// sub-criteria check #1: staff list equality
+		// check if the submitted and model answers have the same number of staves
+		List<XmlStaff> submittedStaffList = submittedAnswer.getStaffList();
+		List<XmlStaff> modelStaffList = modelAnswer.getStaffList();
+		if (submittedStaffList.size() != modelStaffList.size()) {
+			match = false;
+			subFeedback = "You are missing the required staff.";
+		}
+		
+		// sub-criteria check #2: clef match
+		// check if the clefs match
+		if (match) {
+			
+			// iterate through each staff
+			XmlClef submittedClef, modelClef;
+			for (int i = 0; i < submittedStaffList.size(); ++i) {
+				
+				// get the submitted and model clefs
+				submittedClef = submittedStaffList.get(i).getClef();
+				modelClef = modelStaffList.get(i).getClef();
+				
+				// case: at least one of the staves lack a clef
+				if (submittedClef == null || modelClef == null) {
+					match = false;
+					subFeedback = "You are missing a clef.";
+					break;
+				}
+				
+				// class: the clefs don't match
+				if (match && submittedClef.getType() != modelClef.getType()) {
+					match = false;
+					subFeedback = "Your clef does not match the model answer's clef.";
+					break;
+				}
+			}
+		}
+		
+		// create criteria panel
+		mainFeedback += "Clef Check: ";
+		if (match)
+			mainFeedback += "Valid";
+		else
+			mainFeedback += "Invalid";
+		JPanel panel = createCriteriaPanel(match, mainFeedback, subFeedback);
+		
+//		return panel;
+		return new Pair(panel, match);
+	}
+	
+	private Pair gradeKeySignature(XmlAnswer submittedAnswer, XmlAnswer modelAnswer) {
+
+		// initially set the variables
+		boolean match = true;
+		String mainFeedback = "";
+		String subFeedback = "You have correctly included the key signature.";
+		
+		// sub-criteria check #1: staff list equality
+		// check if the submitted and model answers have the same number of staves
+		List<XmlStaff> submittedStaffList = submittedAnswer.getStaffList();
+		List<XmlStaff> modelStaffList = modelAnswer.getStaffList();
+		if (submittedStaffList.size() != modelStaffList.size()) {
+			match = false;
+			subFeedback = "You are missing the required staff.";
+		}
+		
+		// sub-criteria check #2: key signature equality
+		// check if the key signature matches
+		if (match) {
+			
+			// iterate through each staff
+			List<XmlKey> submittedKeys = new ArrayList<XmlKey>();
+			List<XmlKey> modelKeys = new ArrayList<XmlKey>();
+			for (int i = 0; i < submittedAnswer.getStaffList().size(); ++i) {
+				
+				// get the submitted and model key signatures
+				submittedKeys = submittedStaffList.get(i).getKeySignature();
+				modelKeys = modelStaffList.get(i).getKeySignature();
+				
+				// case: the key signatures aren't the same size
+				if (submittedKeys.size() != modelKeys.size()) {
+					match = false;
+					subFeedback = "The number of keys in your signature does not match those in the model answer.";
+					break;
+				}
+				
+				// iterate through each key
+				for (int j = 0; j < submittedKeys.size(); ++j) {
+					
+					// class: the keys don't match
+					if (match && submittedKeys.get(j).getPosition() != modelKeys.get(j).getPosition()) {
+						match = false;
+						subFeedback = "At least one key's type does not match those in the model answer.";
+						break;
+					}
+				}
+				
+				if (!match)
+					break;
+			}
+		}
+		
+		// create criteria panel
+		mainFeedback += "Key Signature Check: ";
+		if (match)
+			mainFeedback += "Valid";
+		else
+			mainFeedback += "Invalid";
+		JPanel panel = createCriteriaPanel(match, mainFeedback, subFeedback);
+		
+//		return panel;
+		return new Pair(panel, match);
+	}
+	
+	private Pair gradeTimeSignature(XmlAnswer submittedAnswer, XmlAnswer modelAnswer) {
+
+		// initially set the variables
+		boolean match = true;
+		String mainFeedback = "";
+		String subFeedback = "You have correctly included the time signature.";
+		
+		// sub-criteria check #1: staff list equality
+		// check if the submitted and model answers have the same number of staves
+		List<XmlStaff> submittedStaffList = submittedAnswer.getStaffList();
+		List<XmlStaff> modelStaffList = modelAnswer.getStaffList();
+		if (submittedStaffList.size() != modelStaffList.size()) {
+			match = false;
+			subFeedback = "You are missing the required staff.";
+		}
+		
+		// sub-criteria check #2: time signature equality
+		// check if the time signature matches
+		if (match) {
+			
+			// iterate through each staff
+			List<XmlTime> submittedTimes = new ArrayList<XmlTime>();
+			List<XmlTime> modelTimes = new ArrayList<XmlTime>();
+			for (int i = 0; i < submittedAnswer.getStaffList().size(); ++i) {
+				
+				// get the submitted and model time signatures
+				submittedTimes = submittedStaffList.get(i).getTimeSignature();
+				modelTimes = modelStaffList.get(i).getTimeSignature();
+				
+				// case: the time signatures aren't the same size
+				if (submittedTimes.size() != modelTimes.size()) {
+					match = false;
+					subFeedback = "The time signature is missing a number.";
+					break;
+				}
+				
+				// iterate through each time
+				for (int j = 0; j < submittedTimes.size(); ++j) {
+					
+					// class: the keys don't match
+					if (match && submittedTimes.get(j).getValue() != modelTimes.get(j).getValue()) {
+						match = false;
+						subFeedback = "At least one time's value does not match those in the model answer.";
+						break;
+					}
+				}
+				
+				if (!match)
+					break;
+			}
+		}
+		
+		// create criteria panel
+		mainFeedback += "Time Signature Check: ";
+		if (match)
+			mainFeedback += "Valid";
+		else
+			mainFeedback += "Invalid";
+		JPanel panel = createCriteriaPanel(match, mainFeedback, subFeedback);
+		
+//		return panel;
+		return new Pair(panel, match);
+	}
+	
+	private Pair gradeNotes(XmlAnswer submittedAnswer, XmlAnswer modelAnswer) {
+		
+		// initially set the variables
+		boolean match = true;
+		String mainFeedback = "";
+		String subFeedback = "You have correctly included the notes/rests.";
+
+		// sub-criteria check #1: staff list equality
+		// check if the submitted and model answers have the same number of staves
+		List<XmlStaff> submittedStaffList = submittedAnswer.getStaffList();
+		List<XmlStaff> modelStaffList = modelAnswer.getStaffList();
+		if (submittedStaffList.size() != modelStaffList.size()) {
+			match = false;
+			subFeedback = "You are missing the required staff.";
+		}
+		
+		// sub-criteria check #2: notes equality
+		// check if the notes match
+		if (match) {
+
+			// iterate through each staff
+			List<XmlComponent> submittedComponents = new ArrayList<XmlComponent>();
+			List<XmlComponent> modelComponents = new ArrayList<XmlComponent>();
+			for (int i = 0; i < submittedAnswer.getStaffList().size(); ++i) {
+				
+				// get the submitted notes and rests
+				submittedComponents = new ArrayList<XmlComponent>();
+				for (XmlComponent component : submittedStaffList.get(i).getComponents()) {
+					if (component.getType() != XmlComponent.Type.BAR)
+						submittedComponents.add(component);
+				}
+				
+				// get the model notes and rests
+				modelComponents = new ArrayList<XmlComponent>();
+				for (XmlComponent component : modelStaffList.get(i).getComponents()) {
+					if (component.getType() != XmlComponent.Type.BAR)
+						modelComponents.add(component);
+				}
+				
+				// case: the components aren't the same size
+				if (submittedComponents.size() != modelComponents.size()) {
+					match = false;
+					subFeedback = "The number of notes and/or rests does not match those in the model answer.";
+					break;
+				}
+				
+				// iterate through each components
+				for (int j = 0; j < submittedComponents.size(); ++j) {
+					
+					XmlComponent submittedComponent = submittedComponents.get(j);
+					XmlComponent modelComponent = modelComponents.get(j);
+
+					String modelComponentType = modelComponent.getType().toString().toLowerCase();
+					
+					if (submittedComponent.getType() != modelComponent.getType()) {
+						match = false;
+						if (submittedComponent.getType() == Type.NOTE)
+						subFeedback = "The " + modelComponentType + "'s type at location " + (j+1) + " does not match those in the model answer.";
+						break;
+					}
+					
+					if (submittedComponent.getDuration() != modelComponent.getDuration()) {
+						match = false;
+						subFeedback = "The " + modelComponentType + "'s duration at location " + (j+1) + " does not match those in the model answer.";
+						break;
+					}
+					
+					if (submittedComponent.getType() == XmlComponent.Type.NOTE) {
+						if (submittedComponent.getPosition() != modelComponent.getPosition()) {
+							match = false;
+							subFeedback = "The " + modelComponentType + "'s position at location " + (j+1) + " does not match those in the model answer.";
+							break;
+						}
+					}
+				}
+				
+				if (!match)
+					break;
+			}
+		}
+		
+		// create criteria panel
+		mainFeedback += "Notes/Rests Check: ";
+		if (match)
+			mainFeedback += "Valid";
+		else
+			mainFeedback += "Invalid";
+		JPanel panel = createCriteriaPanel(match, mainFeedback, subFeedback);
+		
+//		return panel;
+		return new Pair(panel, match);
+	}
+	
+	private Pair gradeDurations(XmlAnswer submittedAnswer, XmlAnswer modelAnswer) {
+		
+		// initially set the variables
+		boolean match = true;
+		String mainFeedback = "";
+		String subFeedback = "You have correctly set the durations.";
+
+		// sub-criteria check #1: staff list equality
+		// check if the submitted and model answers have the same number of staves
+		List<XmlStaff> submittedStaffList = submittedAnswer.getStaffList();
+		List<XmlStaff> modelStaffList = modelAnswer.getStaffList();
+		if (submittedStaffList.size() != modelStaffList.size()) {
+			match = false;
+			subFeedback = "You are missing the required staff.";
+		}
+		
+		// sub-criteria check #2: durations equality
+		// check if the durations match
+		if (match) {
+
+			// iterate through each staff
+			List<XmlComponent> submittedComponents = new ArrayList<XmlComponent>();
+			List<XmlComponent> modelComponents = new ArrayList<XmlComponent>();
+			
+			for (int i = 0; i < submittedStaffList.size(); ++i) {
+				
+				// get the submitted notes and rests
+				submittedComponents = new ArrayList<XmlComponent>();
+				for (XmlComponent component : submittedStaffList.get(i).getComponents()) {
+					if (component.getType() != XmlComponent.Type.BAR)
+						submittedComponents.add(component);
+				}
+				
+				// get the model notes and rests
+				modelComponents = new ArrayList<XmlComponent>();
+				for (XmlComponent component : modelStaffList.get(i).getComponents()) {
+					if (component.getType() != XmlComponent.Type.BAR)
+						modelComponents.add(component);
+				}
+				
+				// case: the components aren't the same size
+				if (submittedComponents.size() != modelComponents.size()) {
+					match = false;
+					subFeedback = "The number of notes and/or rests does not match those in the model answer.";
+					break;
+				}
+				
+				// iterate through each components
+				for (int j = 0; j < submittedComponents.size(); ++j) {
+					
+					XmlComponent submittedComponent = submittedComponents.get(j);
+					XmlComponent modelComponent = modelComponents.get(j);
+					
+					String modelComponentType = modelComponent.getType().toString().toLowerCase();
+
+					if (submittedComponent.getType() != modelComponent.getType()) {
+						match = false;
+						subFeedback = "The " + modelComponentType + "'s type at location " + (j+1) + " does not match those in the model answer.";
+						break;
+					}
+					
+					if (submittedComponent.getDuration() != modelComponent.getDuration()) {
+						match = false;
+						subFeedback = "The " + modelComponentType + "'s duration at location " + (j+1) + " does not match those in the model answer.";
+						break;
+					}
+				}
+				
+				if (!match)
+					break;
+			}
+		}
+		
+		// create criteria panel
+		mainFeedback += "Duration Check: ";
+		if (match)
+			mainFeedback += "Valid";
+		else
+			mainFeedback += "Invalid";
+		JPanel panel = createCriteriaPanel(match, mainFeedback, subFeedback);
+		
+//		return panel;
+		return new Pair(panel, match);
+	}
+	
+	private Pair gradeMeasures(XmlAnswer submittedAnswer) {
+		
+		// initially set the variables
+		boolean pass = true;
+		String mainFeedback = "";
+		String subFeedback = "You have correctly set the measures.";
+		
+		// get the staff list
+		List<XmlStaff> staffList = submittedAnswer.getStaffList();
+		
+		// case: the staff list is empty
+		if (staffList.isEmpty()) {
+			pass = false;
+			subFeedback = "You are missing the required staff.";
+		}
+		
+		List<List<XmlComponent>> measures = null;
+		if (pass) {
+			
+			// iterate through each staff
+			for (int i = 0; i < staffList.size(); ++i) {
+				
+				// get the current staff
+				XmlStaff staff = staffList.get(i);
+				
+				// case: the time signature lacks the two beat
+				if (staff.getTimeSignature().size() != 2) {
+					pass = false;
+					subFeedback = "You are missing the required complete time signature.";
+					break;
+				}
+				
+				// get the time signature's beats
+				double topBeat = (double)staff.getTimeSignature().get(0).getValue();
+				double bottomBeat = (double)staff.getTimeSignature().get(1).getValue();
+				
+				// get the components
+				List<XmlComponent> components = staff.getComponents();
+				
+				// get the measures
+				measures = new ArrayList<List<XmlComponent>>();
+				List<XmlComponent> measure = new ArrayList<XmlComponent>();
+				for (XmlComponent component : components) {
+					
+					// add component to measure
+					measure.add(component);
+					
+					// case: component is a bar
+					if (component.getType() == XmlComponent.Type.BAR) {
+						
+						// add measure to list
+						measures.add(measure);
+						
+						// initialize new measure
+						measure = new ArrayList<XmlComponent>();
+					}
+				}
+				
+				// case: last measure is not empty (i.e., there is a lingering measure)
+				if (measure.size() > 0) {
+					pass = false;
+					subFeedback = "The last measure is missing the required double bar measure.";
+					break;
+				}
+			}
+		}
+		
+		// ???
+		if (pass) {
+			
+			// iterate through each staff
+			for (int i = 0; i < staffList.size(); ++i) {
+			
+				XmlStaff staff = staffList.get(i);
+				
+				// iterate through each measure
+//				for (List<XmlComponent> measure : measures) {
+				for (int j = 0; j < measures.size(); ++j) {
+					
+					List<XmlComponent> measure = measures.get(j);
+					
+					// get the time signature's beats
+					double topBeat = (double)staff.getTimeSignature().get(0).getValue();
+					double bottomBeat = (double)staff.getTimeSignature().get(1).getValue();
+					
+					// get the equivalent top beat in standard time
+					double topStandardBeat = topBeat * BOTTOM_STANDARD_BEAT / bottomBeat;
+					
+					double duration = 0.0;
+					for(XmlComponent component : measure) {
+						duration += component.getDuration();
+					}
+					
+					if (duration != topStandardBeat) {
+					
+						
+						pass = false;
+						subFeedback = "A measure does not have the correct duration at location " + (j+1) + ".";
+						break;
+					}
+				}
+
+				if (!pass)
+					break;
+			}
+		}
+		
+//		// create output to panel
+//		String output = "Correct measures? " + pass;
+//		System.out.println("Correct measures? " + pass);
+//		JLabel label = new JLabel();
+//		label.setText(PRE_TEXT + output + POST_TEXT);
+//		label.setFont(MAIN_FEEDBACK_FONT);
+//		JPanel panel = new JPanel();
+//		panel.setLayout(new BorderLayout());
+//		panel.add(label, BorderLayout.LINE_START);
+		
+		// create criteria panel
+		mainFeedback += "Measure Check: ";
+		if (pass)
+			mainFeedback += "Valid";
+		else
+			mainFeedback += "Invalid";
+		JPanel panel = createCriteriaPanel(pass, mainFeedback, subFeedback);
+		
+//		return panel;
+		return new Pair(panel, pass);
+	}
+	
+	public static BufferedImage resizeImage(String filePath, int width, int height) {
+		
+		BufferedImage input = null;
+		BufferedImage output = null;
+
+		try {
+			input = ImageIO.read(new File(filePath));
+			output = new BufferedImage(width, height, input.getType());
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+			
+		Graphics graphics = output.createGraphics();
+		graphics.drawImage(input, 0, 0, width, height, null);
+		graphics.dispose();
+		
+		return output;
+	}
+	
+	private JPanel createCriteriaPanel(boolean flag, String mainFeedback, String subFeedback) {
+		
+		// create graphic
+		BufferedImage image = null;
+		if (flag)
+			image = resizeImage(BOX_YES_IMAGE_FILE_PATH, BOX_WIDTH, BOX_HEIGHT);
+		else if (!flag)
+			image = resizeImage(BOX_NO_IMAGE_FILE_PATH, BOX_WIDTH, BOX_HEIGHT);
+		if (mainFeedback.equals("") && subFeedback.equals(""))
+			image = resizeImage(BOX_EMPTY_IMAGE_FILE_PATH, BOX_WIDTH, BOX_HEIGHT);
+		JLabel graphicLabel = new JLabel(new ImageIcon(image));
+		graphicLabel.setBackground(Color.white);
+		
+		//
+		JLabel mainLabel = new JLabel();
+		mainLabel.setBackground(Color.white);
+		mainLabel.setText(PRE_HTML + space(1) + mainFeedback + POST_HTML);
+		mainLabel.setFont(MAIN_FEEDBACK_FONT);
+		mainLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		
+		JLabel subLabel = new JLabel();
+		subLabel.setBackground(Color.white);
+		subLabel.setText(PRE_HTML + space(2) + subFeedback + POST_HTML);
+		subLabel.setFont(SUB_FEEDBACK_FONT);
+		subLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		
+		//
+		GridBagConstraints gbc = new GridBagConstraints();
+		JPanel panel = new JPanel();
+		panel.setBackground(Color.white);
+		panel.setLayout(new GridBagLayout());
+		
+		gbc.gridx = 0;
+		gbc.gridy = 0;
+		gbc.gridheight = 2;
+		panel.add(graphicLabel, gbc);
+		
+		gbc.gridx = 1;
+		gbc.gridy = 0;
+		gbc.gridheight = 1;
+		gbc.anchor = GridBagConstraints.WEST;
+		panel.add(mainLabel, gbc);
+		
+		gbc.gridx = 1;
+		gbc.gridy = 1;
+		gbc.gridheight = 1;
+		gbc.anchor = GridBagConstraints.WEST;
+		panel.add(subLabel, gbc);
+		
+		return panel;
+	}
+	
+	public static String space(int num) {
+		
+		String space = "";
+		
+		for (int i = 0; i < num; ++i)
+			space += BLANK_SPACE;
+		
+		return space;
+	}
+	
+	private class Pair {
+		
+		public Pair(JPanel panel, boolean flag) {
+			
+			myPanel = panel;
+			myFlag = flag;
+		}
+		
+		public JPanel getPanel() { return myPanel; }
+		public boolean getFlag() { return myFlag; }
+		
+		private JPanel myPanel;
+		private boolean myFlag;
+	}
+	
+	private JFrame myFrame;
+	private XmlAnswer mySubmittedAnswer;
+	private XmlAnswer myModelAnswer;
+	private XmlQuestion myQuestion;
+	private List<XmlQuestion> myQuestions;
+	private int[] myResponses;
+	
+	public static final Font MAIN_FEEDBACK_FONT = new Font("Sans Serif", Font.PLAIN, 20);
+	public static final Font SUB_FEEDBACK_FONT = new Font("Sans Serif", Font.PLAIN, 12);
+	public static final Font TOP_RESPONSE_FONT = new Font("Sans Serif", Font.PLAIN, 24);
+	public static final Font BOTTOM_RESPONSE_FONT = new Font("Sans Serif", Font.PLAIN, 16);
+	public static final Border BLACK_BORDER = BorderFactory.createLineBorder(Color.black);
+	
+	public static String PRE_HTML = "<html>";
+	public static String POST_HTML = "</html>";
+	public static String BLANK_SPACE = "&nbsp;";
+	public static String EMPTY_BOX = "<b>&#9744;</b>";
+	public static String CORRECT_BOX = "<b>&#9745;</b>";
+	public static String INCORRECT_BOX = "<b>&#9746;</b>";
+	public static final int WINDOW_WIDTH = 800;
+	public static final int WINDOW_HEIGHT = 600;
+	public static final double DEFAULT_BEAT_RATIO = 0.25;
+	public static final double TOP_STANDARD_BEAT = 4.0;
+	public static final double BOTTOM_STANDARD_BEAT = 4.0;
+	public static final int NUM_CRITERIA_PANEL_SLOTS = 20;
+	
+	public static final String BOX_YES_IMAGE_FILE_PATH = MusicDrawGui.IMAGES_DIR_PATHNAME + "box_yes.png";
+	public static final String BOX_NO_IMAGE_FILE_PATH = MusicDrawGui.IMAGES_DIR_PATHNAME + "box_no.png";
+	public static final String BOX_EMPTY_IMAGE_FILE_PATH = MusicDrawGui.IMAGES_DIR_PATHNAME + "box_empty.png";
+	public static final String BOX_SKIP_IMAGE_FILE_PATH = MusicDrawGui.IMAGES_DIR_PATHNAME + "box_skip.png";
+	public static final int BOX_WIDTH = 50;
+	public static final int BOX_HEIGHT = 50;
+}

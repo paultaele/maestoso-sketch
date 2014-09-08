@@ -1,0 +1,20 @@
+1407796327762	Rename package 'edu.tamu.srl.music.xml'
+1407796348900	Delete element
+1407828345251	Rename field 'FRAME_WIDTH'
+1407828358128	Rename field 'FRAME_HEIGHT'
+1408068290525	Rename type 'MainGui'
+1408070690045	Rename package 'edu.tamu.srl.music.xml.quiz'
+1408076862694	Delete elements
+1408084390151	Rename method 'createTextPanel'
+1408084399330	Rename field 'myTextPanel'
+1408090250452	Rename field 'myQuestionNumber'
+1408090773195	Rename field 'myCurrentQuestionNumber'
+1408123966620	Copy file
+1408124771912	Rename local variable 'image'
+1408125808926	Rename local variable 'image'
+1408125814523	Rename local variable 'newimg'
+1408127240176	Copy compilation unit
+1408127584308	Rename field 'DEBUG_COLOR'
+1408142076659	Delete element
+1408215533019	Rename local variable 'panel'
+1408215539860	Rename local variable 'label'

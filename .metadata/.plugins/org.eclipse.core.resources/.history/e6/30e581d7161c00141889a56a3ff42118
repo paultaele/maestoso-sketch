@@ -1,0 +1,687 @@
+package gui;
+
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFileChooser;
+import javax.swing.JFormattedTextField;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JViewport;
+import javax.swing.SwingUtilities;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+
+import xml.XmlProblem;
+import xml.XmlQuiz;
+import xml.XmlQuizParser;
+
+public class MainGui implements Runnable {
+
+	/**
+	 * The main method for running the application.
+	 * @param args The console arguments.
+	 */
+	public static void main(String[] args) {
+		
+		SwingUtilities.invokeLater(new MainGui());
+	}
+	
+	/**
+	 * Runs the methods to create the main frame.
+	 */
+	public void run() {
+    	
+        createFrame();
+    }
+	
+	/**
+	 * Creates the main frame.
+	 */	
+	private void createFrame() {
+		
+		// set the dimensions of the main frame relative to a set ratio of
+		// the screen's size
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		FRAME_WIDTH = (int)(screenSize.width * FRAME_RATIO);
+		FRAME_HEIGHT = (int)(screenSize.height * FRAME_RATIO);
+		
+		// initialize the main frame
+        myFrame = new JFrame();
+        
+        // create the menu bar and add it to the main frame
+        createMenuBar();
+        myFrame.setJMenuBar(myMenuBar);
+        
+        // create the main panel and add it to the main frame
+        createMainPanel();
+		myFrame.add(myMainPanel);
+		
+		// handle the main frame's actions
+		myFrame.setSize(FRAME_WIDTH, FRAME_HEIGHT);						// set the size of the frame
+		myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);			// enable closing
+		myFrame.setVisible(true);										// enable visibility
+		myFrame.setLocationRelativeTo(null);							// enable centering of screen
+		myFrame.setResizable(false);									// disable resizing
+		myFrame.setTitle(APPLICATION_TITLE);							// set application title
+        myFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);	// do nothing on closing
+        myFrame.addWindowListener(new WindowAdapter() {					// handle post-closing actions
+            public void windowClosing(WindowEvent event) {
+                exitProcedure();
+            }
+        });
+	}
+
+	/**
+	 * Creates the main panel.
+	 */
+	private void createMainPanel() {
+		
+		// initialize and set up the main panel's layout
+        myMainPanel = new JPanel();
+        myMainPanel.setLayout(new BorderLayout());
+        
+        // create blank questions
+        createQuestionsPanel();
+        JScrollPane scrollPane = new JScrollPane(myQuestionsPanel);
+        myMainPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        // create edit buttons
+        createInteractionPanel();
+        myMainPanel.add(myInteractionPanel, BorderLayout.SOUTH);
+	}
+	
+	private void createQuestionsPanel() {
+		
+		//
+		myQuestionPanels = new ArrayList<JPanel>();
+		JPanel emptyQuestionPanel = createQuestionPanel();
+		getNumberTextField(emptyQuestionPanel).setText("" + (myQuestionPanels.size() + 1));
+		myQuestionPanels.add(emptyQuestionPanel);
+		
+		//
+		myQuestionsPanel = new JPanel();
+		myQuestionsPanel.setLayout(new BoxLayout(myQuestionsPanel, BoxLayout.Y_AXIS));
+		for (JPanel questionPanel : myQuestionPanels)
+			myQuestionsPanel.add(questionPanel);
+		
+		// ############################## DEBUG
+//		JPanel debugPanel = myQuestionPanels.get(0);
+//		JCheckBox debugSelect = (JCheckBox)((JPanel)debugPanel.getComponent(SELECT_CHECKBOX_POSITION)).getComponent(0);
+//		JFormattedTextField debugNumber = (JFormattedTextField)((JPanel)debugPanel.getComponent(NUMBER_TEXTFIELD_POSITION)).getComponent(0);
+//		JTextArea debugQuestion = (JTextArea)((JPanel)debugPanel.getComponent(QUESTION_TEXTAREA_POSITION)).getComponent(0);
+//		
+//		System.out.println("Selected? " + debugSelect.isSelected());
+//		System.out.println("Number? " + debugNumber.getValue());
+//		System.out.println("Question? " + debugQuestion.getText());
+//		System.out.println(" ******************** ");
+	}
+	
+	private void createInteractionPanel() {
+		
+		//
+		myInteractionPanel = new JPanel();
+		
+		//
+		myAddQuestionButton = new JButton("Add Question");
+		myDeleteQuestionsButton = new JButton("Delete Question(s)");
+		
+		// set the action listener for the add question button
+		myAddQuestionButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				addQuestion();
+			}
+		});
+		
+		// set the action listener for the delete question(s) button
+		myDeleteQuestionsButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				deleteQuestions();
+			}
+		});
+		
+		// set the action listener for the delete questions button
+		
+		
+		//
+		myInteractionPanel.add(myAddQuestionButton);
+		myInteractionPanel.add(myDeleteQuestionsButton);
+	}
+	
+	private JPanel createQuestionPanel() {
+		
+		return createQuestionPanel(0, "", null, null);
+		
+//		//
+//		final JPanel questionPanel = new JPanel();
+//		
+//		// select checkbox
+//		JPanel selectCheckBoxPanel = new JPanel();
+//		JCheckBox selectCheckBox = new JCheckBox();
+//		selectCheckBoxPanel.add(selectCheckBox);
+//		questionPanel.add(selectCheckBoxPanel);
+//		
+//		// number text field
+//		JPanel numberTextFieldPanel = new JPanel();
+//		JFormattedTextField numberTextField = new JFormattedTextField();
+//		numberTextField.setValue(0);
+//		numberTextField.setColumns(2);
+//		numberTextFieldPanel.add(numberTextField);
+//		questionPanel.add(numberTextFieldPanel);
+//		
+//		// question text field
+//		JPanel questionTextAreaPanel = new JPanel();
+//		JTextArea questionTextArea = new JTextArea(5, 50);
+//		questionTextArea.setLineWrap(true);
+//		questionTextArea.setWrapStyleWord(true);
+//		JScrollPane questionTextAreaScroller = new JScrollPane(questionTextArea);
+//		questionTextAreaPanel.add(questionTextAreaScroller);
+//		questionPanel.add(questionTextAreaPanel);
+//		
+//		// load answer button
+//		JPanel loadAnswerButtonPanel = new JPanel();
+//		loadAnswerButtonPanel.setLayout(new BoxLayout(loadAnswerButtonPanel, BoxLayout.Y_AXIS));
+//		JButton loadAnswerButton = new JButton("Load Answer");
+//		loadAnswerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+//		loadAnswerButton.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent e) {
+//				loadAnswer(questionPanel, getNumber(questionPanel));
+//			}
+//		});
+//		JLabel loadAnswerLabel = new JLabel("none");
+//		loadAnswerLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+//		loadAnswerButtonPanel.add(loadAnswerButton);
+//		loadAnswerButtonPanel.add(loadAnswerLabel);
+//		questionPanel.add(loadAnswerButtonPanel);
+//		myAnswerFiles = new HashMap<JPanel, File>();
+//		myAnswerFiles.put(questionPanel, null);
+//		
+//		// load image button
+//		JPanel loadImageButtonPanel = new JPanel();
+//		loadImageButtonPanel.setLayout(new BoxLayout(loadImageButtonPanel, BoxLayout.Y_AXIS));
+//		JButton loadImageButton = new JButton("Load Image");
+//		loadImageButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+//		loadImageButton.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent e) {
+//				loadImage(questionPanel, getNumber(questionPanel));
+//			}
+//		});
+//		JLabel loadImageLabel = new JLabel("none");
+//		loadImageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+//		loadImageButtonPanel.add(loadImageButton);
+//		loadImageButtonPanel.add(loadImageLabel);
+//		questionPanel.add(loadImageButtonPanel);
+//		
+//		myImageFiles = new HashMap<JPanel, File>();
+//		myImageFiles.put(questionPanel, null);
+//		
+//		return questionPanel;
+	}
+	
+	private JPanel createQuestionPanel(int number, String question, File answerFile, File imageFile) {
+		
+		//
+		final JPanel questionPanel = new JPanel();
+		
+		// select checkbox
+		JPanel selectCheckBoxPanel = new JPanel();
+		JCheckBox selectCheckBox = new JCheckBox();
+		selectCheckBoxPanel.add(selectCheckBox);
+		questionPanel.add(selectCheckBoxPanel);
+		
+		// number text field
+		JPanel numberTextFieldPanel = new JPanel();
+		JFormattedTextField numberTextField = new JFormattedTextField();
+		numberTextField.setValue(number);
+		numberTextField.setColumns(2);
+		numberTextFieldPanel.add(numberTextField);
+		questionPanel.add(numberTextFieldPanel);
+		
+		// question text field
+		JPanel questionTextAreaPanel = new JPanel();
+		JTextArea questionTextArea = new JTextArea(5, 50);
+		questionTextArea.setLineWrap(true);
+		questionTextArea.setWrapStyleWord(true);
+		questionTextArea.setText(question);
+		JScrollPane questionTextAreaScroller = new JScrollPane(questionTextArea);
+		questionTextAreaPanel.add(questionTextAreaScroller);
+		questionPanel.add(questionTextAreaPanel);
+		
+		// load answer button
+		JPanel loadAnswerButtonPanel = new JPanel();
+		loadAnswerButtonPanel.setLayout(new BoxLayout(loadAnswerButtonPanel, BoxLayout.Y_AXIS));
+		JButton loadAnswerButton = new JButton("Load Answer");
+		loadAnswerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		loadAnswerButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				loadAnswer(questionPanel, getNumber(questionPanel));
+			}
+		});
+		String answerFileName = "";
+		if (imageFile == null)
+			answerFileName = "none";
+		else
+			answerFileName = imageFile.getName();
+		JLabel loadAnswerLabel = new JLabel(answerFileName);
+		loadAnswerLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		loadAnswerButtonPanel.add(loadAnswerButton);
+		loadAnswerButtonPanel.add(loadAnswerLabel);
+		questionPanel.add(loadAnswerButtonPanel);
+		myAnswerFiles = new HashMap<JPanel, File>();
+		myAnswerFiles.put(questionPanel, answerFile);
+		
+		// load image button
+		JPanel loadImageButtonPanel = new JPanel();
+		loadImageButtonPanel.setLayout(new BoxLayout(loadImageButtonPanel, BoxLayout.Y_AXIS));
+		JButton loadImageButton = new JButton("Load Image");
+		loadImageButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		loadImageButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				loadImage(questionPanel, getNumber(questionPanel));
+			}
+		});
+		String imageFileName = "";
+		if (imageFile == null)
+			imageFileName = "none";
+		else
+			imageFileName = imageFile.getName();
+		JLabel loadImageLabel = new JLabel(imageFileName);
+		loadImageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		loadImageButtonPanel.add(loadImageButton);
+		loadImageButtonPanel.add(loadImageLabel);
+		questionPanel.add(loadImageButtonPanel);
+		myImageFiles = new HashMap<JPanel, File>();
+		myImageFiles.put(questionPanel, imageFile);
+		
+		return questionPanel;
+	}
+	
+	private void loadAnswer(JPanel questionPanel, int number) {
+		
+		JFileChooser chooser = new JFileChooser();
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("XML Files", "xml");
+		chooser.setFileFilter(filter);
+		int returnVal = chooser.showOpenDialog(myFrame);
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			File file = chooser.getSelectedFile();
+			myAnswerFiles.put(questionPanel, file);
+			getAnswerFileNameLabel(questionPanel).setText(file.getName());
+		}
+		else if (returnVal == JFileChooser.CANCEL_OPTION) {
+			File file = null;
+			myAnswerFiles.put(questionPanel, file);
+			getAnswerFileNameLabel(questionPanel).setText("none");
+		}
+		updateQuestionsPanel();
+	}
+	
+	private void loadImage(JPanel questionPanel, int number) {
+		
+		JFileChooser chooser = new JFileChooser();
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("Image Files", "png", "jpg", "gif");
+		chooser.setFileFilter(filter);
+		int returnVal = chooser.showOpenDialog(myFrame);
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			File file = chooser.getSelectedFile();
+			myImageFiles.put(questionPanel, file);
+			getImageFileNameLabel(questionPanel).setText(file.getName());
+		}
+		else if (returnVal == JFileChooser.CANCEL_OPTION) {
+			File file = null;
+			myAnswerFiles.put(questionPanel, file);
+			getAnswerFileNameLabel(questionPanel).setText("none");
+		}
+		updateQuestionsPanel();
+	}
+	
+	private void updateQuestionsPanel() {
+		
+		//
+		myQuestionsPanel.removeAll();
+		
+		//
+		myQuestionsPanel.setLayout(new BoxLayout(myQuestionsPanel, BoxLayout.Y_AXIS));
+		for (JPanel questionPanel : myQuestionPanels)
+			myQuestionsPanel.add(questionPanel);
+		
+		//
+		myFrame.repaint();
+		myFrame.revalidate();
+	}
+	
+	private void addQuestion() {
+	
+		// add new question panel to list of question panels
+		JPanel newQuestionPanel = createQuestionPanel();
+		getNumberTextField(newQuestionPanel).setText("" + (myQuestionPanels.size() + 1));
+		myQuestionPanels.add(newQuestionPanel);
+		
+		// update questions panel
+		updateQuestionsPanel();
+	}
+	
+	private void deleteQuestions() {
+		
+		// iterate through each question
+		Iterator<JPanel> iterator = myQuestionPanels.iterator();
+		while (iterator.hasNext()) {
+			
+			// get the current question panel
+			JPanel currentQuestionPanel = iterator.next();
+			
+			// remove checked question panels
+			if (getSelectCheckBox(currentQuestionPanel).isSelected()) {
+				
+				//
+				int deleteNumber = Integer.parseInt(getNumberTextField(currentQuestionPanel).getText());
+				
+				//
+				for (JPanel questionPanel : myQuestionPanels) {
+					
+					int number = Integer.parseInt(getNumberTextField(questionPanel).getText());
+					if (number > deleteNumber)
+						getNumberTextField(questionPanel).setText("" + --number);
+				}
+				
+				// remove the current question panel from the list of question panels
+				iterator.remove();
+			}
+		}
+		
+		// update the question panel
+		updateQuestionsPanel();
+	}
+	
+	// http://alvinalexander.com/java/java-menubar-example-jmenubar-jframe
+	private void createMenuBar() {
+		
+		// create the entire menu bar
+		myMenuBar = new JMenuBar();
+		
+		// create the file menu bar
+		myFileMenu = new JMenu("File");
+		
+		// build the file menu
+		myLoadTextMenu = new JMenuItem("Load Text");
+		myLoadTextMenu.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				;
+			}
+		});
+		myFileMenu.add(myLoadTextMenu);
+		
+		//
+		myLoadQuizMenu = new JMenuItem("Load Quiz");
+		myLoadQuizMenu.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				loadQuiz();
+			}
+		});
+		myFileMenu.add(myLoadQuizMenu);
+		
+		//
+		myFileMenu.addSeparator();
+		
+		//
+		mySaveQuizMenu = new JMenuItem("Save Quiz");
+		mySaveQuizMenu.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				saveQuiz();
+			}
+		});
+		myFileMenu.add(mySaveQuizMenu);
+		
+		//
+		myFileMenu.addSeparator();
+		
+		
+		myExitMenu = new JMenuItem("Exit");
+		myExitMenu.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				exitProcedure();
+			}
+		});
+		myFileMenu.add(myExitMenu);
+		
+		// add the file menu to the menu bar
+		myMenuBar.add(myFileMenu);
+	}
+	
+	/**
+	 * Handles application after user closes the main frame.
+	 */
+	public void exitProcedure() {
+		
+        myFrame.dispose();
+        System.exit(0);
+    }
+	
+	private void loadQuiz() {
+		
+		// choose the file
+		JFileChooser chooser = new JFileChooser();
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("XML Files", "xml");
+		chooser.setFileFilter(filter);
+		int returnVal = chooser.showOpenDialog(myFrame);
+		File xmlFile = null;
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			xmlFile = chooser.getSelectedFile();
+		}
+		
+		// parse the xml file
+		XmlQuizParser parser = new XmlQuizParser(xmlFile);
+		XmlQuiz xmlQuiz = parser.getXmlQuiz();
+
+		// load the quiz
+		myQuestionsPanel.removeAll();
+		myQuestionPanels = new ArrayList<JPanel>();
+		for (XmlProblem xmlProblem : xmlQuiz.getProblems()) {
+			
+			int number = xmlProblem.getNumber();
+			String question = xmlProblem.getQuestion();
+			File answerFile = xmlProblem.getAnswerFile();
+			File imageFile = xmlProblem.getImageFile();
+			JPanel questionPanel = createQuestionPanel(number, question, answerFile, imageFile);
+			myQuestionPanels.add(questionPanel);
+		}
+		updateQuestionsPanel();
+	}
+	
+	private void saveQuiz() {
+		
+		// create the xml object
+		List<XmlProblem> xmlQuestions = new ArrayList<XmlProblem>();
+		for (JPanel questionPanel : myQuestionPanels) {
+			
+			int number = getNumber(questionPanel);
+			String question = getQuestion(questionPanel);
+			File answerFile = getAnswerFile(questionPanel);
+			File imageFile = getImageFile(questionPanel);
+			
+			XmlProblem xmlQuestion = new XmlProblem(number, question, answerFile, imageFile);
+			xmlQuestions.add(xmlQuestion);
+		}
+		XmlQuiz xmlQuiz = new XmlQuiz(xmlQuestions);
+		
+		// choose the save location
+		JFileChooser chooser = new JFileChooser();
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("XML Files", "xml");
+		chooser.setFileFilter(filter);
+		int returnVal = chooser.showSaveDialog(myFrame);
+		File saveFile = null;
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			saveFile = chooser.getSelectedFile();
+		}
+		
+		// save contents to file
+		if (saveFile != null) {
+			String fileName = saveFile.getName();
+			if (!fileName.endsWith(".xml"))
+				saveFile = new File(chooser.getSelectedFile() + ".xml");
+				
+			writeToXml(xmlQuiz, saveFile);
+		}
+	}
+	
+	private void writeToXml(XmlQuiz xmlQuiz, File saveFile) {
+		
+		// write file
+		XMLOutputFactory factory = XMLOutputFactory.newInstance();
+		try {
+			
+			XMLStreamWriter writer = factory.createXMLStreamWriter(new FileWriter(saveFile));
+
+			writer.writeStartDocument();
+			writer.writeStartElement("quiz");
+			for (XmlProblem xmlProblem : xmlQuiz.getProblems()) {
+				
+				writer.writeStartElement("problem");
+				
+				writer.writeStartElement("number");
+				writer.writeCharacters("" + xmlProblem.getNumber());
+				writer.writeEndElement();
+				
+				writer.writeStartElement("question");
+				writer.writeCharacters("" + xmlProblem.getQuestion());
+				writer.writeEndElement();
+				
+				writer.writeStartElement("answer");
+				writer.writeCharacters("" + xmlProblem.getAnswerFile());
+				writer.writeEndElement();
+				
+				writer.writeStartElement("image");
+				writer.writeCharacters("" + xmlProblem.getImageFile());
+				writer.writeEndElement();
+				
+				writer.writeEndElement();
+			}
+			writer.writeEndElement();
+			writer.writeEndDocument();
+			
+			writer.flush();
+			writer.close();
+		     
+		} catch (XMLStreamException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private JCheckBox getSelectCheckBox(JPanel panel) {
+		
+		return (JCheckBox)((JPanel)panel.getComponent(SELECT_CHECKBOX_POSITION)).getComponent(0);
+	}
+	
+	private JFormattedTextField getNumberTextField(JPanel panel) {
+		
+		return (JFormattedTextField)((JPanel)panel.getComponent(NUMBER_TEXTFIELD_POSITION)).getComponent(0);
+	}
+	
+	private JTextArea getQuestionTextArea(JPanel panel) {
+		
+		JScrollPane scrollPane = (JScrollPane)((JPanel)panel.getComponent(QUESTION_TEXTAREA_POSITION)).getComponent(0);
+		JViewport viewport = scrollPane.getViewport();
+		JTextArea questionTextArea = (JTextArea)viewport.getView();
+		
+		return questionTextArea;
+	}
+	
+	private JPanel getLoadAnswerPanel(JPanel panel) {
+		
+		return (JPanel)panel.getComponent(LOADANSWER_PANEL_POSITION);
+	}
+	
+	private JPanel getLoadImagePanel(JPanel panel) {
+		
+		return (JPanel)panel.getComponent(LOADIMAGE_PANEL_POSITION);
+	}
+	
+	private boolean isSelected(JPanel panel) {
+		
+		return getSelectCheckBox(panel).isSelected();
+	}
+	
+	private int getNumber(JPanel panel) {
+		
+		return Integer.parseInt(getNumberTextField(panel).getText());
+	}
+	
+	private String getQuestion(JPanel panel) {
+		
+		return getQuestionTextArea(panel).getText();
+	}
+	
+	private JLabel getAnswerFileNameLabel(JPanel panel) {
+		
+		return (JLabel)getLoadAnswerPanel(panel).getComponent(FILENAME_LABEL_POSITION);
+	}
+	
+	private JLabel getImageFileNameLabel(JPanel panel) {
+		
+		return (JLabel)getLoadImagePanel(panel).getComponent(FILENAME_LABEL_POSITION);
+	}
+	
+	private File getAnswerFile(JPanel panel) {
+		
+		return myAnswerFiles.get(panel);
+	}
+	
+	private File getImageFile(JPanel panel) {
+		
+		return myImageFiles.get(panel);
+	}
+
+	
+	
+	private JFrame myFrame;
+	private JPanel myMainPanel;
+	private JMenuBar myMenuBar;
+	private JMenu myFileMenu;
+	private JMenuItem myLoadTextMenu;
+	private JMenuItem myLoadQuizMenu;
+	private JMenuItem mySaveQuizMenu;
+	private JMenuItem myExitMenu;
+	private JPanel myQuestionsPanel;
+	private JPanel myInteractionPanel;
+	private List<JPanel> myQuestionPanels;
+	private HashMap<JPanel, File> myAnswerFiles;
+	private HashMap<JPanel, File> myImageFiles;
+	private JButton myAddQuestionButton;
+	private JButton myDeleteQuestionsButton;
+	
+	public static final String APPLICATION_TITLE = "Music Quiz Creator";
+	public static int FRAME_WIDTH;
+	public static int FRAME_HEIGHT;
+	public static final double FRAME_RATIO = 0.8;
+	public static final int SELECT_CHECKBOX_POSITION = 0;
+	public static final int NUMBER_TEXTFIELD_POSITION = 1;
+	public static final int QUESTION_TEXTAREA_POSITION = 2;
+	public static final int LOADANSWER_PANEL_POSITION = 3;
+	public static final int LOADIMAGE_PANEL_POSITION = 4;
+	public static final int FILENAME_LABEL_POSITION = 1;
+}

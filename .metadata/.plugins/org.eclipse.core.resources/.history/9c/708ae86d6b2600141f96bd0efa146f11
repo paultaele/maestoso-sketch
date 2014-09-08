@@ -1,0 +1,771 @@
+package edu.tamu.srl.music.gui;
+
+
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
+import java.awt.Image;
+import java.awt.RenderingHints;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
+
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
+import edu.tamu.srl.music.classifier.IShape;
+import edu.tamu.srl.music.classifier.IShape.ShapeGroup;
+import edu.tamu.srl.music.classifier.IShape.ShapeName;
+import edu.tamu.srl.music.classifier.Template;
+import edu.tamu.srl.music.xml.lesson.XmlLesson;
+import edu.tamu.srl.music.xml.lesson.XmlLessonParser;
+import edu.tamu.srl.music.xml.lesson.XmlQuestion;
+
+/**
+ * The main GUI for the application.
+ * 
+ * @author Paul Taele
+ *
+ */
+public class MusicDrawGui implements Runnable {
+	
+	/**
+	 * The main method for running the application.
+	 * @param args The console arguments.
+	 */
+	public static void main(String[] args) {
+		
+		SwingUtilities.invokeLater(new MusicDrawGui());
+	}
+	
+	/**
+	 * Runs the methods to create the main frame.
+	 */
+	public void run() {
+    	
+        createFrame();
+    }
+	
+	/**
+	 * Creates the main frame.
+	 */
+	private void createFrame() {
+		
+		// set the dimensions of the main frame relative to a set ratio of
+		// the screen's size
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		DEFAULT_FRAME_WIDTH = (int)(screenSize.width * FRAME_RATIO);
+		DEFAULT_FRAME_HEIGHT = (int)(screenSize.height * FRAME_RATIO);
+		
+		// initialize the main frame
+        myFrame = new JFrame();
+        
+        // load templates and images from disk
+        Template.loadTemplates();
+        IShape.loadImages();
+        
+        // create the menu bar and add it to the main frame
+        createMenuBar();
+        myFrame.setJMenuBar(myMenuBar);
+        
+        // create the main panel and add it to the main frame
+        createMainPanel();
+		myFrame.add(myMainPanel);
+        
+		// handle the main frame's actions
+		myFrame.setSize(DEFAULT_FRAME_WIDTH, DEFAULT_FRAME_HEIGHT);						// set the size of the frame
+		myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);			// enable closing
+		myFrame.setVisible(true);										// enable visibility
+		myFrame.setLocationRelativeTo(null);							// enable centering of screen
+		myFrame.setResizable(true);										// enable resizing
+		myFrame.setTitle(APPLICATION_TITLE);							// set application title
+        myFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);	// do nothing on closing
+        myFrame.addWindowListener(new WindowAdapter() {					// handle post-closing actions
+            public void windowClosing(WindowEvent event) {
+                exitProcedure();
+            }
+        });
+    }
+	
+	/**
+	 * Handles application after user closes the main frame.
+	 */
+	public void exitProcedure() {
+		
+        myFrame.dispose();
+        System.exit(0);
+    }
+	
+	private void createMenuBar() {
+		
+		// create the entire menu bar
+		myMenuBar = new JMenuBar();
+		
+		// create the file menu bar
+		JMenu fileMenu = new JMenu("File");
+		
+		// load lesson menu option
+		JMenuItem newLessonMenu = new JMenuItem("Load Lesson");
+		newLessonMenu.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				loadLesson();
+			}
+		});
+		fileMenu.add(newLessonMenu);
+		
+		//
+		fileMenu.addSeparator();
+		
+		// save answer menu option
+		JMenuItem saveAnswerMenu = new JMenuItem("Save Answer");
+		saveAnswerMenu.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				saveAnswer();
+			}
+		});
+		fileMenu.add(saveAnswerMenu);
+		
+		//
+		fileMenu.addSeparator();
+		
+		//
+		JMenuItem exitMenu = new JMenuItem("Exit");
+		exitMenu.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				exitProcedure();
+			}
+		});
+		fileMenu.add(exitMenu);
+		
+		//
+		myMenuBar.add(fileMenu);
+	}
+	
+	/**
+	 * Creates the main panel.
+	 */
+	private void createMainPanel() {
+		
+		// initialize and set up the main panel's layout
+        myMainPanel = new JPanel();
+        myMainPanel.setLayout(new BorderLayout());
+        
+        // create the text panel and add it to the main panel
+        createLessonPanel();
+        myMainPanel.add(myLessonPanel, BorderLayout.NORTH);
+        
+        // create the draw panel and add it to the main panel
+		createDrawPanel();
+        myMainPanel.add(mySketchPanel, BorderLayout.CENTER);
+		
+        // create the interaction panel and add it to the main panel
+        createInteractionPanel();
+        myMainPanel.add(myInteractionPanel, BorderLayout.SOUTH);
+    }
+	
+	/**
+	 * Creates the lesson panel.
+	 */
+	private void createLessonPanel() {
+		
+		// create lesson panel
+		myLessonPanel = new JPanel();
+		myLessonPanel.setLayout(new BorderLayout());
+		
+		// create left panel
+		createLessonLeftPanel();
+		myLessonPanel.add(myLessonLeftPanel, BorderLayout.WEST);
+		
+		// create middle panel
+		createLessonMiddlePanel();
+		myLessonPanel.add(myLessonMiddlePanel, BorderLayout.CENTER);
+		
+		// create right panel
+		createLessonRightPanel();
+		myLessonPanel.add(myLessonRightPanel, BorderLayout.EAST);
+	}
+	
+	private void createLessonRightPanel() {
+		
+		// create the lesson right panel and set its layout
+		final JPanel lessonRightPanel = new JPanel();
+		lessonRightPanel.setLayout(new BorderLayout());
+		
+		// add the image panel to the lesson right panel
+		JPanel imagePanel = new JPanel();
+		JLabel imageLabel = new JLabel();
+//		imageLabel.setIcon(imageIcon);
+		setPreviewImage(IMAGES_DIR_PATHNAME + "black_square.jpg", imageLabel, PREVIEW_IMAGE_WIDTH_SMALL, PREVIEW_IMAGE_HEIGHT_SMALL);
+		imagePanel.add(imageLabel);
+		lessonRightPanel.add(imagePanel, BorderLayout.CENTER);
+		
+		// 
+		lessonRightPanel.addMouseListener(new MouseAdapter() {
+	        public void mousePressed(MouseEvent e) {
+	        	
+	        	//
+	        	JPanel imagePanel = (JPanel)myLessonRightPanel.getComponent(0);
+	    		JLabel imageLabel = (JLabel)imagePanel.getComponent(0);
+	    		Icon icon = imageLabel.getIcon();
+	    		int width = 0;
+	    		int height = 0;
+	    		if (Math.abs(icon.getIconWidth() - PREVIEW_IMAGE_WIDTH_SMALL) <  Math.abs(icon.getIconWidth() - PREVIEW_IMAGE_WIDTH_LARGE)) {
+	    			width = PREVIEW_IMAGE_WIDTH_LARGE;
+	    			height = PREVIEW_IMAGE_HEIGHT_LARGE;
+	    		}
+	    		else {
+	    			width = PREVIEW_IMAGE_WIDTH_SMALL;
+	    			height = PREVIEW_IMAGE_HEIGHT_SMALL;
+	    		}
+	    		Image image = convertIcontoImage(icon);
+	    		setPreviewImage(image, imageLabel, width, height);
+	        }
+	
+	        public void mouseReleased(MouseEvent e) {
+	        	;
+	        }
+		});
+		
+		//
+		myLessonRightPanel = lessonRightPanel;
+	}
+	
+	private void setPreviewImage(String filePath, JLabel imageLabel, int width, int height) {
+	
+		ImageIcon imageIcon = new ImageIcon(filePath); // load the image to a imageIcon
+		setPreviewImage(imageIcon.getImage(), imageLabel, width, height);
+	}
+	
+	private void setPreviewImage(Image image, JLabel imageLabel, int width, int height) {
+		
+		Image originalImage = image;
+		BufferedImage scaledImage = new BufferedImage(width, height, BufferedImage.TRANSLUCENT);
+	    Graphics2D g2 = scaledImage.createGraphics();
+	    g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+	    g2.drawImage(originalImage, 0, 0, width, height, null);
+	    g2.dispose();
+	    ImageIcon imageIcon = new ImageIcon(scaledImage);  // transform it back
+		imageLabel.setIcon(imageIcon);
+	}
+	
+	private static Image convertIcontoImage(Icon icon) {
+		
+		if (icon instanceof ImageIcon) {
+			return ((ImageIcon)icon).getImage();
+		}
+		else {
+			int w = icon.getIconWidth();
+			int h = icon.getIconHeight();
+			GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+			GraphicsDevice gd = ge.getDefaultScreenDevice();
+			GraphicsConfiguration gc = gd.getDefaultConfiguration();
+			BufferedImage image = gc.createCompatibleImage(w, h);
+			Graphics2D g = image.createGraphics();
+			icon.paintIcon(null, g, 0, 0);
+			g.dispose();
+			return image;
+		}
+	}
+	
+	private void createLessonMiddlePanel() {
+		
+		//
+		JPanel lessonMiddlePanel = new JPanel();
+		lessonMiddlePanel.setLayout(new BorderLayout());
+		
+		// add word wrap to lesson title label using a fixed width method
+		JPanel lessonTitlePanel = new JPanel();
+		lessonTitlePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		myLessonTitleLabel = new JLabel(getFixedText("LESSON TITLE", LESSON_TITLE_QUESTION_TEXT_LENGTH));
+		myLessonTitleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		lessonTitlePanel.add(myLessonTitleLabel);
+		
+		// add word wrap to lesson question label using a fixed width method
+		JPanel lessonQuestionPanel = new JPanel();
+		lessonQuestionPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		myLessonQuestionLabel = new JLabel(getFixedText("LESSON QUESTION", LESSON_TITLE_QUESTION_TEXT_LENGTH));
+		myLessonQuestionLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+		lessonQuestionPanel.add(myLessonQuestionLabel);
+		
+		//
+		lessonMiddlePanel.add(lessonTitlePanel, BorderLayout.NORTH);
+		lessonMiddlePanel.add(lessonQuestionPanel, BorderLayout.CENTER);
+		
+		//
+		myLessonMiddlePanel = lessonMiddlePanel;
+	}
+	
+	private void createLessonLeftPanel() {
+		
+		//
+		JPanel lessonLeftPanel = new JPanel();
+		lessonLeftPanel.setLayout(new BorderLayout());
+		
+		//
+		JPanel questionNumberPanel = new JPanel();
+		myQuestionNumberLabel = new JLabel();
+		setQuestionNumberLabel(0);
+		questionNumberPanel.add(myQuestionNumberLabel);
+		
+		//
+		JPanel navigationButtonsPanel = new JPanel();
+		myPreviousButton = new JButton("<<<");
+		myPreviousButton.setEnabled(false);
+		myPreviousButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				
+				mySketchPanel.clear();
+				
+				if (myXmlLesson != null) {
+					
+					if (0 <= myCurrentQuestionIndex-1) {
+						
+						--myCurrentQuestionIndex;
+						
+						if (myCurrentQuestionIndex == 0)
+							myPreviousButton.setEnabled(false);
+						
+						if (!myNextButton.isEnabled())
+							myNextButton.setEnabled(true);
+						
+						XmlQuestion xmlQuestion = myXmlLesson.getQuestions().get(myCurrentQuestionIndex);
+						myLessonQuestionLabel.setText(xmlQuestion.getQuestionText());
+						setQuestionNumberLabel(xmlQuestion.getQuestionNumber());
+						
+						JPanel imagePanel = (JPanel)myLessonRightPanel.getComponent(0);
+						JLabel imageLabel = (JLabel)imagePanel.getComponent(0);
+						String imageFilePath = xmlQuestion.getImageFile() != null
+								? xmlQuestion.getImageFile().getAbsolutePath()
+								: IMAGES_DIR_PATHNAME + "blue.gif";
+						setPreviewImage(imageFilePath, imageLabel, PREVIEW_IMAGE_WIDTH_SMALL, PREVIEW_IMAGE_HEIGHT_SMALL);
+					}
+				}
+			}
+		});
+		myNextButton = new JButton(">>>");
+		myNextButton.setEnabled(false);
+		myNextButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				
+				mySketchPanel.clear();
+				
+				if (myXmlLesson != null) {
+					
+					if (myCurrentQuestionIndex+1 < myXmlLesson.getQuestions().size()) {
+						
+						++myCurrentQuestionIndex;
+						
+						if (myCurrentQuestionIndex == myXmlLesson.getQuestions().size()-1)
+							myNextButton.setEnabled(false);
+						
+						if (!myPreviousButton.isEnabled())
+							myPreviousButton.setEnabled(true);
+						
+						XmlQuestion xmlQuestion = myXmlLesson.getQuestions().get(myCurrentQuestionIndex);
+						myLessonQuestionLabel.setText(xmlQuestion.getQuestionText());
+						setQuestionNumberLabel(xmlQuestion.getQuestionNumber());
+						
+						JPanel imagePanel = (JPanel)myLessonRightPanel.getComponent(0);
+						JLabel imageLabel = (JLabel)imagePanel.getComponent(0);
+						String imageFilePath = xmlQuestion.getImageFile() != null
+								? xmlQuestion.getImageFile().getAbsolutePath()
+								: IMAGES_DIR_PATHNAME + "blue.gif";
+						setPreviewImage(imageFilePath, imageLabel, PREVIEW_IMAGE_WIDTH_SMALL, PREVIEW_IMAGE_HEIGHT_SMALL);
+					}
+				}
+			}
+		});
+		navigationButtonsPanel.add(myPreviousButton);
+		navigationButtonsPanel.add(myNextButton);
+		
+		//
+		lessonLeftPanel.add(questionNumberPanel, BorderLayout.NORTH);
+		lessonLeftPanel.add(navigationButtonsPanel, BorderLayout.SOUTH);
+		
+		//
+		myLessonLeftPanel = lessonLeftPanel;
+	}
+	
+	public void loadLesson() {
+		
+		// choose the file
+		JFileChooser chooser = new JFileChooser();
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("XML Files", "xml");
+		chooser.setFileFilter(filter);
+		chooser.setCurrentDirectory(new File("./src/edu/tamu/srl/music/learning/"));
+		int returnVal = chooser.showOpenDialog(myFrame);
+		File xmlFile = null;
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			xmlFile = chooser.getSelectedFile();
+		}
+		
+		// parse xml file
+		if (xmlFile == null)
+			return;
+		XmlLessonParser parser = new XmlLessonParser(xmlFile);
+		myXmlLesson = parser.getXmlLesson();
+		XmlQuestion firstQuestion = myXmlLesson.getQuestions().get(0);
+		
+		// load lesson left panel
+		List<XmlQuestion> xmlQuestions = myXmlLesson.getQuestions();
+		myCurrentQuestionIndex = 0;
+		myQuestionNumberLabel.setText("" + firstQuestion.getQuestionNumber());
+		setQuestionNumberLabel(firstQuestion.getQuestionNumber());
+		myPreviousButton.setEnabled(false);
+		if (xmlQuestions.size() > 1)
+			myNextButton.setEnabled(true);
+		else
+			myNextButton.setEnabled(false);
+		
+		// load lesson middle panel
+		myLessonTitleLabel.setText(myXmlLesson.getTitle());
+		myLessonQuestionLabel.setText(firstQuestion.getQuestionText());
+		
+		// load lesson right panel
+		JPanel imagePanel = (JPanel)myLessonRightPanel.getComponent(0);
+		JLabel imageLabel = (JLabel)imagePanel.getComponent(0);
+		String imageFilePath = firstQuestion.getImageFile() != null
+				? firstQuestion.getImageFile().getAbsolutePath()
+				: IMAGES_DIR_PATHNAME + "blue.gif";
+		setPreviewImage(imageFilePath, imageLabel, PREVIEW_IMAGE_WIDTH_SMALL, PREVIEW_IMAGE_HEIGHT_SMALL);
+//		}
+	}
+	
+	public void saveAnswer() {
+		
+		// get all the shapes drawn on the sketch panel
+		List<IShape> shapes = mySketchPanel.getShapes();
+		Iterator<IShape> iterator = null;
+		
+		// get the staff (if any)
+		iterator = shapes.iterator();
+		IShape staff = null;
+		while (iterator.hasNext()) {
+			
+			IShape shape = iterator.next();
+			if (shape.getShapeName() == ShapeName.STAFF) {
+				staff = shape;
+				iterator.remove();
+			}
+		}
+		
+		// get the key (if any)
+		iterator = shapes.iterator();
+		List<IShape> keys = new ArrayList<IShape>();
+		while (iterator.hasNext()) {
+			
+			IShape shape = iterator.next();
+			if (shape.getShapeGroup() == ShapeGroup.KEY) {
+				keys.add(shape);
+				iterator.remove();
+			}
+		}
+		
+		// get the time (if any)
+		iterator = shapes.iterator();
+		List<IShape> times = new ArrayList<IShape>();
+		while (iterator.hasNext()) {
+			
+			IShape shape = iterator.next();
+			if (shape.getShapeGroup() == ShapeGroup.BEAT) {
+				times.add(shape);
+				iterator.remove();
+			}
+		}
+		if (times.size() == 2) {
+			
+			IShape first = times.get(0);
+			IShape second = times.get(1);
+			if (first.getBoundingBox().centerY() > second.getBoundingBox().centerY()) {
+				times.clear();
+				times.add(second);
+				times.add(first);
+			}
+		}
+		
+		// get the notes, rests, and bars
+		iterator = shapes.iterator();
+		List<IShape> others = new ArrayList<IShape>();
+		while (iterator.hasNext()) {
+			
+			IShape shape = iterator.next();
+			ShapeGroup shapeGroup = shape.getShapeGroup();
+			if (shapeGroup == ShapeGroup.NOTE || shapeGroup == ShapeGroup.REST || shapeGroup == ShapeGroup.BAR) {
+				others.add(shape);
+				iterator.remove();
+			}
+		}
+		Collections.sort(others, new Comparator<IShape>() {
+			public int compare(IShape shape1, IShape shape2) {
+
+				int x1 = (int) shape1.getBoundingBox().centerX();
+				int x2 = (int) shape2.getBoundingBox().centerX();
+				
+				return x1 - x2;
+			}
+		});
+		
+		
+		
+		// debug
+		System.out.println("### MusicDrawGui.saveAnswer() ###");
+		for (IShape shape : others)
+			System.out.print("(" + shape.getShapeName() + "|" + shape.getShapeGroup() + ") ");
+	}
+	
+	private void writeAnswerToXml(IShape staff, IShape clef, List<IShape> keys, List<IShape> times, List<IShape> others) {
+		
+		
+	}
+	
+	/**
+	 * Creates the draw panel.
+	 */
+	private void createDrawPanel() {
+		
+		// create the draw panel
+		 mySketchPanel = new SketchPanel(this);
+	}
+	
+	/**
+	 * Creates the interaction panel.
+	 */
+	private void createInteractionPanel() {
+		
+		// initialize the interaction panel and set up its layout
+		myInteractionPanel = new JPanel();
+		myInteractionPanel.setLayout(new BorderLayout());
+		
+		// create the colors panel and add it to the interaction panel
+		createColorsPanel();
+		myInteractionPanel.add(myColorsPanel, BorderLayout.NORTH);
+		
+		// create the edit panel and add it to the interaction panel
+		createEditPanel();
+		myInteractionPanel.add(myEditPanel, BorderLayout.SOUTH);
+	}
+	
+	/**
+	 * Creates the colors panel.
+	 */
+	private void createColorsPanel() {
+		
+		// initialize the colors panel
+		myColorsPanel = new JPanel();
+		
+		// initialize the image icons
+		Icon iconB  = new ImageIcon(IMAGES_DIR_PATHNAME + "blue.gif");
+		Icon iconM  = new ImageIcon(IMAGES_DIR_PATHNAME + "magenta.gif");
+		Icon iconR  = new ImageIcon(IMAGES_DIR_PATHNAME + "red.gif");
+		Icon iconBl = new ImageIcon(IMAGES_DIR_PATHNAME + "black.gif");
+		Icon iconG  = new ImageIcon(IMAGES_DIR_PATHNAME + "green.gif");
+		
+		// initialize the buttons
+		JButton redButton = new JButton(iconR);
+		JButton blackButton = new JButton(iconBl);
+		JButton magentaButton = new JButton(iconM);
+		JButton blueButton = new JButton(iconB);
+		JButton greenButton = new JButton(iconG);
+		
+		// set the sizes of the buttons
+		blackButton.setPreferredSize(new Dimension(16, 16));
+		magentaButton.setPreferredSize(new Dimension(16, 16));
+		redButton.setPreferredSize(new Dimension(16, 16));
+		blueButton.setPreferredSize(new Dimension(16, 16));
+		greenButton.setPreferredSize(new Dimension(16,16));
+		
+		// create the red button and set the icon we created for red
+		redButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				mySketchPanel.setPaintRed();
+			}
+
+		});
+		
+		// create the black button and set the icon we created for black
+		blackButton.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				mySketchPanel.setPaintBlack();
+			}
+		});
+		
+		// create the magenta button and set the icon we created for magenta
+		magentaButton.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				mySketchPanel.setPaintMagenta();
+			}
+		});
+		
+		// create the blue button and set the icon we created for blue
+		blueButton.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				mySketchPanel.setPaintBlue();
+			}
+		});
+		
+		// create the green button and set the icon we created for green
+		greenButton.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				mySketchPanel.setPaintGreen();
+			}
+		});
+		
+		// add the buttons to the colors panel
+		myColorsPanel.add(greenButton);
+		myColorsPanel.add(blueButton);
+		myColorsPanel.add(magentaButton);
+		myColorsPanel.add(blackButton);
+		myColorsPanel.add(redButton);
+	}
+	
+	/**
+	 * Creates the edit panel.
+	 */
+	private void createEditPanel() {
+		
+		// initialize the edit panel
+		myEditPanel = new JPanel();
+		
+		// initialize the buttons
+		JButton clearButton = new JButton("Clear");
+		JButton undoButton = new JButton("Undo");
+		JButton saveButton = new JButton("Save");
+		JButton checkButton = new JButton("Check");
+		
+		// create the clear button and add clear functionality
+		clearButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				mySketchPanel.clear();
+			}
+		});
+		
+		// create the undo button and add undo functionality
+		undoButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				mySketchPanel.undo();
+			}
+		});
+		
+		// create the save button and add save functionality
+		saveButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				mySketchPanel.save();
+			}
+		});
+		
+		// create the check button and add check functionality
+		checkButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				mySketchPanel.check();
+			}
+		});
+		
+		// add the buttons to the panel
+		myEditPanel.add(clearButton);
+		myEditPanel.add(undoButton);
+		myEditPanel.add(saveButton);
+		myEditPanel.add(checkButton);
+	}
+	
+	/**
+	 * Gets the text panel.
+	 * 
+	 * @return
+	 */
+	public JPanel getTextPanel() {
+		
+		return myLessonPanel;
+	}
+	
+	public JFrame getFrame() {
+		
+		return myFrame;
+	}
+	
+	public static int getWidth() {
+		
+		return myFrame.getSize().width;
+	}
+	
+	public static int getHeight() {
+		
+		return myFrame.getSize().height;
+	}
+	
+	private void setQuestionNumberLabel(int number) {
+		
+		myQuestionNumberLabel.setText("#" + number);
+		myQuestionNumberLabel.setFont(new Font("sansserif", Font.BOLD, 32));
+	}
+	
+	private String getFixedText(String text, int length) {
+		
+		String html1 = "<html><body style='width: ";
+        String html2 = "px'>";
+        String html3 = "</body></html>";
+		return html1 + length + html2 + text + html3;
+	}
+	
+	
+	
+	private static JFrame myFrame;
+	private JMenuBar myMenuBar;
+	private JPanel myMainPanel;
+	private JPanel myLessonPanel;
+	private JPanel myLessonLeftPanel;
+	private JPanel myLessonMiddlePanel;
+	private JPanel myLessonRightPanel;
+	private SketchPanel mySketchPanel;
+	private JPanel myInteractionPanel;
+	private JPanel myEditPanel;
+	private JPanel myColorsPanel;
+	
+	private XmlLesson myXmlLesson;
+
+	private JLabel myQuestionNumberLabel;
+	private JButton myPreviousButton;
+	private JButton myNextButton;
+	private JLabel myLessonTitleLabel;
+	private JLabel myLessonQuestionLabel;
+	private int myCurrentQuestionIndex;
+	
+	public static int DEFAULT_FRAME_WIDTH;
+	public static int DEFAULT_FRAME_HEIGHT;
+	public static final double FRAME_RATIO = 0.8;
+	public static final
+		String IMAGES_DIR_PATHNAME = "src/edu/tamu/srl/music/images/";
+	public static final
+		String APPLICATION_TITLE = "Maestoso Sketch";
+	public static final int LESSON_TITLE_QUESTION_TEXT_LENGTH = 600;
+	public static final int PREVIEW_IMAGE_WIDTH_SMALL = 330;
+	public static final int PREVIEW_IMAGE_HEIGHT_SMALL = 120;
+	public static final int PREVIEW_IMAGE_WIDTH_LARGE = 550;
+	public static final int PREVIEW_IMAGE_HEIGHT_LARGE = 200;
+}

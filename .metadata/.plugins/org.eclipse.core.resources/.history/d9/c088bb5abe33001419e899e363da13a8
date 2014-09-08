@@ -1,0 +1,40 @@
+package edu.tamu.srl.music.xml;
+
+import java.io.File;
+
+public class XmlQuestion {
+	
+	public XmlQuestion(int number, String questionText, String questionHint, File answerFile, File imageFile, boolean[] gradingCriteria) {
+		
+		myQuestionNumber = number;
+		myQuestionText = questionText;
+		myQuestionHint = questionHint;
+		myAnswerFile = answerFile;
+		myImageFile = imageFile;
+		myGradingCriteria = gradingCriteria;
+	}
+	
+	public int getQuestionNumber() { return myQuestionNumber; }
+	public String getQuestionText() { return myQuestionText; }
+	public String getHintText() { return myQuestionHint; }
+	public File getAnswerFile() { return myAnswerFile; }
+	public File getImageFile() { return myImageFile; }
+	public boolean[] getGradingCriteria() { return myGradingCriteria; }
+
+	
+	
+	private int myQuestionNumber;
+	private String myQuestionText;
+	private String myHintText;
+	private File myAnswerFile;
+	private File myImageFile;
+	private boolean[] myGradingCriteria;
+	
+	public static final int NUM_GRADING_CRITERIA = 6;
+	public static final int CLEF_INDEX = 0;
+	public static final int KEY_INDEX = 1;
+	public static final int TIME_INDEX = 2;
+	public static final int NOTES_INDEX = 3;
+	public static final int DURATION_INDEX = 4;
+	public static final int MEASURE_INDEX = 5;
+}

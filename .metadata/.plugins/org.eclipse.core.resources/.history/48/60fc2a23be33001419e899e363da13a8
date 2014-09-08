@@ -1,0 +1,802 @@
+package edu.tamu.srl.music.gui;
+
+import java.awt.BorderLayout;
+import java.awt.Checkbox;
+import java.awt.CheckboxGroup;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.GridLayout;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Scanner;
+
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFileChooser;
+import javax.swing.JFormattedTextField;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.JViewport;
+import javax.swing.SwingUtilities;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+
+import edu.tamu.srl.music.xml.XmlQuestion;
+import edu.tamu.srl.music.xml.XmlLesson;
+import edu.tamu.srl.music.xml.XmlLessonParser;
+
+public class LessonBuilderGui implements Runnable {
+
+	/**
+	 * The main method for running the application.
+	 * @param args The console arguments.
+	 */
+	public static void main(String[] args) {
+		
+		SwingUtilities.invokeLater(new LessonBuilderGui());
+	}
+	
+	/**
+	 * Runs the methods to create the main frame.
+	 */
+	public void run() {
+    	
+        createFrame();
+    }
+	
+	/**
+	 * Creates the main frame.
+	 */	
+	private void createFrame() {
+		
+		// set the dimensions of the main frame relative to a set ratio of
+		// the screen's size
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		FRAME_WIDTH = (int)(screenSize.width * FRAME_RATIO);
+		FRAME_HEIGHT = (int)(screenSize.height * FRAME_RATIO);
+		
+		// initialize the main frame
+        myFrame = new JFrame();
+        
+        // create the menu bar and add it to the main frame
+        createMenuBar();
+        myFrame.setJMenuBar(myMenuBar);
+        
+        // create the main panel and add it to the main frame
+        createMainPanel();
+		myFrame.add(myMainPanel);
+		
+		// handle the main frame's actions
+		myFrame.setSize(FRAME_WIDTH, FRAME_HEIGHT);						// set the size of the frame
+		myFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);			// enable closing
+		myFrame.setVisible(true);										// enable visibility
+		myFrame.setLocationRelativeTo(null);							// enable centering of screen
+		myFrame.setResizable(true);									// disable resizing
+		myFrame.setTitle(APPLICATION_TITLE);							// set application title
+        myFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);	// do nothing on closing
+        myFrame.addWindowListener(new WindowAdapter() {					// handle post-closing actions
+            public void windowClosing(WindowEvent event) {
+                exitProcedure();
+            }
+        });
+	}
+
+	/**
+	 * Creates the main panel.
+	 */
+	private void createMainPanel() {
+		
+		// initialize and set up the main panel's layout
+        myMainPanel = new JPanel();
+        myMainPanel.setLayout(new BorderLayout());
+        
+        // create blank title
+        createTitlePanel();
+        myMainPanel.add(myTitlePanel, BorderLayout.NORTH);
+        
+        // create blank questions
+        createQuestionsPanel();
+        JScrollPane scrollPane = new JScrollPane(myQuestionsPanel);
+        myMainPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        // create edit buttons
+        createInteractionPanel();
+        myMainPanel.add(myInteractionPanel, BorderLayout.SOUTH);
+	}
+	
+	private void createTitlePanel() {
+		
+		//
+		JPanel titleLabelPanel = new JPanel();
+		JLabel titleLabel = new JLabel();
+		titleLabel.setText("Lesson Title: ");
+		titleLabelPanel.add(titleLabel);
+		
+		//
+		JPanel titleTextFieldPanel = new JPanel();
+		JTextField titleTextField = new JTextField("", 50);
+		titleTextFieldPanel.add(titleTextField);
+		
+		//
+		myTitlePanel = new JPanel();
+//		myTitlePanel.setLayout(arg0);
+		myTitlePanel.add(titleLabelPanel);
+		myTitlePanel.add(titleTextFieldPanel);
+	}
+	
+	private void createQuestionsPanel() {
+		
+		//
+		myQuestionPanels = new ArrayList<JPanel>();
+		JPanel emptyQuestionPanel = createQuestionPanel();
+		getNumberTextField(emptyQuestionPanel).setText("" + (myQuestionPanels.size() + 1));
+		myQuestionPanels.add(emptyQuestionPanel);
+		
+		//
+		myQuestionsPanel = new JPanel();
+		myQuestionsPanel.setLayout(new BoxLayout(myQuestionsPanel, BoxLayout.Y_AXIS));
+		for (JPanel questionPanel : myQuestionPanels)
+			myQuestionsPanel.add(questionPanel);
+	}
+	
+	private void createInteractionPanel() {
+		
+		//
+		myInteractionPanel = new JPanel();
+		
+		//
+		myAddQuestionButton = new JButton("Add Question");
+		myDeleteQuestionsButton = new JButton("Delete Question(s)");
+		
+		// set the action listener for the add question button
+		myAddQuestionButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				addQuestion();
+			}
+		});
+		
+		// set the action listener for the delete question(s) button
+		myDeleteQuestionsButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				deleteQuestions();
+			}
+		});
+		
+		// set the action listener for the delete questions button
+		
+		
+		//
+		myInteractionPanel.add(myAddQuestionButton);
+		myInteractionPanel.add(myDeleteQuestionsButton);
+	}
+	
+	private JPanel createQuestionPanel() {
+		
+		return createQuestionPanel(myQuestionPanels.size()+1, "", "", null, null, new boolean[XmlQuestion.NUM_GRADING_CRITERIA]);
+	}
+	
+	private JPanel createQuestionPanel(int number, String question, String hint, File answerFile, File imageFile, boolean[] gradingCriteria) {
+		
+		//
+		final JPanel questionPanel = new JPanel();
+		questionPanel.setBackground(Color.white);
+		
+		// select checkbox
+		JPanel selectCheckBoxPanel = new JPanel();
+		selectCheckBoxPanel.setBackground(Color.white);
+		JCheckBox selectCheckBox = new JCheckBox();
+		selectCheckBox.setBackground(Color.white);
+		selectCheckBoxPanel.add(selectCheckBox);
+		questionPanel.add(selectCheckBoxPanel);
+		
+		// number text field
+		JPanel numberTextFieldPanel = new JPanel();
+		numberTextFieldPanel.setBackground(Color.white);
+		JFormattedTextField numberTextField = new JFormattedTextField();
+		numberTextField.setBackground(Color.white);
+		numberTextField.setValue(number);
+		numberTextField.setColumns(2);
+		numberTextFieldPanel.add(numberTextField);
+		questionPanel.add(numberTextFieldPanel);
+		
+		// question text field
+		JPanel questionTextAreaPanel = new JPanel();
+		questionTextAreaPanel.setBackground(Color.white);
+		JTextArea questionTextArea = new JTextArea(QUESTION_HINT_TEXT_AREA_HEIGHT, QUESTION_HINT_TEXT_AREA_WIDTH);
+		questionTextArea.setBackground(Color.white);
+		questionTextArea.setLineWrap(true);
+		questionTextArea.setWrapStyleWord(true);
+		questionTextArea.setText(question);
+		JScrollPane questionTextAreaScroller = new JScrollPane(questionTextArea);
+		questionTextAreaPanel.add(questionTextAreaScroller);
+		questionPanel.add(questionTextAreaPanel);
+		
+		// hint text field
+		JPanel hintTextAreaPanel = new JPanel();
+		hintTextAreaPanel.setBackground(Color.white);
+		JTextArea hintTextArea = new JTextArea(QUESTION_HINT_TEXT_AREA_HEIGHT, QUESTION_HINT_TEXT_AREA_WIDTH);
+		hintTextArea.setBackground(Color.white);
+		hintTextArea.setLineWrap(true);
+		hintTextArea.setWrapStyleWord(true);
+		hintTextArea.setText(hint);
+		JScrollPane hintTextAreaScroller = new JScrollPane(hintTextArea);
+		hintTextAreaPanel.add(hintTextAreaScroller);
+		questionPanel.add(hintTextAreaPanel);
+		
+		// load answer button
+		JPanel loadAnswerButtonPanel = new JPanel();
+		loadAnswerButtonPanel.setBackground(Color.white);
+		loadAnswerButtonPanel.setLayout(new BoxLayout(loadAnswerButtonPanel, BoxLayout.Y_AXIS));
+		JButton loadAnswerButton = new JButton("Load Answer");
+		loadAnswerButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		loadAnswerButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				loadAnswer(questionPanel, getNumber(questionPanel));
+			}
+		});
+		String answerFileName = "";
+		if (answerFile == null)
+			answerFileName = "none";
+		else
+			answerFileName = answerFile.getName();
+		JLabel loadAnswerLabel = new JLabel(answerFileName);
+		loadAnswerLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		loadAnswerButtonPanel.add(loadAnswerButton);
+		loadAnswerButtonPanel.add(loadAnswerLabel);
+		questionPanel.add(loadAnswerButtonPanel);
+//		myAnswerFiles = new HashMap<Integer, File>();
+//		myAnswerFiles.put(number, answerFile);
+		
+		// load image button
+		JPanel loadImageButtonPanel = new JPanel();
+		loadImageButtonPanel.setBackground(Color.white);
+		loadImageButtonPanel.setLayout(new BoxLayout(loadImageButtonPanel, BoxLayout.Y_AXIS));
+		JButton loadImageButton = new JButton("Load Image");
+		loadImageButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+		loadImageButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				loadImage(questionPanel, getNumber(questionPanel));
+			}
+		});
+		String imageFileName = "";
+		if (imageFile == null)
+			imageFileName = "none";
+		else
+			imageFileName = imageFile.getName();
+		JLabel loadImageLabel = new JLabel(imageFileName);
+		loadImageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		loadImageButtonPanel.add(loadImageButton);
+		loadImageButtonPanel.add(loadImageLabel);
+		questionPanel.add(loadImageButtonPanel);
+//		myImageFiles = new HashMap<Integer, File>();
+//		myImageFiles.put(number, imageFile);
+		
+		// grading criteria checkboxes
+		JPanel gradingCriteriaCheckboxesPanel = new JPanel(new GridLayout(6, 1));
+		gradingCriteriaCheckboxesPanel.setBackground(Color.white);
+		JCheckBox[] gradingCriteriaCheckBoxes = new JCheckBox[gradingCriteria.length];
+		gradingCriteriaCheckBoxes[0] = new JCheckBox("Clef?", null, gradingCriteria[0]);
+		gradingCriteriaCheckBoxes[1] = new JCheckBox("Key?", null, gradingCriteria[1]);
+		gradingCriteriaCheckBoxes[2] = new JCheckBox("Time?", null, gradingCriteria[2]);
+		gradingCriteriaCheckBoxes[3] = new JCheckBox("Notes?", null, gradingCriteria[3]);
+		gradingCriteriaCheckBoxes[4] = new JCheckBox("Duration?", null, gradingCriteria[4]);
+		gradingCriteriaCheckBoxes[5] = new JCheckBox("Measure?", null, gradingCriteria[5]);
+		for (JCheckBox gradingCriteriaCheckBox : gradingCriteriaCheckBoxes) {
+			
+			gradingCriteriaCheckBox.setBackground(Color.white);
+			gradingCriteriaCheckboxesPanel.add(gradingCriteriaCheckBox);
+		}
+		questionPanel.add(gradingCriteriaCheckboxesPanel);
+		
+		return questionPanel;
+	}
+	
+	private void loadAnswer(JPanel questionPanel, int number) {
+		
+		JFileChooser chooser = new JFileChooser();
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("XML Files", "xml");
+		chooser.setFileFilter(filter);
+		String loadDirPathname = System.getProperty("user.dir");
+		File loadDir = new File(loadDirPathname);
+		loadDir = loadDir.getParentFile();
+		loadDir = new File(loadDir.getAbsolutePath() + "/MusicDraw/src/edu/tamu/srl/music/learning/");
+		chooser.setCurrentDirectory(loadDir);
+		int returnVal = chooser.showOpenDialog(myFrame);
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			File file = chooser.getSelectedFile();
+			myAnswerFiles.put(questionPanel, file);
+			getAnswerFileNameLabel(questionPanel).setText(file.getName());
+		}
+		else if (returnVal == JFileChooser.CANCEL_OPTION) {
+			File file = null;
+			myAnswerFiles.put(questionPanel, file);
+			getAnswerFileNameLabel(questionPanel).setText("none");
+		}
+		updateQuestionsPanel();
+	}
+	
+	private void loadImage(JPanel questionPanel, int number) {
+		
+		JFileChooser chooser = new JFileChooser();
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("Image Files", "png", "jpg", "gif");
+		chooser.setFileFilter(filter);
+		String loadDirPathname = System.getProperty("user.dir");
+		File loadDir = new File(loadDirPathname);
+		loadDir = loadDir.getParentFile();
+		loadDir = new File(loadDir.getAbsolutePath() + "/MusicDraw/src/edu/tamu/srl/music/learning/");
+		chooser.setCurrentDirectory(loadDir);
+		int returnVal = chooser.showOpenDialog(myFrame);
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			File file = chooser.getSelectedFile();
+			myImageFiles.put(questionPanel, file);
+			getImageFileNameLabel(questionPanel).setText(file.getName());
+		}
+		else if (returnVal == JFileChooser.CANCEL_OPTION) {
+			File file = null;
+			myImageFiles.put(questionPanel, file);
+			getImageFileNameLabel(questionPanel).setText("none");
+		}
+		updateQuestionsPanel();
+	}
+	
+	private void updateQuestionsPanel() {
+		
+		//
+		myQuestionsPanel.removeAll();
+		
+		//
+		myQuestionsPanel.setLayout(new BoxLayout(myQuestionsPanel, BoxLayout.Y_AXIS));
+		myQuestionsPanel.setBackground(Color.white);
+		for (JPanel questionPanel : myQuestionPanels)
+			myQuestionsPanel.add(questionPanel);
+		
+		//
+		myFrame.repaint();
+		myFrame.revalidate();
+	}
+	
+	private void addQuestion() {
+	
+		// add new question panel to list of question panels
+		JPanel newQuestionPanel = createQuestionPanel();
+		getNumberTextField(newQuestionPanel).setText("" + (myQuestionPanels.size() + 1));
+		myQuestionPanels.add(newQuestionPanel);
+		
+		// update questions panel
+		updateQuestionsPanel();
+	}
+	
+	private void deleteQuestions() {
+		
+		// iterate through each question
+		Iterator<JPanel> iterator = myQuestionPanels.iterator();
+		while (iterator.hasNext()) {
+			
+			// get the current question panel
+			JPanel currentQuestionPanel = iterator.next();
+			
+			// remove checked question panels
+			if (isSelected(currentQuestionPanel)) {
+				
+				//
+				int deleteNumber = Integer.parseInt(getNumberTextField(currentQuestionPanel).getText());
+				
+				//
+				for (JPanel questionPanel : myQuestionPanels) {
+					
+					int number = Integer.parseInt(getNumberTextField(questionPanel).getText());
+					if (number > deleteNumber)
+						getNumberTextField(questionPanel).setText("" + --number);
+				}
+				
+				// remove the current question panel from the list of question panels
+				iterator.remove();
+			}
+		}
+		
+		// update the question panel
+		updateQuestionsPanel();
+	}
+	
+	// http://alvinalexander.com/java/java-menubar-example-jmenubar-jframe
+	private void createMenuBar() {
+		
+		// create the entire menu bar
+		myMenuBar = new JMenuBar();
+		
+		// create the file menu bar
+		JMenu fileMenu = new JMenu("File");
+		
+		// new lesson menu option
+		JMenuItem newLessonMenu = new JMenuItem("New Lesson");
+		newLessonMenu.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				newLesson();
+			}
+		});
+		fileMenu.add(newLessonMenu);
+		
+		// separator
+		fileMenu.addSeparator();
+		
+//		// load text menu option
+//		JMenuItem loadTextMenu = new JMenuItem("Load Text");
+//		loadTextMenu.addActionListener(new ActionListener() {
+//			public void actionPerformed(ActionEvent e) {
+//				loadText();
+//			}
+//		});
+//		fileMenu.add(loadTextMenu);
+		
+		// load lesson menu option
+		JMenuItem loadLessonMenu = new JMenuItem("Load Lesson");
+		loadLessonMenu.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				loadLesson();
+			}
+		});
+		fileMenu.add(loadLessonMenu);
+		
+//		// separator
+//		fileMenu.addSeparator();
+		
+		// save lesson menu option
+		JMenuItem saveLessonMenu = new JMenuItem("Save Lesson");
+		saveLessonMenu.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				saveLesson();
+			}
+		});
+		fileMenu.add(saveLessonMenu);
+		
+		//
+		fileMenu.addSeparator();
+		
+		//
+		JMenuItem exitMenu = new JMenuItem("Exit");
+		exitMenu.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				exitProcedure();
+			}
+		});
+		fileMenu.add(exitMenu);
+		
+		// add the file menu to the menu bar
+		myMenuBar.add(fileMenu);
+	}
+	
+	/**
+	 * Handles application after user closes the main frame.
+	 */
+	public void exitProcedure() {
+		
+        myFrame.dispose();
+        System.exit(0);
+    }
+	
+	private void newLesson() {
+		
+		setTitle("");
+		myQuestionPanels = new ArrayList<JPanel>();
+		myQuestionPanels.add(createQuestionPanel());
+		updateQuestionsPanel();
+	}
+	
+	private void loadLesson() {
+		
+		// choose the file
+		JFileChooser chooser = new JFileChooser();
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("XML Files", "xml");
+		chooser.setFileFilter(filter);
+		String loadDirPathname = System.getProperty("user.dir");
+		File loadDir = new File(loadDirPathname);
+		loadDir = loadDir.getParentFile();
+		loadDir = new File(loadDir.getAbsolutePath() + "/MusicDraw/src/edu/tamu/srl/music/learning/");
+		chooser.setCurrentDirectory(loadDir);
+		int returnVal = chooser.showOpenDialog(myFrame);
+		File xmlFile = null;
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			xmlFile = chooser.getSelectedFile();
+		}
+		
+		// parse the xml file
+		if (xmlFile != null) {
+			XmlLessonParser parser = new XmlLessonParser(xmlFile);
+			XmlLesson xmlLesson = parser.getXmlLesson();
+			
+			// load the lesson
+			setTitle(xmlLesson.getTitle());
+			myQuestionsPanel.removeAll();
+			myQuestionPanels = new ArrayList<JPanel>();
+			myAnswerFiles = new HashMap<JPanel, File>();
+			myImageFiles = new HashMap<JPanel, File>();
+			for (XmlQuestion xmlQuestion : xmlLesson.getQuestions()) {
+				
+				int number = xmlQuestion.getQuestionNumber();
+				String question = xmlQuestion.getQuestionText();
+				String hint = xmlQuestion.getHintText();
+				System.out.println(">>> " + hint);
+				File answerFile = xmlQuestion.getAnswerFile();
+				File imageFile = xmlQuestion.getImageFile();
+				boolean[] gradingCriteria = xmlQuestion.getGradingCriteria();
+				
+				JPanel questionPanel = createQuestionPanel(number, question, hint, answerFile, imageFile, gradingCriteria);
+				myAnswerFiles.put(questionPanel, answerFile);
+				myImageFiles.put(questionPanel, imageFile);
+				
+				myQuestionPanels.add(questionPanel);
+			}
+			updateQuestionsPanel();
+		}
+	}
+	
+	private void saveLesson() {
+		
+		// create the xml object
+		List<XmlQuestion> xmlQuestions = new ArrayList<XmlQuestion>();
+		String title = getTitle();
+//		myAnswerFiles = new HashMap<JPanel, File>();
+//		myImageFiles = new HashMap<JPanel, File>();
+		for (JPanel questionPanel : myQuestionPanels) {
+			
+			int number = getNumber(questionPanel);
+			String question = getQuestion(questionPanel);
+			String hint = getHint(questionPanel);
+			System.out.println("<<< " + hint);
+			File answerFile = myAnswerFiles.get(questionPanel);
+			File imageFile = myImageFiles.get(questionPanel);
+			boolean[] gradingCriteria = getGradingCriteria(questionPanel);
+			
+			XmlQuestion xmlQuestion = new XmlQuestion(number, question, hint, answerFile, imageFile, gradingCriteria);
+			xmlQuestions.add(xmlQuestion);
+		}
+		XmlLesson xmlLesson = new XmlLesson(title, xmlQuestions);
+		
+		// choose the save location
+		JFileChooser chooser = new JFileChooser();
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("XML Files", "xml");
+		chooser.setFileFilter(filter);
+		String saveDirPathname = System.getProperty("user.dir");
+		File saveDir = new File(saveDirPathname);
+		saveDir = saveDir.getParentFile();
+		saveDir = new File(saveDir.getAbsolutePath() + "/MusicDraw/src/edu/tamu/srl/music/learning/");
+		chooser.setCurrentDirectory(saveDir);
+		int returnVal = chooser.showSaveDialog(myFrame);
+		File saveFile = null;
+		if (returnVal == JFileChooser.APPROVE_OPTION) {
+			saveFile = chooser.getSelectedFile();
+		}
+		
+		// save contents to file
+		if (saveFile != null) {
+			String fileName = saveFile.getName();
+			if (!fileName.endsWith(".xml"))
+				saveFile = new File(chooser.getSelectedFile() + ".xml");
+				
+			// write xml lesson object to save file
+			writeToXml(xmlLesson, saveFile);
+		}
+	}
+	
+	private void writeToXml(XmlLesson xmlLesson, File saveFile) {
+		
+		// write file
+		XMLOutputFactory factory = XMLOutputFactory.newInstance();
+		try {
+			
+			XMLStreamWriter writer = factory.createXMLStreamWriter(new FileWriter(saveFile));
+
+			writer.writeStartDocument();
+			writer.writeStartElement("lesson");
+			
+			writer.writeStartElement("title");
+			writer.writeCharacters("" + xmlLesson.getTitle());
+			writer.writeEndElement();
+			
+			writer.writeStartElement("questions");
+			for (XmlQuestion xmlQuestion : xmlLesson.getQuestions()) {
+				
+				writer.writeStartElement("question");
+				
+				writer.writeStartElement("number");
+				writer.writeCharacters("" + xmlQuestion.getQuestionNumber());
+				writer.writeEndElement();
+				
+				writer.writeStartElement("text");
+				writer.writeCharacters("" + xmlQuestion.getQuestionText());
+				writer.writeEndElement();
+				
+				writer.writeStartElement("hint");
+				writer.writeCharacters("" + xmlQuestion.getHintText());
+				writer.writeEndElement();
+				
+				writer.writeStartElement("answer");
+				writer.writeCharacters("" + xmlQuestion.getAnswerFile());
+				writer.writeEndElement();
+				
+				writer.writeStartElement("image");
+				writer.writeCharacters("" + xmlQuestion.getImageFile());
+				writer.writeEndElement();
+				
+				writer.writeStartElement("criteria");
+				for (boolean gradingCriterion : xmlQuestion.getGradingCriteria()) {
+					
+					writer.writeStartElement("criterion");
+					writer.writeCharacters("" + gradingCriterion);
+					writer.writeEndElement();
+				}
+				writer.writeEndElement();
+				
+				writer.writeEndElement();
+			}
+			writer.writeEndElement();
+			
+			writer.writeEndElement();
+			writer.writeEndDocument();
+			
+			writer.flush();
+			writer.close();
+		     
+		} catch (XMLStreamException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private String getTitle() {
+		
+		JTextField titleTextField  = (JTextField)((JPanel)myTitlePanel.getComponent(1)).getComponent(0);
+		return titleTextField.getText();
+	}
+	
+	private void setTitle(String title) {
+		
+		JTextField titleTextField  = (JTextField)((JPanel)myTitlePanel.getComponent(1)).getComponent(0);
+		titleTextField.setText(title);
+	}
+	
+	private JCheckBox getSelectCheckBox(JPanel panel) {
+		
+		return (JCheckBox)((JPanel)panel.getComponent(SELECT_CHECKBOX_POSITION)).getComponent(0);
+	}
+	
+	private JFormattedTextField getNumberTextField(JPanel panel) {
+		
+		return (JFormattedTextField)((JPanel)panel.getComponent(NUMBER_TEXTFIELD_POSITION)).getComponent(0);
+	}
+	
+	private JTextArea getQuestionTextArea(JPanel panel) {
+		
+		JScrollPane scrollPane = (JScrollPane)((JPanel)panel.getComponent(QUESTION_TEXTAREA_POSITION)).getComponent(0);
+		JViewport viewport = scrollPane.getViewport();
+		JTextArea questionTextArea = (JTextArea)viewport.getView();
+		
+		return questionTextArea;
+	}
+	
+	private JTextArea getHintTextArea(JPanel panel) {
+		
+		JScrollPane scrollPane = (JScrollPane)((JPanel)panel.getComponent(HINT_TEXTAREA_POSITION)).getComponent(0);
+		JViewport viewport = scrollPane.getViewport();
+		JTextArea hintTextArea = (JTextArea)viewport.getView();
+		
+		return hintTextArea;
+	}
+	
+	private JPanel getLoadAnswerPanel(JPanel panel) {
+		
+		return (JPanel)panel.getComponent(LOADANSWER_PANEL_POSITION);
+	}
+	
+	private JPanel getLoadImagePanel(JPanel panel) {
+		
+		return (JPanel)panel.getComponent(LOADIMAGE_PANEL_POSITION);
+	}
+	
+	private JPanel getGradingCriteriaPanel(JPanel panel) {
+		
+		return (JPanel)panel.getComponent(CRITERIA_CHECKBOXES_POSITION);
+	}
+	
+	private boolean isSelected(JPanel panel) {
+		
+		return getSelectCheckBox(panel).isSelected();
+	}
+	
+	private int getNumber(JPanel panel) {
+		
+		return Integer.parseInt(getNumberTextField(panel).getText());
+	}
+	
+	private String getQuestion(JPanel panel) {
+		
+		return getQuestionTextArea(panel).getText();
+	}
+	
+	private String getHint(JPanel panel) {
+		
+		System.out.println("??? " + getHintTextArea(panel).getText());
+		
+		return getHintTextArea(panel).getText();
+	}
+	
+	private JLabel getAnswerFileNameLabel(JPanel panel) {
+		
+		return (JLabel)getLoadAnswerPanel(panel).getComponent(FILENAME_LABEL_POSITION);
+	}
+	
+	private JLabel getImageFileNameLabel(JPanel panel) {
+		
+		return (JLabel)getLoadImagePanel(panel).getComponent(FILENAME_LABEL_POSITION);
+	}
+	
+	private boolean[] getGradingCriteria(JPanel panel) {
+		
+		JPanel gradingCriteriaPanel = (JPanel)getGradingCriteriaPanel(panel);
+		
+		boolean[] gradingCriteria = new boolean[XmlQuestion.NUM_GRADING_CRITERIA];
+		for (int i = 0; i < XmlQuestion.NUM_GRADING_CRITERIA; ++i) {
+			
+			Component component = gradingCriteriaPanel.getComponent(i);
+			JCheckBox checkBox = (JCheckBox)component;
+			gradingCriteria[i] = checkBox.isSelected();
+		}
+		
+		return gradingCriteria;
+	}
+	
+	
+	
+	private JFrame myFrame;
+	private JPanel myMainPanel;
+	private JMenuBar myMenuBar;
+	private JPanel myTitlePanel;
+	private JPanel myQuestionsPanel;
+	private JPanel myInteractionPanel;
+	private List<JPanel> myQuestionPanels;
+	private HashMap<JPanel, File> myAnswerFiles;
+	private HashMap<JPanel, File> myImageFiles;
+	private JButton myAddQuestionButton;
+	private JButton myDeleteQuestionsButton;
+	
+	public static final String APPLICATION_TITLE = "Music Lesson Creator";
+	public static int FRAME_WIDTH;
+	public static int FRAME_HEIGHT;
+	public static final double FRAME_RATIO = 0.8;
+	public static final int SELECT_CHECKBOX_POSITION = 0;
+	public static final int NUMBER_TEXTFIELD_POSITION = 1;
+	public static final int QUESTION_TEXTAREA_POSITION = 2;
+	public static final int HINT_TEXTAREA_POSITION = 3;
+	public static final int LOADANSWER_PANEL_POSITION = 4;
+	public static final int LOADIMAGE_PANEL_POSITION = 5;
+	public static final int CRITERIA_CHECKBOXES_POSITION = 6;
+	public static final int FILENAME_LABEL_POSITION = 1;
+	public static final int QUESTION_HINT_TEXT_AREA_WIDTH = 25;
+	public static final int QUESTION_HINT_TEXT_AREA_HEIGHT = 5;
+	
+//	public static final String LOAD_DIRECTORY_FILEPATH = "C:/Users/paultaele/Dropbox/School/code/Java/maestoso-sketch/MusicDraw/src/edu/tamu/srl/music/learning";
+}

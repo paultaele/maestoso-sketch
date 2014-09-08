@@ -1,0 +1,23 @@
+1409546549327	Rename local variable 'reportGui'
+1409551722364	Rename method 'generateFeedbackFrame'
+1409552423842	Rename local variable 'panel'
+1409589896879	Rename local variable 'label'
+1409589906658	Rename local variable 'gradeLabel'
+1409589911195	Rename local variable 'percentageLabe'
+1409590527293	Rename local variable 'right'
+1409590537857	Rename local variable 'left'
+1409591796591	Rename field 'RESPONSE_FONT'
+1409592084015	Rename field 'PRE_TEXT'
+1409592087191	Rename field 'POST_TEXT'
+1409786150519	Delete elements
+1409936391007	Delete element
+1409975820944	Rename local variable 'fileMenu'
+1409975928433	Rename local variable 'newPractice'
+1409976587216	Rename local variable 'originalStrokes'
+1410016034988	Rename local variable 'loadPractice'
+1410016041600	Rename local variable 'newQuiz'
+1410016050557	Rename local variable 'saveAnswerMenu'
+1410016058513	Rename local variable 'exitMenu'
+1410016368457	Rename field 'myDisplayOriginal'
+1410024386369	Rename local variable 'strokes'
+1410046277954	Move files
