@@ -19,13 +19,32 @@ public class IStroke  {
 	
 		myColor = color;
 		myPoints = new ArrayList<Point2D.Double>();
-		
 	}
 	
 	public IStroke(List<Point2D.Double> points, Color color) {
 		
 		myColor = color;
 		myPoints = points;
+	}
+	
+	public IStroke copy() {
+		
+		// initialize copy
+		IStroke copy = new IStroke();
+		
+		// copy points
+		copy.myPoints = new ArrayList<Point2D.Double>();
+		for (Point2D.Double point : this.myPoints)
+			copy.myPoints.add(point);
+		
+		// copy color
+		copy.myColor = this.myColor;
+		
+		// copy bounding box
+		if (myBoundingBox != null)
+			copy.myBoundingBox = this.myBoundingBox.copy();
+		
+		return copy;
 	}
 	
 	public void add(Point2D.Double point) {

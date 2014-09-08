@@ -11,6 +11,8 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
+import edu.tamu.srl.music.gui.MaestosoSketchGui;
+
 public class IShape {
 	
 	public IShape(ShapeName shapeName, IStroke stroke) {
@@ -19,6 +21,10 @@ public class IShape {
 		myShapeGroup = myShapeGroup(shapeName);
 		myStrokes = new ArrayList<IStroke>();
 		myStrokes.add(stroke);
+		myOriginalStrokes = new ArrayList<IStroke>();			// original strokes
+		myOriginalStrokes.add(stroke.copy());					//
+		for (IStroke originalStroke : myOriginalStrokes)		//
+			originalStroke.setColor(Color.black);				//
 		myHasImage = false;
 		
 		myBoundingBox = new BoundingBox(stroke.getPoints());
@@ -31,6 +37,11 @@ public class IShape {
 		myShapeName = shapeName;
 		myShapeGroup = myShapeGroup(shapeName);
 		myStrokes = strokes;
+		myOriginalStrokes = new ArrayList<IStroke>();			// original strokes
+		for (IStroke stroke : strokes)							//
+			myOriginalStrokes.add(stroke.copy());				//
+		for (IStroke originalStroke : myOriginalStrokes)		//
+			originalStroke.setColor(Color.black);				//
 		myHasImage = false;
 		
 		List<Point2D.Double> points = new ArrayList<Point2D.Double>();
@@ -123,6 +134,11 @@ public class IShape {
 	public List<IStroke> getStrokes() {
 		
 		return myStrokes;
+	}
+	
+	public List<IStroke> getOriginalStrokes() {
+		
+		return myOriginalStrokes;
 	}
 	
 	public List<IImage> getImages() {
@@ -225,6 +241,7 @@ public class IShape {
 	private ShapeName myShapeName;
 	private ShapeGroup myShapeGroup;
 	protected List<IStroke> myStrokes;
+	protected List<IStroke> myOriginalStrokes;
 	private boolean myHasImage;
 	private boolean myHasTransformed;
 	private BoundingBox myBoundingBox;
@@ -232,5 +249,5 @@ public class IShape {
 	private boolean myCanDisplayStrokes;
 	
 	private static HashMap<String, BufferedImage> myImagesMap;
-	public static final String IMAGE_DIR_PATHNAME = "src/edu/tamu/srl/music/images/";
+	public static final String IMAGE_DIR_PATHNAME = MaestosoSketchGui.USER_DIR + "src/edu/tamu/srl/music/images/";
 }

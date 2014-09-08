@@ -2,6 +2,7 @@ package edu.tamu.srl.music.classifier;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Point2D.Double;
+import java.util.ArrayList;
 import java.util.List;
 
 public class BoundingBox {
@@ -9,6 +10,20 @@ public class BoundingBox {
 	public BoundingBox(List<Point2D.Double> points) {
 		
 		createBoundingBox(points);
+	}
+	
+	public BoundingBox copy() {
+		
+		BoundingBox copy = new BoundingBox(null);
+		
+		copy.myMinX = this.myMinX;
+		copy.myMinY = this.myMinY;
+		copy.myMaxX = this.myMaxX;
+		copy.myMaxY = this.myMaxY;
+		copy.myCenterX = this.myCenterX;
+		copy.myCenterY = this.myCenterY;
+		
+		return copy;
 	}
 	
 	private void createBoundingBox(List<Point2D.Double> points) {

@@ -154,7 +154,7 @@ public class ReportGui implements Runnable {
 		panel.setBackground(Color.white);
 		
 		//
-		String fixedText = MusicDrawGui.getFixedText("" + number + ". " + text, QUESTION_TEXT_LENGTH);
+		String fixedText = MaestosoSketchGui.getFixedText("" + number + ". " + text, QUESTION_TEXT_LENGTH);
 		JLabel label = new JLabel();
 		label.setFont(QUESTION_FONT);
 		label.setBackground(Color.white);
@@ -195,7 +195,7 @@ public class ReportGui implements Runnable {
 		panel.setBackground(Color.white);
 		
 		//
-		ImageIcon imageIcon = new ImageIcon(FeedbackGui.resizeImage(imagePath, MusicDrawGui.PREVIEW_IMAGE_WIDTH_SMALL, MusicDrawGui.PREVIEW_IMAGE_HEIGHT_SMALL));
+		ImageIcon imageIcon = new ImageIcon(FeedbackGui.resizeImage(imagePath, MaestosoSketchGui.PREVIEW_IMAGE_WIDTH_SMALL, MaestosoSketchGui.PREVIEW_IMAGE_HEIGHT_SMALL));
 		JLabel imageLabel = new JLabel(imageIcon);
 		imageLabel.setBackground(Color.white);
 		
@@ -239,7 +239,7 @@ public class ReportGui implements Runnable {
 		
 		//
 		String text = "Of the <b>" + numTotal + "</b> problems in this lesson, you have answered <b>" + numCorrect + "</b> problems correctly.";
-		String fixedText = MusicDrawGui.getFixedText(text, SUMMARY_TEXT_LENGTH);
+		String fixedText = MaestosoSketchGui.getFixedText(text, SUMMARY_TEXT_LENGTH);
 		JLabel label = new JLabel();
 		label.setBackground(Color.white);
 		label.setText(PRE_HTML + text + POST_HTML);

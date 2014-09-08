@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import edu.tamu.srl.music.gui.MaestosoSketchGui;
 import edu.tamu.srl.music.xml.sketch.XmlPoint;
 import edu.tamu.srl.music.xml.sketch.XmlSketch;
 import edu.tamu.srl.music.xml.sketch.XmlSketchParser;
@@ -151,5 +152,5 @@ public class Template {
 	private String myShape;
 	
 	private static HashMap<String, List<Template>> myTemplatesMap;
-	public static final String DATA_DIR_PATHNAME = "src/edu/tamu/srl/music/data/";
+	public static final String DATA_DIR_PATHNAME = MaestosoSketchGui.USER_DIR + "/src/edu/tamu/srl/music/data/";
 }

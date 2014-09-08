@@ -22,6 +22,7 @@ import javax.swing.JPanel;
 
 import edu.tamu.srl.music.classifier.IImage;
 import edu.tamu.srl.music.classifier.IShape;
+import edu.tamu.srl.music.classifier.IShape.ShapeGroup;
 import edu.tamu.srl.music.classifier.IStroke;
 import edu.tamu.srl.music.classifier.ShapeClassifier;
 
@@ -39,7 +40,7 @@ public class SketchPanel extends JPanel {
 	 * 
 	 * @param gui The associated GUI object.
 	 */
-	public SketchPanel(MusicDrawGui gui) {
+	public SketchPanel(MaestosoSketchGui gui) {
 		
 		// give access of the associated GUI to the sketch panel
 		myGui = gui;
@@ -143,7 +144,6 @@ public class SketchPanel extends JPanel {
 			// create the canvas' image
 			myWidth = myGui.getFrame().getSize().width;
 			myHeight = myGui.getFrame().getSize().height;
-//			myImage = createImage(getSize().width, getSize().height);
 			myImage = createImage(myWidth, myHeight);
 			
 			// set the canvas' graphic with the created image
@@ -240,7 +240,6 @@ public class SketchPanel extends JPanel {
 		
 		// repaint current list of shapes
 		repaintShapes(myShapes);
-		
 	}
 	
 	/**
@@ -266,7 +265,7 @@ public class SketchPanel extends JPanel {
 		System.out.println("CHECK BUTTON PRESSED");
 	}
 	
-	private void repaintShapes(List<IShape> shapes) {
+	public void repaintShapes(List<IShape> shapes) {
 
 		// get the active color
 		Color activeColor = myGraphics2D.getColor();
@@ -278,50 +277,10 @@ public class SketchPanel extends JPanel {
 	    	double prevX, prevY, currX, currY;
 	    	for (IShape shape : shapes) {
 	    		
-	    		//
-	    		if (shape.hasImage() && DISPLAY_SHAPE_IMAGES) {
-	    			
-	    			int width, height, x, y;
-	    			BufferedImage originalImage, scaledImage;
-	    			for (IImage image : shape.getImages()) {
-	    				
-	    				x = (int)image.x();
-	    				y = (int)image.y();
-	    				width = (int)image.width();
-	    				height = (int)image.height();
-	    				originalImage = image.image();
-	    				scaledImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-	    				
-	    				Graphics g = scaledImage.createGraphics();
-		    			g.drawImage(originalImage, 0, 0, width, height, null);
-		    			g.dispose();
-		    			myGraphics2D.drawImage(scaledImage, x, y, null);
-	    			}
-	    		}
-	    		
-	    		//
-//	    		else {
-	    		if (shape.canDisplayStrokes()) {
-	    			
-	    			// iterate through each stroke
-			    	for (IStroke stroke : shape.getStrokes()) {
-				    		
-			    		// get the current stroke's points
-			    		List<Point2D.Double> points = stroke.getPoints();
-			    		myGraphics2D.setColor(stroke.getColor());
-				    	
-			    		// draw the stroke's path between each stroke point
-			    		for (int i = 1; i < points.size(); ++i) {
-				    		
-				    		prevX = points.get(i-1).x;
-				    		prevY = points.get(i-1).y;
-				    		currX = points.get(i).x;
-				    		currY = points.get(i).y;
-				    		Shape line = new Line2D.Double(prevX, prevY, currX, currY);
-				    		myGraphics2D.draw(line);
-				    	}
-			    	}
-		    	}
+	    		if (!MaestosoSketchGui.canDisplayOriginal())
+	    			displayBeautified(shape);	    		
+	    		else
+	    			displayRaw(shape); // TODO
 	    	}
 	    }
 	    
@@ -360,6 +319,102 @@ public class SketchPanel extends JPanel {
 		repaint();
 	}
 	
+	// TODO
+	private void displayRaw(IShape shape) {
+	
+		// iterate through each stroke
+		double prevX, prevY, currX, currY;
+		
+		if (shape.getShapeGroup() == ShapeGroup.STAFF) {
+			
+			for (IStroke stroke : shape.getStrokes()) {
+	    		
+	    		// get the current stroke's points
+	    		List<Point2D.Double> points = stroke.getPoints();
+	    		myGraphics2D.setColor(stroke.getColor());
+		    	
+	    		// draw the stroke's path between each stroke point
+	    		for (int i = 1; i < points.size(); ++i) {
+		    		
+		    		prevX = points.get(i-1).x;
+		    		prevY = points.get(i-1).y;
+		    		currX = points.get(i).x;
+		    		currY = points.get(i).y;
+		    		Shape line = new Line2D.Double(prevX, prevY, currX, currY);
+		    		myGraphics2D.draw(line);
+		    	}
+	    	}
+		}
+		else {
+			
+			for (IStroke stroke : shape.getOriginalStrokes()) {
+	    		
+	    		// get the current stroke's points
+	    		List<Point2D.Double> points = stroke.getPoints();
+	    		myGraphics2D.setColor(stroke.getColor());
+		    	
+	    		// draw the stroke's path between each stroke point
+	    		for (int i = 1; i < points.size(); ++i) {
+		    		
+		    		prevX = points.get(i-1).x;
+		    		prevY = points.get(i-1).y;
+		    		currX = points.get(i).x;
+		    		currY = points.get(i).y;
+		    		Shape line = new Line2D.Double(prevX, prevY, currX, currY);
+		    		myGraphics2D.draw(line);
+		    	}
+	    	}
+		}
+	}
+	
+	private void displayBeautified(IShape shape) {
+		
+		// 
+		if (shape.hasImage() && DISPLAY_SHAPE_IMAGES) {
+			
+			int width, height, x, y;
+			BufferedImage originalImage, scaledImage;
+			for (IImage image : shape.getImages()) {
+				
+				x = (int)image.x();
+				y = (int)image.y();
+				width = (int)image.width();
+				height = (int)image.height();
+				originalImage = image.image();
+				scaledImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+				
+				Graphics g = scaledImage.createGraphics();
+    			g.drawImage(originalImage, 0, 0, width, height, null);
+    			g.dispose();
+    			myGraphics2D.drawImage(scaledImage, x, y, null);
+			}
+		}
+		
+		//
+		if (shape.canDisplayStrokes()) {
+			
+			// iterate through each stroke
+			double prevX, prevY, currX, currY;
+	    	for (IStroke stroke : shape.getStrokes()) {
+		    		
+	    		// get the current stroke's points
+	    		List<Point2D.Double> points = stroke.getPoints();
+	    		myGraphics2D.setColor(stroke.getColor());
+		    	
+	    		// draw the stroke's path between each stroke point
+	    		for (int i = 1; i < points.size(); ++i) {
+		    		
+		    		prevX = points.get(i-1).x;
+		    		prevY = points.get(i-1).y;
+		    		currX = points.get(i).x;
+		    		currY = points.get(i).y;
+		    		Shape line = new Line2D.Double(prevX, prevY, currX, currY);
+		    		myGraphics2D.draw(line);
+		    	}
+	    	}
+    	}
+	}
+	
 	/**
 	 * Sets the paint to blue.
 	 */
@@ -387,7 +442,7 @@ public class SketchPanel extends JPanel {
 
 	
 	
-	private MusicDrawGui myGui;
+	private MaestosoSketchGui myGui;
 	
 	private Image myImage;							// the image that the user will draw on
 	private Graphics2D myGraphics2D;				// the graphic that the user will draw on
@@ -404,7 +459,7 @@ public class SketchPanel extends JPanel {
 	private int myWidth;
 	private int myHeight;
 	
-	private static final float STROKE_WIDTH = 3f;	// the pen's stroke width
+	private static final float STROKE_WIDTH = 5f;	// the pen's stroke width
 	private static final Stroke STROKE_STYLE 		// the mouse's stroke style
 		= new BasicStroke(STROKE_WIDTH, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND);
 	

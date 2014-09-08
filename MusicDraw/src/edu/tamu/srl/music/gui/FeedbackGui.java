@@ -66,7 +66,7 @@ public class FeedbackGui implements Runnable {
         myFrame.addWindowListener(new WindowAdapter() {
         	public void windowClosing(WindowEvent windowEvent) {
         		
-        		if (!MusicDrawGui.isPractice() && myQuestion.getQuestionNumber() == myResponses.length) {
+        		if (!MaestosoSketchGui.isPractice() && myQuestion.getQuestionNumber() == myResponses.length) {
         			ReportGui reportGui = new ReportGui(myQuestions, myResponses);
         			EventQueue.invokeLater(reportGui);
         		}
@@ -206,7 +206,7 @@ public class FeedbackGui implements Runnable {
 	private JPanel createImagePanel() {
 		
 		String imagePath = myQuestion.getImageFile().getAbsolutePath();
-		ImageIcon imageIcon = new ImageIcon(resizeImage(imagePath, MusicDrawGui.PREVIEW_IMAGE_WIDTH_MEDIUM, MusicDrawGui.PREVIEW_IMAGE_HEIGHT_MEDIUM));
+		ImageIcon imageIcon = new ImageIcon(resizeImage(imagePath, MaestosoSketchGui.PREVIEW_IMAGE_WIDTH_MEDIUM, MaestosoSketchGui.PREVIEW_IMAGE_HEIGHT_MEDIUM));
 		JLabel imageLabel = new JLabel(imageIcon);
 		imageLabel.setBackground(Color.white);
 		JPanel imagePanel = new JPanel();
@@ -442,17 +442,35 @@ public class FeedbackGui implements Runnable {
 				// case: the key signatures aren't the same size
 				if (submittedKeys.size() != modelKeys.size()) {
 					match = false;
-					subFeedback = "The number of keys in your signature does not match those in the model answer.";
+					subFeedback = "The number of keys in the signature does not match those in the model answer.";
 					break;
 				}
 				
-				// iterate through each key
+				// TODO: iterate through each key for existence
+				for (int j = 0; j < submittedKeys.size(); ++j) {
+
+					boolean contains = false;
+					for (int k = 0; k < modelKeys.size(); ++k) {
+						
+						if (modelKeys.get(k).getPosition() == submittedKeys.get(j).getPosition())
+							contains = true;
+					}
+					
+					// class: the key does not exist
+					if (match && !contains) {
+						match = false;
+						subFeedback = "At least one key is not contained in the model answer.";
+						break;
+					}
+				}
+				
+				// iterate through each key for order
 				for (int j = 0; j < submittedKeys.size(); ++j) {
 					
-					// class: the keys don't match
+					// class: the keys are out-of-order
 					if (match && submittedKeys.get(j).getPosition() != modelKeys.get(j).getPosition()) {
 						match = false;
-						subFeedback = "At least one key's type does not match those in the model answer.";
+						subFeedback = "The keys are not in the correct order.";
 						break;
 					}
 				}
@@ -962,16 +980,16 @@ public class FeedbackGui implements Runnable {
 	public static String CORRECT_BOX = "<b>&#9745;</b>";
 	public static String INCORRECT_BOX = "<b>&#9746;</b>";
 	public static final int WINDOW_WIDTH = 800;
-	public static final int WINDOW_HEIGHT = 600;
+	public static final int WINDOW_HEIGHT = 650;
 	public static final double DEFAULT_BEAT_RATIO = 0.25;
 	public static final double TOP_STANDARD_BEAT = 4.0;
 	public static final double BOTTOM_STANDARD_BEAT = 4.0;
 	public static final int NUM_CRITERIA_PANEL_SLOTS = 20;
 	
-	public static final String BOX_YES_IMAGE_FILE_PATH = MusicDrawGui.IMAGES_DIR_PATHNAME + "box_yes.png";
-	public static final String BOX_NO_IMAGE_FILE_PATH = MusicDrawGui.IMAGES_DIR_PATHNAME + "box_no.png";
-	public static final String BOX_EMPTY_IMAGE_FILE_PATH = MusicDrawGui.IMAGES_DIR_PATHNAME + "box_empty.png";
-	public static final String BOX_SKIP_IMAGE_FILE_PATH = MusicDrawGui.IMAGES_DIR_PATHNAME + "box_skip.png";
+	public static final String BOX_YES_IMAGE_FILE_PATH = MaestosoSketchGui.IMAGES_DIR_PATHNAME + "box_yes.png";
+	public static final String BOX_NO_IMAGE_FILE_PATH = MaestosoSketchGui.IMAGES_DIR_PATHNAME + "box_no.png";
+	public static final String BOX_EMPTY_IMAGE_FILE_PATH = MaestosoSketchGui.IMAGES_DIR_PATHNAME + "box_empty.png";
+	public static final String BOX_SKIP_IMAGE_FILE_PATH = MaestosoSketchGui.IMAGES_DIR_PATHNAME + "box_skip.png";
 	public static final int BOX_WIDTH = 50;
 	public static final int BOX_HEIGHT = 50;
 }

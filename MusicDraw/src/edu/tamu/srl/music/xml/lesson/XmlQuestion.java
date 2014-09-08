@@ -4,10 +4,11 @@ import java.io.File;
 
 public class XmlQuestion {
 	
-	public XmlQuestion(int number, String questionText, File answerFile, File imageFile, boolean[] gradingCriteria) {
+	public XmlQuestion(int number, String questionText, String hintText, File answerFile, File imageFile, boolean[] gradingCriteria) {
 		
 		myQuestionNumber = number;
 		myQuestionText = questionText;
+		myHintText = hintText;
 		myAnswerFile = answerFile;
 		myImageFile = imageFile;
 		myGradingCriteria = gradingCriteria;
@@ -15,6 +16,7 @@ public class XmlQuestion {
 	
 	public int getQuestionNumber() { return myQuestionNumber; }
 	public String getQuestionText() { return myQuestionText; }
+	public String getHintText() { return myHintText; }
 	public File getAnswerFile() { return myAnswerFile; }
 	public File getImageFile() { return myImageFile; }
 	public boolean[] getGradingCriteria() { return myGradingCriteria; }
@@ -33,12 +35,14 @@ public class XmlQuestion {
 		return false;
 	}
 	
+	
+	
 	private int myQuestionNumber;
 	private String myQuestionText;
+	private String myHintText;
 	private File myAnswerFile;
 	private File myImageFile;
 	private boolean[] myGradingCriteria;
-	
 	
 	public static final int NUM_GRADING_CRITERIA = 6;
 	public static final int CLEF_INDEX = 0;

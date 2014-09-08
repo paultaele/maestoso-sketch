@@ -195,10 +195,10 @@ public class LessonBuilderGui implements Runnable {
 	
 	private JPanel createQuestionPanel() {
 		
-		return createQuestionPanel(myQuestionPanels.size()+1, "", null, null, new boolean[XmlQuestion.NUM_GRADING_CRITERIA]);
+		return createQuestionPanel(myQuestionPanels.size()+1, "", "", null, null, new boolean[XmlQuestion.NUM_GRADING_CRITERIA]);
 	}
 	
-	private JPanel createQuestionPanel(int number, String question, File answerFile, File imageFile, boolean[] gradingCriteria) {
+	private JPanel createQuestionPanel(int number, String question, String hint, File answerFile, File imageFile, boolean[] gradingCriteria) {
 		
 		//
 		final JPanel questionPanel = new JPanel();
@@ -225,7 +225,7 @@ public class LessonBuilderGui implements Runnable {
 		// question text field
 		JPanel questionTextAreaPanel = new JPanel();
 		questionTextAreaPanel.setBackground(Color.white);
-		JTextArea questionTextArea = new JTextArea(5, 50);
+		JTextArea questionTextArea = new JTextArea(QUESTION_HINT_TEXT_AREA_HEIGHT, QUESTION_HINT_TEXT_AREA_WIDTH);
 		questionTextArea.setBackground(Color.white);
 		questionTextArea.setLineWrap(true);
 		questionTextArea.setWrapStyleWord(true);
@@ -233,6 +233,18 @@ public class LessonBuilderGui implements Runnable {
 		JScrollPane questionTextAreaScroller = new JScrollPane(questionTextArea);
 		questionTextAreaPanel.add(questionTextAreaScroller);
 		questionPanel.add(questionTextAreaPanel);
+		
+		// hint text field
+		JPanel hintTextAreaPanel = new JPanel();
+		hintTextAreaPanel.setBackground(Color.white);
+		JTextArea hintTextArea = new JTextArea(QUESTION_HINT_TEXT_AREA_HEIGHT, QUESTION_HINT_TEXT_AREA_WIDTH);
+		hintTextArea.setBackground(Color.white);
+		hintTextArea.setLineWrap(true);
+		hintTextArea.setWrapStyleWord(true);
+		hintTextArea.setText(hint);
+		JScrollPane hintTextAreaScroller = new JScrollPane(hintTextArea);
+		hintTextAreaPanel.add(hintTextAreaScroller);
+		questionPanel.add(hintTextAreaPanel);
 		
 		// load answer button
 		JPanel loadAnswerButtonPanel = new JPanel();
@@ -255,8 +267,6 @@ public class LessonBuilderGui implements Runnable {
 		loadAnswerButtonPanel.add(loadAnswerButton);
 		loadAnswerButtonPanel.add(loadAnswerLabel);
 		questionPanel.add(loadAnswerButtonPanel);
-//		myAnswerFiles = new HashMap<Integer, File>();
-//		myAnswerFiles.put(number, answerFile);
 		
 		// load image button
 		JPanel loadImageButtonPanel = new JPanel();
@@ -524,12 +534,13 @@ public class LessonBuilderGui implements Runnable {
 			for (XmlQuestion xmlQuestion : xmlLesson.getQuestions()) {
 				
 				int number = xmlQuestion.getQuestionNumber();
-				String text = xmlQuestion.getQuestionText();
+				String question = xmlQuestion.getQuestionText();
+				String hint = xmlQuestion.getHintText();
 				File answerFile = xmlQuestion.getAnswerFile();
 				File imageFile = xmlQuestion.getImageFile();
 				boolean[] gradingCriteria = xmlQuestion.getGradingCriteria();
 				
-				JPanel questionPanel = createQuestionPanel(number, text, answerFile, imageFile, gradingCriteria);
+				JPanel questionPanel = createQuestionPanel(number, question, hint, answerFile, imageFile, gradingCriteria);
 				myAnswerFiles.put(questionPanel, answerFile);
 				myImageFiles.put(questionPanel, imageFile);
 				
@@ -544,17 +555,24 @@ public class LessonBuilderGui implements Runnable {
 		// create the xml object
 		List<XmlQuestion> xmlQuestions = new ArrayList<XmlQuestion>();
 		String title = getTitle();
-//		myAnswerFiles = new HashMap<JPanel, File>();
-//		myImageFiles = new HashMap<JPanel, File>();
+		if (myAnswerFiles == null)
+			myAnswerFiles = new HashMap<JPanel, File>();
+		if (myImageFiles == null)
+			myImageFiles = new HashMap<JPanel, File>();
 		for (JPanel questionPanel : myQuestionPanels) {
 			
 			int number = getNumber(questionPanel);
 			String question = getQuestion(questionPanel);
+			if (question.equals(""))
+				question = " ";
+			String hint = getHint(questionPanel);
+			if (hint.equals(""))
+				hint = " ";
 			File answerFile = myAnswerFiles.get(questionPanel);
 			File imageFile = myImageFiles.get(questionPanel);
 			boolean[] gradingCriteria = getGradingCriteria(questionPanel);
 			
-			XmlQuestion xmlQuestion = new XmlQuestion(number, question, answerFile, imageFile, gradingCriteria);
+			XmlQuestion xmlQuestion = new XmlQuestion(number, question, hint, answerFile, imageFile, gradingCriteria);
 			xmlQuestions.add(xmlQuestion);
 		}
 		XmlLesson xmlLesson = new XmlLesson(title, xmlQuestions);
@@ -611,6 +629,10 @@ public class LessonBuilderGui implements Runnable {
 				
 				writer.writeStartElement("text");
 				writer.writeCharacters("" + xmlQuestion.getQuestionText());
+				writer.writeEndElement();
+				
+				writer.writeStartElement("hint");
+				writer.writeCharacters("" + xmlQuestion.getHintText());
 				writer.writeEndElement();
 				
 				writer.writeStartElement("answer");
@@ -678,6 +700,15 @@ public class LessonBuilderGui implements Runnable {
 		return questionTextArea;
 	}
 	
+	private JTextArea getHintTextArea(JPanel panel) {
+		
+		JScrollPane scrollPane = (JScrollPane)((JPanel)panel.getComponent(HINT_TEXTAREA_POSITION)).getComponent(0);
+		JViewport viewport = scrollPane.getViewport();
+		JTextArea hintTextArea = (JTextArea)viewport.getView();
+		
+		return hintTextArea;
+	}
+	
 	private JPanel getLoadAnswerPanel(JPanel panel) {
 		
 		return (JPanel)panel.getComponent(LOADANSWER_PANEL_POSITION);
@@ -706,6 +737,11 @@ public class LessonBuilderGui implements Runnable {
 	private String getQuestion(JPanel panel) {
 		
 		return getQuestionTextArea(panel).getText();
+	}
+	
+	private String getHint(JPanel panel) {
+		
+		return getHintTextArea(panel).getText();
 	}
 	
 	private JLabel getAnswerFileNameLabel(JPanel panel) {
@@ -754,10 +790,13 @@ public class LessonBuilderGui implements Runnable {
 	public static final int SELECT_CHECKBOX_POSITION = 0;
 	public static final int NUMBER_TEXTFIELD_POSITION = 1;
 	public static final int QUESTION_TEXTAREA_POSITION = 2;
-	public static final int LOADANSWER_PANEL_POSITION = 3;
-	public static final int LOADIMAGE_PANEL_POSITION = 4;
-	public static final int CRITERIA_CHECKBOXES_POSITION = 5;
+	public static final int HINT_TEXTAREA_POSITION = 3;
+	public static final int LOADANSWER_PANEL_POSITION = 4;
+	public static final int LOADIMAGE_PANEL_POSITION = 5;
+	public static final int CRITERIA_CHECKBOXES_POSITION = 6;
 	public static final int FILENAME_LABEL_POSITION = 1;
+	public static final int QUESTION_HINT_TEXT_AREA_WIDTH = 25;
+	public static final int QUESTION_HINT_TEXT_AREA_HEIGHT = 5;
 	
 //	public static final String LOAD_DIRECTORY_FILEPATH = "C:/Users/paultaele/Dropbox/School/code/Java/maestoso-sketch/MusicDraw/src/edu/tamu/srl/music/learning";
 }

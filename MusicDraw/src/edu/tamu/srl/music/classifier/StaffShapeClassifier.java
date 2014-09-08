@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.tamu.srl.music.classifier.IShape.ShapeName;
-import edu.tamu.srl.music.gui.MusicDrawGui;
+import edu.tamu.srl.music.gui.MaestosoSketchGui;
 
 public class StaffShapeClassifier implements IShapeClassifier {
 

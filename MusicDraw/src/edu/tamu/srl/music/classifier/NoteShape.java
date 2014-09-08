@@ -1,11 +1,12 @@
 package edu.tamu.srl.music.classifier;
 
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
 import java.util.List;
 
 public class NoteShape extends IShape {
 
-	public NoteShape(ShapeName shapeName, IStroke head, HeadType headType, int position) {
+	public NoteShape(ShapeName shapeName, IStroke head, HeadType headType, int position, IStroke originalStroke) {
 		
 		super(shapeName, head);
 		
@@ -18,47 +19,61 @@ public class NoteShape extends IShape {
 		myAccidentalType = AccidentalType.NONE;
 		myHasFlag = false;
 		myHasDot = false;
+		
+		//
+		myOriginalStrokes = new ArrayList<IStroke>();
+		myOriginalStrokes.add(originalStroke);
 	}
 	
-	public void addStem(IStroke stemStroke, StemType stemType) {
+	public void addStem(IStroke stemStroke, IStroke originalStemStroke, StemType stemType) {
 	
 		myStemBox = stemStroke.getBoundingBox();
 		
 		myStrokes.add(stemStroke);
+		myOriginalStrokes.add(originalStemStroke);
 		myStemType = stemType;
 	}
 	
-	public void addFlag(IStroke flagStroke) {
+	public void addFlag(IStroke flagStroke, IStroke originalFlagStroke) {
 		
 		myStrokes.add(flagStroke);
+		myOriginalStrokes.add(originalFlagStroke);
 		myHasFlag = true;
 	}
 	
-	public void addBeam(IStroke stroke, NoteShape leftNote, NoteShape rightNote) {
+	public void addBeam(IStroke stroke, IStroke originalStroke, NoteShape leftNote, NoteShape rightNote) {
 		
 		myLeftNote = leftNote;
 		myRightNote = rightNote;
 		if (leftNote != null && rightNote == null)
 			myStrokes.add(stroke);
+		
+		myOriginalStrokes.add(originalStroke);
 	}
 	
 	public void addDot(IStroke stroke) {
 		
 		myStrokes.add(stroke);
+		myOriginalStrokes.add(stroke);
 		myHasDot = true;
 	}
 	
-	public void addAccidental(AccidentalType accidentalType, IImage image) {
+	public void addAccidental(AccidentalType accidentalType, IImage image, List<IStroke> originalStrokes) {
 		
 		addImage(image);
 		toggleDisplayStrokes(true);
 		myAccidentalType = accidentalType;
+
+		for (IStroke originalStroke : originalStrokes)
+			myOriginalStrokes.add(originalStroke);
 	}
 	
-	public void addLedgerLines(List<IStroke> lines) {
+	public void addLedgerLines(List<IStroke> lines, List<IStroke> originalLines) {
 		
 		for (IStroke line : lines)
 			myStrokes.add(line);
+		for (IStroke line : originalLines)
+			myOriginalStrokes.add(line);
 	}
 	
 	public Point2D.Double getStemEndpoint() {

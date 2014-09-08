@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import edu.tamu.srl.music.classifier.IShape.ShapeName;
-import edu.tamu.srl.music.gui.MusicDrawGui;
+import edu.tamu.srl.music.gui.MaestosoSketchGui;
 
 public class StaffLineShapeClassifier extends AbstractShapeClassifier implements IShapeClassifier {
 
@@ -63,7 +63,7 @@ public class StaffLineShapeClassifier extends AbstractShapeClassifier implements
 
 		// check if staff line matches entire width of draw application
 //		double distanceRatio = distance / MainGui.DEFAULT_FRAME_WIDTH;
-		double distanceRatio = distance / MusicDrawGui.getWidth();
+		double distanceRatio = distance / MaestosoSketchGui.getWidth();
 		if ( distanceRatio < DISTANCE_RATIO_FLOOR ||  distanceRatio > DISTANCE_RATIO_CEILING )
 			return false;
 			

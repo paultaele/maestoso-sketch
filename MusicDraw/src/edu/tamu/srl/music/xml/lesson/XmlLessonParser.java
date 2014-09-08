@@ -57,6 +57,9 @@ public class XmlLessonParser extends DefaultHandler  {
 		else if (element.equalsIgnoreCase("text")) {
 			myIsQuestion = true;
 		}
+		else if (element.equalsIgnoreCase("hint")) {
+			myIsHint = true;
+		}
 		else if (element.equalsIgnoreCase("answer")) {
 			myIsAnswer = true;
 		}
@@ -77,12 +80,18 @@ public class XmlLessonParser extends DefaultHandler  {
 		
 		String content = String.copyValueOf(ch, start, length).trim();
 		
-		if (myIsTitle)
+		if (myIsTitle) {
 			myTitle = content;
-		else if (myIsNumber)
+		}
+		else if (myIsNumber) {
 			myQuestionNumber = Integer.parseInt(content);
-		else if (myIsQuestion)
+		}
+		else if (myIsQuestion) {
 			myQuestionText = content;
+		}
+		else if (myIsHint) {
+			myHintText = content;
+		}
 		else if (myIsAnswer) {
 			if (content.equals("null"))
 				myAnswerFile = null;
@@ -117,6 +126,9 @@ public class XmlLessonParser extends DefaultHandler  {
 		else if (element.equalsIgnoreCase("text")) {
 			myIsQuestion = false;
 		}
+		else if (element.equalsIgnoreCase("hint")) {
+			myIsHint = false;
+		}
 		else if (element.equalsIgnoreCase("answer")) {
 			myIsAnswer = false;
 		}
@@ -130,7 +142,7 @@ public class XmlLessonParser extends DefaultHandler  {
 			myIsCriterion = false;
 		}
 		else if (element.equalsIgnoreCase("question")) {
-			XmlQuestion xmlQuestion = new XmlQuestion(myQuestionNumber, myQuestionText, myAnswerFile, myImageFile, myGradingCriteria);
+			XmlQuestion xmlQuestion = new XmlQuestion(myQuestionNumber, myQuestionText, myHintText, myAnswerFile, myImageFile, myGradingCriteria);
 			myXmlQuestions.add(xmlQuestion);
 		}
 		else if (element.equalsIgnoreCase("lesson")) {
@@ -141,8 +153,6 @@ public class XmlLessonParser extends DefaultHandler  {
 	
 	public XmlLesson getXmlLesson() {
 		
-		
-		
 		return myXmlLesson;
 	}
 	
@@ -151,12 +161,14 @@ public class XmlLessonParser extends DefaultHandler  {
 	private String myTitle;
 	private int myQuestionNumber;
 	private String myQuestionText;
+	private String myHintText;
 	private File myAnswerFile;
 	private File myImageFile;
 	private boolean[] myGradingCriteria;
 	private boolean myIsTitle;
 	private boolean myIsNumber;
 	private boolean myIsQuestion;
+	private boolean myIsHint;
 	private boolean myIsAnswer;
 	private boolean myIsImage;
 	private boolean myIsCriteria;

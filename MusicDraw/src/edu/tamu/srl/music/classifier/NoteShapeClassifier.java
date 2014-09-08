@@ -179,12 +179,11 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 			return null;
 		
 		// set the placeholder accidental IShape
-		List<IStroke> strokes = new ArrayList<IStroke>();
+		List<IStroke> scribbleStrokes = new ArrayList<IStroke>();
 		for (List<Point2D.Double> points : pointsLists)
-			strokes.add(new IStroke(points, Color.black));
-		IShape accidental = new IShape(ShapeName.RAW, strokes);
+			scribbleStrokes.add(new IStroke(points, Color.black));
+		IShape accidental = new IShape(ShapeName.RAW, scribbleStrokes);
 		
-		// START TEMP
 		// find the closest image
 		NoteShape randomNoteShape = noteShapes.get(0);
 		Point2D.Double accidentalPoint = accidental.getBoundingBox().right();
@@ -195,7 +194,7 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 			
 			// get the current note's bounding box and edge point
 			BoundingBox noteBox = noteShape.getBoundingBox();
-			Point2D.Double notePoint = notePoint = noteBox.left();;
+			Point2D.Double notePoint = notePoint = noteBox.left();
 			
 			// get the current distance and see if it's the closest note shape
 			double currDistance = Math.abs(notePoint.x - accidentalPoint.x);
@@ -221,7 +220,7 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 		double x = closestNotePoint.x - width - xOffset;
 		double y = closestNotePoint.y - yOffset;
 		IImage image = new IImage(bufferedImage, x, y, width, height);
-		closestNoteShape.addAccidental(accidentalType, image);
+		closestNoteShape.addAccidental(accidentalType, image, scribbleStrokes);
 		
 		return shapes;
 	}
@@ -455,8 +454,8 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 			beamPoints.add(right);
 		}
 		IStroke beamStroke = new IStroke(beamPoints, scribbleStroke.getColor());
-		leftNote.addBeam(beamStroke, null, rightNote);
-		rightNote.addBeam(beamStroke, leftNote, null);
+		leftNote.addBeam(beamStroke, scribbleStroke, null, rightNote);
+		rightNote.addBeam(beamStroke, scribbleStroke, leftNote, null);
 		
 		//
 		shapes.remove(leftNote);
@@ -585,7 +584,7 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 		IStroke flagStroke = new IStroke(flagPoints, scribbleStroke.getColor());
 		
 		//
-		note.addFlag(flagStroke);
+		note.addFlag(flagStroke, scribbleStroke);
 		flagStroke.setColor(CLEAN_STROKE_DISPLAY_COLOR);
 		
 		//
@@ -718,7 +717,7 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 		
 		//
 		NoteShape.StemType stemType = isDownwardStem ? NoteShape.StemType.DOWNWARD : NoteShape.StemType.UPWARD;
-		note.addStem(stemStroke, stemType);
+		note.addStem(stemStroke, scribbleStroke, stemType);
 		stemStroke.setColor(CLEAN_STROKE_DISPLAY_COLOR);
 		return shapes;
 	}
@@ -775,13 +774,16 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 		int numLines = 0;
 		List<IShape> lines = null;
 		ShapeName ledgerType = null;
+		List<IStroke> originalLedgerLines = new ArrayList<IStroke>();
 		if (StaffShape.TOP_LEDGER_MIN_POSITION < position && position < StaffShape.BOTTOM_LEDGER_MIN_POSITION) {
 			positionX = scribbleStroke.getBoundingBox().centerX();
 			positionY = staffShape.getPositionY(position);
 		}
 		else {
+			
 			// get the ledger line type
 			ledgerType = position <= StaffShape.TOP_LEDGER_MIN_POSITION ? ShapeName.UPPER_LINE : ShapeName.LOWER_LINE;
+			
 			// get all ledger lines that belong to the note head
 			lines = new ArrayList<IShape>();
 			Iterator<IShape> iterator = shapes.iterator();
@@ -793,6 +795,7 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 				
 					Point2D.Double lineLeftPoint = shape.getBoundingBox().left();
 					Point2D.Double lineRightPoint = shape.getBoundingBox().right();
+					originalLedgerLines.add(shape.getStrokes().get(0));
 					
 					// add note's ledger lines to list
 					if (lineLeftPoint.x < noteCenter.x && noteCenter.x < lineRightPoint.x) {
@@ -861,7 +864,7 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 		else if (headType == HeadType.EMPTY)
 			notePoints = getEmptyNoteStroke(positionX, positionY, interval);
 		IStroke noteStroke = new IStroke(notePoints, scribbleStroke.getColor());
-		NoteShape noteShape = new NoteShape(shapeName, noteStroke, headType, position);
+		NoteShape noteShape = new NoteShape(shapeName, noteStroke, headType, position, scribbleStroke);
 		
 		// add the ledger lines (if any)
 		if (numLines > 0) {
@@ -888,7 +891,7 @@ public class NoteShapeClassifier extends AbstractShapeClassifier implements ISha
 				lineStrokes.add(lineStroke);
 				
 				// add the line strokes to the note
-				noteShape.addLedgerLines(lineStrokes);
+				noteShape.addLedgerLines(lineStrokes, originalLedgerLines);
 			}
 		}
 		
