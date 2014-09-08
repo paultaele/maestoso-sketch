@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <qualifiedTypeNameHistroy>
-<fullyQualifiedTypeName name="edu.tamu.srl.music.xml.music.KeyShapeData"/>
-<fullyQualifiedTypeName name="edu.tamu.srl.music.xml.music.KeySignature"/>
-<fullyQualifiedTypeName name="edu.tamu.srl.music.xml.music.TimeSignature"/>
-<fullyQualifiedTypeName name="edu.tamu.srl.music.xml.music.Atom"/>
 <fullyQualifiedTypeName name="edu.tamu.srl.music.xml.music.Measure"/>
 <fullyQualifiedTypeName name="edu.tamu.srl.music.xml.music.Measures"/>
 <fullyQualifiedTypeName name="java.util.Iterator"/>
 <fullyQualifiedTypeName name="edu.tamu.srl.music.classifier.IShape.ShapeName"/>
-<fullyQualifiedTypeName name="edu.tamu.srl.music.classifier.IShape.ShapeGroup"/>
 <fullyQualifiedTypeName name="edu.tamu.srl.music.classifier.IShape"/>
 <fullyQualifiedTypeName name="edu.tamu.srl.music.xml.music.XmlAnswer"/>
 <fullyQualifiedTypeName name="edu.tamu.srl.music.xml.music.XmlClef"/>
@@ -29,7 +24,6 @@
 <fullyQualifiedTypeName name="java.io.File"/>
 <fullyQualifiedTypeName name="org.xml.sax.helpers.DefaultHandler"/>
 <fullyQualifiedTypeName name="edu.tamu.srl.music.xml.music.XmlAnswerParser"/>
-<fullyQualifiedTypeName name="java.util.ArrayList"/>
 <fullyQualifiedTypeName name="edu.tamu.srl.music.xml.music.XmlClef.Type"/>
 <fullyQualifiedTypeName name="edu.tamu.srl.music.xml.music.XmlTime.Type"/>
 <fullyQualifiedTypeName name="edu.tamu.srl.music.xml.music.XmlKey.Type"/>
@@ -40,7 +34,6 @@
 <fullyQualifiedTypeName name="java.awt.Component"/>
 <fullyQualifiedTypeName name="java.awt.Container"/>
 <fullyQualifiedTypeName name="java.awt.Insets"/>
-<fullyQualifiedTypeName name="java.awt.geom.Point2D.Double"/>
 <fullyQualifiedTypeName name="java.util.Map"/>
 <fullyQualifiedTypeName name="java.util.Map.Entry"/>
 <fullyQualifiedTypeName name="java.awt.Color"/>
@@ -60,4 +53,11 @@
 <fullyQualifiedTypeName name="edu.tamu.srl.music.gui.FeedbackGui"/>
 <fullyQualifiedTypeName name="javax.swing.BoxLayout"/>
 <fullyQualifiedTypeName name="javax.swing.JScrollPane"/>
+<fullyQualifiedTypeName name="javax.swing.JCheckBoxMenuItem"/>
+<fullyQualifiedTypeName name="javax.swing.AbstractButton"/>
+<fullyQualifiedTypeName name="edu.tamu.srl.music.classifier.IShape.ShapeGroup"/>
+<fullyQualifiedTypeName name="java.awt.geom.Point2D"/>
+<fullyQualifiedTypeName name="java.awt.geom.Point2D.Double"/>
+<fullyQualifiedTypeName name="java.util.ArrayList"/>
+<fullyQualifiedTypeName name="edu.tamu.srl.music.gui.MaestosoSketchGui"/>
 </qualifiedTypeNameHistroy>
