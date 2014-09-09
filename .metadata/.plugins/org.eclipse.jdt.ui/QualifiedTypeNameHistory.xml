@@ -57,7 +57,7 @@
 <fullyQualifiedTypeName name="javax.swing.AbstractButton"/>
 <fullyQualifiedTypeName name="edu.tamu.srl.music.classifier.IShape.ShapeGroup"/>
 <fullyQualifiedTypeName name="java.awt.geom.Point2D"/>
-<fullyQualifiedTypeName name="java.awt.geom.Point2D.Double"/>
 <fullyQualifiedTypeName name="java.util.ArrayList"/>
 <fullyQualifiedTypeName name="edu.tamu.srl.music.gui.MaestosoSketchGui"/>
+<fullyQualifiedTypeName name="java.awt.geom.Point2D.Double"/>
 </qualifiedTypeNameHistroy>

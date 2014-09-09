@@ -80,6 +80,8 @@ public class TimeShapeClassifier extends AbstractShapeClassifier implements ISha
 	
 	private boolean isSpecialCase(IShape candidate, List<IShape> shapes) {
 		
+//		System.out.println(candidate.getStrokes().size() + " | " + shapes.size());
+		
 		// line test
 		// note: no beat shape is a singleton line
 		if (candidate.getStrokes().size() == 1) {
@@ -106,6 +108,37 @@ public class TimeShapeClassifier extends AbstractShapeClassifier implements ISha
 			return true;
 		}
 		
+		// bounding box test
+		// assumption: strokes in multi-stroke numbers intersect at some point
+		//             otherwise, they are not numbers
+		if (candidate.getStrokes().size() > 1) {
+			
+			boolean contains = false;
+			for (int i = 0; i < candidate.getStrokes().size(); ++i) {
+				
+				IStroke currentStroke = candidate.getStrokes().get(i);
+				
+				for (int j = 0; j < candidate.getStrokes().size(); ++j) {
+					
+					if (i == j)
+						continue;
+					
+					IShape otherShape = new IShape(ShapeName.RAW, candidate.getStrokes().get(j));
+					for (Point2D.Double currentPoint : currentStroke.getPoints()) {
+						if (otherShape.getBoundingBox().contains(currentPoint)) {
+							contains = true;
+							break;
+						}
+					}
+					
+					if (contains)
+						break;
+				}
+			}
+			if (!contains)
+				return true;
+		}
+		
 		return false;
 	}
 
@@ -130,8 +163,8 @@ public class TimeShapeClassifier extends AbstractShapeClassifier implements ISha
 			return ShapeName.SEVEN;
 		if (shapeName.equals("8"))
 			return ShapeName.EIGHT;
-		if (shapeName.equals("9"))
-			return ShapeName.NINE;
+//		if (shapeName.equals("9"))
+//			return ShapeName.NINE;
 		
 		return ShapeName.RAW;
 	}
@@ -152,8 +185,8 @@ public class TimeShapeClassifier extends AbstractShapeClassifier implements ISha
 			return 7;
 		if (shapeName == ShapeName.EIGHT)
 			return 8;
-		if (shapeName == ShapeName.NINE)
-			return 9;
+//		if (shapeName == ShapeName.NINE)
+//			return 9;
 		
 		return 0;
 	}
@@ -210,5 +243,5 @@ public class TimeShapeClassifier extends AbstractShapeClassifier implements ISha
 	
 	public static final String DATA_DIR_NAME = "beat";
 	public static final String DATA_DIR_PATHNAME = "src/edu/tamu/srl/music/data/beat/";
-	public static final double MIN_SCORE_THRESHOLD = 0.75;
+	public static final double MIN_SCORE_THRESHOLD = 0.70;
 }

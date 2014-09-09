@@ -109,5 +109,5 @@ public abstract class AbstractShapeClassifier implements IShapeClassifier {
 	public static final double LINE_RATIO_CEILING = 1.10;
 //	public static final Color DEBUG_COLOR = new Color(128, 0, 128);
 	public static final Color CLEAN_STROKE_DISPLAY_COLOR = Color.black;
-	public static final Color TRANSITION_STROKE_DISPLAY_COLOR = Color.orange;
+	public static final Color TRANSITION_STROKE_DISPLAY_COLOR = Color.gray;
 }

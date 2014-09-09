@@ -57,10 +57,11 @@
 	<section name="FatJarPackageWizard">
 		<item value="C:\Users\paultaele\Dropbox\School\code\Java\maestoso-sketch" key="FatJarPackageWizardPage.ANTSCRIPT_LOCATION"/>
 		<item value="MaestosoSketchGui - MusicDraw" key="FatJarPackageWizardPage.LAUNCH_CONFIGURATION_SELECTION_NAME"/>
-		<item value="C:\Users\paultaele\Desktop\MaestosoSketch.jar" key="FatJarPackageWizardPage.DESTINATION_PATH_SELECTION"/>
+		<item value="C:\Users\paultaele\Desktop\Maestoso.jar" key="FatJarPackageWizardPage.DESTINATION_PATH_SELECTION"/>
 		<item value="false" key="FatJarPackageWizardPage.ANTSCRIPT_SAVE"/>
 		<item value="1" key="FatJarPackageWizardPage.LIBRARY_HANDLING"/>
 		<list key="FatJarPackageWizardPage.DESTINATION_NAMES_ID">
+			<item value="C:\Users\paultaele\Desktop\Maestoso.jar"/>
 			<item value="C:\Users\paultaele\Desktop\MaestosoSketch.jar"/>
 		</list>
 		<list key="FatJarPackageWizardPage.ANTSCRIPT_LOCATION_HISTORY">

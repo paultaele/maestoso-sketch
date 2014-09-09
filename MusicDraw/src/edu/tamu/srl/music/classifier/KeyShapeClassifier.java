@@ -197,5 +197,5 @@ public class KeyShapeClassifier
 	
 	public static final String DATA_DIR_NAME = "key";
 	public static final String DATA_DIR_PATHNAME = "src/edu/tamu/srl/music/data/key/";
-	public static final double MIN_SCORE_THRESHOLD = 0.75;
+	public static final double MIN_SCORE_THRESHOLD = 0.70;
 }

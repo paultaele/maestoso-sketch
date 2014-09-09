@@ -534,6 +534,10 @@ public class MaestosoSketchGui implements Runnable {
 		//
 		myIsPractice = isPractice;
 		
+		// TODO :
+		if (myCheckButton != null)
+			myCheckButton.setEnabled(true);
+		
 		// choose the file
 		JFileChooser chooser = new JFileChooser();
 		FileNameExtensionFilter filter = new FileNameExtensionFilter("XML Files", "xml");
@@ -1230,8 +1234,8 @@ public class MaestosoSketchGui implements Runnable {
 	private int[] myResponses;
 	private static boolean myCanDisplayOriginal;
 	
-//	public static final String USER_DIR = "C:/Users/paultaele/Dropbox/School/code/Java/maestoso-sketch/MusicDraw/";
-	public static final String USER_DIR = "./";
+	public static final String USER_DIR = "C:/Users/paultaele/Dropbox/School/code/Java/maestoso-sketch/MusicDraw/";
+//	public static final String USER_DIR = "./";
 	public static int DEFAULT_FRAME_WIDTH;
 	public static int DEFAULT_FRAME_HEIGHT;
 	public static final double FRAME_RATIO = 0.8;
